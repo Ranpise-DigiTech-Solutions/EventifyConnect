@@ -18,6 +18,7 @@ import "react-multi-carousel/lib/styles.css";
 
 import { bookingInfoActions } from "../../states/BookingInfo";
 import { firebaseAuth } from "../../firebaseConfig.js";
+import { onAuthStateChanged } from 'firebase/auth';
 
 export default function AvailabilityCalendar({ hallData }) {
   const timeSlots = {
@@ -522,17 +523,21 @@ export default function AvailabilityCalendar({ hallData }) {
     bookingInfoStore.endTime,
   ]);
 
-  useEffect(()=> {
-    try {
-      const currentUser = firebaseAuth.currentUser;
-      if (currentUser) {
-        setIsUserLoggedIn(true);
-      } else {
-        setIsUserLoggedIn(false);
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(firebaseAuth, (currentUser) => {
+      try {
+        if (currentUser) {
+          setIsUserLoggedIn(true);
+        } else {
+          setIsUserLoggedIn(false);
+        }
+      } catch (error) {
+        console.error(error.message);
       }
-    } catch (error) {
-      console.error(error.message);
-    }
+    });
+
+    // Cleanup subscription on unmount
+    return () => unsubscribe();
   }, [userInfoStore.userAuthStateChangeFlag]);
 
   const handlePrevWeek = () => {

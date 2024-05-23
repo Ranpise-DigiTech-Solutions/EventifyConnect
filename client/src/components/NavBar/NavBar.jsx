@@ -6,6 +6,9 @@ import React, { useState, useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import Button from "@mui/material/Button";
 import { Link } from 'react-router-dom';
+import PropTypes from "prop-types";
+
+import { getAuth, onAuthStateChanged } from 'firebase/auth';
 
 import HomeIcon from '@mui/icons-material/Home';
 import Tooltip from "@mui/material/Tooltip";
@@ -19,14 +22,16 @@ import PersonAdd from '@mui/icons-material/PersonAdd';
 import Settings from '@mui/icons-material/Settings';
 import Logout from '@mui/icons-material/Logout';
 
-
 import { Images } from "../../constants";
 import {
   UserAuthDialog,
   RegistrationForm
 } from '../../components';
 import { firebaseAuth } from "../../firebaseConfig.js";
-import { userInfoActions } from "../../states/UserInfo/index.js";
+import { 
+  userInfoActions, 
+  userAuthStateChangeFlag
+} from "../../states/UserInfo/index.js";
 import axios from "axios";
 // import { SignedIn, SignedOut, UserButton} from "@clerk/clerk-react";
 
@@ -68,8 +73,9 @@ export default function NavBar({ setIsLoading }) {
   const handleLogout = async () => {
     try {
       await firebaseAuth.signOut(); // Sign out the current user
-      dispatch(userInfoActions("userAuthStateChangeFlag", prevFlag => !prevFlag));
+      dispatch(userAuthStateChangeFlag());
       dispatch(userInfoActions("userDetails", {}));
+      setUser(null);
       console.log('User logged out successfully');
     } catch (error) { // Handle Error condition
       console.error('Error logging out:', error.message);
@@ -77,56 +83,35 @@ export default function NavBar({ setIsLoading }) {
   };
 
   useEffect(() => {
-    try {
-      console.log("ENTERED_SIGNIN")
-      const currentUser = firebaseAuth.currentUser;
-      
-      const getUserData = async () => {
-        console.log("currentUser" + currentUser.uid);
-        const response = await axios.get(`http://localhost:8000/eventify_server/userAuthentication/getUserData/${currentUser.uid}`);
-        dispatch(userInfoActions("userDetails", response.data));
-        dispatch(userAuthStateChangeFlag());
-      }
-
+    const unsubscribe = onAuthStateChanged(firebaseAuth, (currentUser) => {
+      console.log("ENTERED_SIGNIN", currentUser);
       if (currentUser) {
-        // User is signed in
+        console.log("currentUser", currentUser.uid);
         setUser(currentUser);
-        setIsLoading(true);
+        // setIsLoading(true);
+
+        const getUserData = async () => {
+          try {
+            const response = await axios.get(`http://localhost:8000/eventify_server/userAuthentication/getUserData/${currentUser.uid}`);
+            dispatch(userInfoActions("userDetails", response.data));
+            dispatch(userAuthStateChangeFlag());
+          } catch (error) {
+            console.error('Error fetching user data:', error.message);
+          } finally {
+            // setIsLoading(false);
+          }
+        };
+        console.log("FUNCTION CALL");
         getUserData();
-        setIsLoading(false);
-      } else {
-        // No user is signed in  
-        setUser(null);
-      }
-
-      // return () => unsubscribe();
-    } catch (error) {
-      console.error(error.message);
-    }
-  }, []); // dependency array => [userAuthStateChangeFlag]
-
-  useEffect(() => {
-    try {
-      console.log("ENTERED")
-      const currentUser = firebaseAuth.currentUser;
-      console.log(currentUser);
-
-      if (currentUser) {
-        // User is signed in
-        setUser(currentUser);
       } else {
         // No user is signed in
         setUser(null);
       }
-      if (!userInfoStore.userDetails) {
-        // only if user details are not already available in redux store.. proceed to get it from db
-      }
+    });
 
-      // return () => unsubscribe();
-    } catch (error) {
-      console.error(error.message);
-    }
-  }, [userInfoStore.userAuthStateChangeFlag]);
+    return ()=> unsubscribe();
+  }, [dispatch, userInfoStore.userAuthStateChangeFlag]); // dependency array => [userAuthStateChangeFlag]
+
 
   useEffect(() => {
     const handleScroll = () => {
@@ -305,4 +290,8 @@ export default function NavBar({ setIsLoading }) {
       )}
     </div>
   );
+}
+
+NavBar.propTypes = {
+  setIsLoading: PropTypes.func,
 }

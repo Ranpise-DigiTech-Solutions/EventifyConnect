@@ -51,7 +51,10 @@ import { FaUserAlt, FaEdit } from "react-icons/fa";
 import "./UserAuthDialog.scss";
 import { Images } from "../../constants/index.js";
 import { firebaseAuth } from "../../firebaseConfig.js";
-import { userInfoActions } from "../../states/UserInfo/index.js";
+import { 
+  userInfoActions, 
+  userAuthStateChangeFlag
+} from "../../states/UserInfo/index.js";
 import { LoadingScreen } from "../../sub-components";
 
 const Transition = React.forwardRef(function Transition(props, ref) {

@@ -7,6 +7,7 @@ import { useSelector, useDispatch } from "react-redux";
 import axios from "axios";
 import Select from "react-select";
 import PhoneInput from "react-phone-input-2";
+import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 
 import Dialog from "@mui/material/Dialog";
 import useMediaQuery from "@mui/material/useMediaQuery";
@@ -37,6 +38,7 @@ import {
   fetchCitiesOfStateData,
   fetchStatesOfCountryData,
 } from "../../states/Data";
+import { firebaseAuth, firebaseStorage } from "../../firebaseConfig.js";
 
 export default function RegistrationForm({
   open,
@@ -102,7 +104,8 @@ export default function RegistrationForm({
     customerLastName: "", // required field
 
     customerDocumentType: "",
-    customerProfileImage: {},
+    customerProfileImage: null,
+    customerProfileImageUrl: "",
     // ... other fields can be found in `commonDataTemplate`
   };
 
@@ -166,6 +169,7 @@ export default function RegistrationForm({
     registerNo: "",
     registerDate: "",
     registerDocument: "",
+    registerDocumentUrl: "",
 
     alternateContactFirstName: "",
     alternateContactLastName: "",
@@ -177,6 +181,7 @@ export default function RegistrationForm({
     description: "",
 
     images: [],
+    imagesUrl: [],
   };
 
   const dispatch = useDispatch();
@@ -197,6 +202,7 @@ export default function RegistrationForm({
   const [userConfirmation, setUserConfirmation] = useState(false); // ask user whether the entered details are correct to the best of his/her knowledge.
   const [loadingScreen, setLoadingScreen] = useState(false); // toggle Loading Screen
   const [isOptionsLoading, setIsOptionsLoading] = useState(false); // to display loading screen when user selects a country or state
+  const [isFileUploadComplete, setIsFileUploadComplete] = useState(false); // to toggle submit
 
   const [hallVendorData, setHallVendorData] = useState({
     ...hallVendorDataTemplate,
@@ -232,6 +238,7 @@ export default function RegistrationForm({
   const [commonDataErrorInfo, setCommonDataErrorInfo] = useState({
     ...commonDataTemplate,
     images: "",
+    imagesUrl: "",
     country: "",
     mainMobileNo: "",
     mainOfficeNo: "",
@@ -243,7 +250,7 @@ export default function RegistrationForm({
   useEffect(() => {
     try {
       if (userConfirmation && !userConfirmationDialog) {
-        handleFormSubmit();
+        uploadFiles();
       }
     } catch (error) {
       console.error(error.message);
@@ -322,7 +329,7 @@ export default function RegistrationForm({
 
             if (isFormValid) {
               if (userType === "CUSTOMER") {
-                handleFormSubmit();
+                setUserConfirmationDialog(true);
                 return;
               }
               setFormType("FORM_FOUR");
@@ -731,8 +738,78 @@ export default function RegistrationForm({
     }
   };
 
+  const uploadFiles = async () => {
+    setLoadingScreen(true);
+    try {
+      if (userType === "VENDOR") {
+        // Business Images Upload
+        const uploadBusinessImages = commonData.images.map(async (file) => {
+          const hallImagesRef = ref(
+            firebaseStorage,
+            `VENDOR/${vendorType}/${userInfo.userDetails.UID}/BusinessImages/${file.name}`
+          );
+          const snapshot = await uploadBytes(hallImagesRef, file);
+          const downloadUrl = await getDownloadURL(snapshot.ref);
+          return downloadUrl;
+        });
+
+        
+        const businessImagesUrl = await Promise.all(uploadBusinessImages);
+        handleCommonData("imagesUrl", businessImagesUrl);
+        console.log("businessImagesUrl", businessImagesUrl);
+        
+        // Registration Document Upload
+        const hallRegisterDocumentRef = ref(
+          firebaseStorage,
+          `VENDOR/${vendorType}/${userInfo.userDetails.UID}/RegistrationDocument/${commonData.registerDocument.name}`
+        );
+        const snapshot = await uploadBytes(
+          hallRegisterDocumentRef,
+          commonData.registerDocument
+        );
+        const registrationDocumentUrl = await getDownloadURL(snapshot.ref);
+        handleCommonData("registerDocumentUrl", registrationDocumentUrl);
+        console.log("registerDocumentUrl", registrationDocumentUrl);
+        setIsFileUploadComplete(true);
+        
+      } else if (userType === "CUSTOMER") {
+        console.log("ENTERED_CUSTOMER_STORAGE");
+        const customerProfileImageRef = ref(
+          firebaseStorage,
+          `CUSTOMER/${userInfo.userDetails.UID}/ProfileImage/${customerData.customerProfileImage.name}`
+        );
+        const snapshot = await uploadBytes(
+          customerProfileImageRef,
+          customerData.customerProfileImage
+        );
+        const customerProfileImageUrl = await getDownloadURL(snapshot.ref);
+        handleCustomerData("customerProfileImageUrl", customerProfileImageUrl);
+        setIsFileUploadComplete(true);
+      }
+      setLoadingScreen(false);
+    } catch (err) {
+      setLoadingScreen(false);
+      console.error(err);
+    }
+  };
+
+  useEffect(()=> {
+
+    if(!isFileUploadComplete) {
+      return;
+    }
+
+    try {
+      handleFormSubmit();
+    } catch(error) {
+      console.error(error);
+    }
+
+  }, [isFileUploadComplete]);
+
   const handleFormSubmit = async () => {
     setLoadingScreen(true);
+
     let data = {};
     let URL = "";
     if (userType === "VENDOR") {
@@ -749,7 +826,7 @@ export default function RegistrationForm({
 
           hallRegisterNo: commonData.registerNo,
           hallRegisterDate: commonData.registerDate,
-          hallRegisterDocument: commonData.registerDocument,
+          hallRegisterDocument: commonData.registerDocumentUrl,
 
           hallMainContactName:
             commonData.mainContactFirstName +
@@ -772,7 +849,7 @@ export default function RegistrationForm({
           hallDescription: commonData.description,
 
           hallEventTypes: userInfo.userDetails.Document.eventTypes,
-          hallImages: commonData.images,
+          hallImages: commonData.imagesUrl,
 
           programId: "USER",
           hallUserId: userInfo.userDetails.Document._id,
@@ -791,7 +868,7 @@ export default function RegistrationForm({
 
           vendorRegisterNo: commonData.registerNo,
           vendorRegisterDate: commonData.registerDate,
-          vendorRegisterDocument: commonData.registerDocument,
+          vendorRegisterDocument: commonData.registerDocumentUrl,
 
           vendorMainContactName:
             commonData.mainContactFirstName +
@@ -814,7 +891,7 @@ export default function RegistrationForm({
           vendorTypeId: userInfo.userDetails.Document.vendorTypeId,
           vendorDescription: commonData.description,
           vendorEventTypes: userInfo.userDetails.Document.eventTypes,
-          vendorImages: commonData.images,
+          vendorImages: commonData.imagesUrl,
 
           programId: "USER",
           vendorUserId: userInfo.userDetails.Document._id,
@@ -822,7 +899,7 @@ export default function RegistrationForm({
         URL = `http://localhost:8000/eventify_server/vendorMaster/registerVendor/?userId=${userInfo.userDetails.UID}&vendorType=${userInfo.userDetails.vendorType}`;
       }
     } else {
-      const { customerFirstName, customerLastName, ...remainingInfo } =
+      const { customerFirstName, customerLastName, customerProfileImage, ...remainingInfo } =
         customerData;
       data = {
         ...remainingInfo,
@@ -845,17 +922,19 @@ export default function RegistrationForm({
         customerAlternateEmail: commonData.alternateEmail,
 
         customerDocumentId: commonData.registerNo,
+        customerDocumentType: customerData.customerDocumentType,
+        customerProfileImage: customerData.customerProfileImageUrl,
 
         programId: "USER", // required-true
       };
-      URL = `http://localhost:8000/eventify_server/customerMaster/updateCustomer/?documentId=${userInfo.userDetails.Document._id}&userId=${userInfo.userDetails.UID}`;
+      URL = `http://localhost:8000/eventify_server/customerMaster/updateCustomerData/?documentId=${userInfo.userDetails.Document._id}&userId=${userInfo.userDetails.UID}`;
     }
 
     try {
       console.log(data);
-      const response = userType === "CUSTOMER" ? await axios.patch(URL, data) : await axios.post(URL, data);
+      const response = await axios.post(URL, data);
       console.log(response.data);
-    } catch(error) {
+    } catch (error) {
       setLoadingScreen(false);
       console.error(error.message);
     }
@@ -890,7 +969,11 @@ export default function RegistrationForm({
               <h2 className="title">Thank you for signing up !!</h2>
               <div className="userProfile">
                 <PersonIcon className="icon personIcon" />
-                <p>{userType === "CUSTOMER" ? userInfo.userDetails?.Document.customerName : userInfo.userDetails?.Document.vendorName}</p>
+                <p>
+                  {userType === "CUSTOMER"
+                    ? userInfo.userDetails?.Document.customerName
+                    : userInfo.userDetails?.Document.vendorName}
+                </p>
                 <VerifiedIcon className="icon verificationIcon" />
               </div>
               <div className="description">
@@ -910,9 +993,16 @@ export default function RegistrationForm({
                   </p>
                 )}
               </div>
-              <button className="continueBtn" onClick={()=> setWelcomeScreen(false)}>Continue</button>
+              <button
+                className="continueBtn"
+                onClick={() => setWelcomeScreen(false)}
+              >
+                Continue
+              </button>
               {userType === "CUSTOMER" && (
-                <button className="skipBtn" onClick={handleClose}>Skip! I will confirm later</button>
+                <button className="skipBtn" onClick={handleClose}>
+                  Skip! I will confirm later
+                </button>
               )}
             </div>
           </div>
@@ -1495,12 +1585,13 @@ export default function RegistrationForm({
                         <div className="profilePic__wrapper">
                           <div className="profilePic">
                             <img
-                              alt="Remy Sharp"
+                              alt="Profile Image"
                               src={
-                                customerData.customerProfileImage &&
-                                URL.createObjectURL(
-                                  customerData.customerProfileImage
-                                )
+                                customerData.customerProfileImage
+                                  ? URL.createObjectURL(
+                                      customerData.customerProfileImage
+                                    )
+                                  : ""
                               }
                               className="avatar"
                             />
@@ -1615,10 +1706,6 @@ export default function RegistrationForm({
                             }
                           />
                         </div>
-                        {/* <div {...getRootProps()} className="img__dropZone">
-                              <input {...getInputProps()} placeholder="Hello"/>
-                              <p>Drag & drop an image here, or click to select one</p>
-                            </div> */}
                         <div className="img__dropZone">
                           <label className="title">
                             Registration Document{" "}
@@ -1672,7 +1759,6 @@ export default function RegistrationForm({
                               </label>
                             </div>
                           )}
-                          {/* <button className="uploadBtn">Choose File</button> */}
                         </div>
                       </>
                     )}
@@ -2176,7 +2262,7 @@ export default function RegistrationForm({
                                   </button>
                                   <img
                                     src={URL.createObjectURL(
-                                      commonData.images[0]
+                                      commonData.images?.[0]
                                     )}
                                     alt=""
                                     className="image"
@@ -2200,12 +2286,25 @@ export default function RegistrationForm({
                               <div className="image">
                                 {commonData.images?.[1] ? (
                                   <>
-                                    <button className="removeBtn">
+                                    <button
+                                      className="removeBtn"
+                                      type="button"
+                                      onClick={(e) => {
+                                        const updatedImages = [
+                                          ...commonData.images,
+                                        ];
+                                        updatedImages.splice(1, 1);
+                                        handleCommonData(
+                                          "images",
+                                          updatedImages
+                                        );
+                                      }}
+                                    >
                                       <CloseIcon className="icon" />
                                     </button>
                                     <img
                                       src={URL.createObjectURL(
-                                        commonData.images[1]
+                                        commonData.images?.[1]
                                       )}
                                       alt=""
                                       className="img"
@@ -2225,12 +2324,25 @@ export default function RegistrationForm({
                               <div className="image">
                                 {commonData.images?.[2] ? (
                                   <>
-                                    <button className="removeBtn">
+                                    <button
+                                      className="removeBtn"
+                                      type="button"
+                                      onClick={(e) => {
+                                        const updatedImages = [
+                                          ...commonData.images,
+                                        ];
+                                        updatedImages.splice(2, 1);
+                                        handleCommonData(
+                                          "images",
+                                          updatedImages
+                                        );
+                                      }}
+                                    >
                                       <CloseIcon className="icon" />
                                     </button>
                                     <img
                                       src={URL.createObjectURL(
-                                        commonData.images[2]
+                                        commonData.images?.[2]
                                       )}
                                       alt=""
                                       className="img"
@@ -2250,12 +2362,25 @@ export default function RegistrationForm({
                               <div className="image">
                                 {commonData.images?.[3] ? (
                                   <>
-                                    <button className="removeBtn">
+                                    <button
+                                      className="removeBtn"
+                                      type="button"
+                                      onClick={(e) => {
+                                        const updatedImages = [
+                                          ...commonData.images,
+                                        ];
+                                        updatedImages.splice(3, 1);
+                                        handleCommonData(
+                                          "images",
+                                          updatedImages
+                                        );
+                                      }}
+                                    >
                                       <CloseIcon className="icon" />
                                     </button>
                                     <img
                                       src={URL.createObjectURL(
-                                        commonData.images[3]
+                                        commonData.images?.[3]
                                       )}
                                       alt=""
                                       className="img"
@@ -2276,7 +2401,7 @@ export default function RegistrationForm({
                                 {commonData.images?.[4] ? (
                                   <img
                                     src={URL.createObjectURL(
-                                      commonData.images[4]
+                                      commonData.images?.[4]
                                     )}
                                     alt=""
                                     className="img"

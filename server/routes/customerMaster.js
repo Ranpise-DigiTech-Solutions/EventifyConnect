@@ -1,6 +1,8 @@
 import { default as express } from 'express';
 const router = express.Router();
 import { firebaseStorage } from '../database/FirebaseDb.js';
+import { ObjectId } from "mongodb";
+import mongoose from "mongoose";
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 // import { default as multer } from 'multer';
 // import { upload } from '../index.js';
@@ -128,6 +130,46 @@ router.patch('/uploadUserImage', async (req, res) => {
     } catch (err) {
         console.error(err);
         return res.status(500).send('Something went wrong');
+    }
+});
+
+router.post('/updateCustomerData', async (req, res) => {
+
+    console.log("Entered updateCustomer")
+
+    const documentId = req.query.documentId;
+    const customerData = req.body;
+    const userId = req.query.userId;
+
+    if(!customerData || !userId || !documentId) {
+        return res.status(404).json({message: "Required Fields missing in the Request body!!"});
+    }
+
+    if (!mongoose.Types.ObjectId.isValid(documentId)) {
+        return res.status(400).json({ message: "Invalid documentId format!" });
+    }
+
+    const documentObjectId = new mongoose.Types.ObjectId(documentId);
+
+    try {
+        const postBody = {
+            ...customerData,
+        }
+
+        const updatedDocument = await customerMaster.findByIdAndUpdate(
+            documentObjectId,
+            postBody,
+            { new: true }
+        );
+        
+        if (!updatedDocument) {
+            return res.status(404).json({ message: "Document not found!" });
+        }
+        
+        return res.status(200).json(updatedDocument);
+    } catch(error) {
+        console.log(error.message);
+        return res.status(500).json(error.message);
     }
 });
 

@@ -33,36 +33,18 @@ router.post('/', async (req, res) => {
 });
 
 router.post('/registerVendor', async (req, res) => {
+
+    const vendorData = req.body;
+    const userId = req.query.userId;
+    const vendorType = req.query.vendorType;
     
-    if(!req.body || !req.query.userId || !req.query.vendorType) {
+    if(!vendorData || !userId || !vendorType) {
         return res.status(404).json({message: "Required Fields missing in the Request body!!"});
     }
     
-    const { vendorRegisterDocument, vendorImages, ...vendorData } = req.body;
-    const { userId, vendorType } = req.query;
-    let vendorRegisterDocumentUrl = "";
-    const vendorImagesUrl = [];
-    const vendorRegisterDocumentRef = ref(firebaseStorage, `VENDOR/${vendorType}/${userId}/RegistrationDocument`)
-    const vendorImagesRef = ref(firebaseStorage, `VENDOR/${vendorType}/${userId}/VendorImages`);
-
     try {
-        if(vendorRegisterDocument) {
-            await uploadBytes(vendorRegisterDocumentRef ,vendorRegisterDocument);
-            vendorRegisterDocumentUrl = await getDownloadURL(vendorRegisterDocumentRef);
-        }
-
-        if(vendorImages || vendorImages.length !== 0) {
-            for (const vendorImage of vendorImages) {
-                await uploadBytes(vendorImagesRef ,vendorImage);
-                const getVendorImageURL = await getDownloadURL(vendorImagesRef);
-                vendorImagesUrl.push(getVendorImageURL);
-            }
-        }
-
         const postBody = {
             ...vendorData,
-            vendorRegisterDocument: vendorRegisterDocumentUrl,
-            vendorImages: vendorImagesUrl
         }
 
         const newDocument = new vendorMaster(postBody);

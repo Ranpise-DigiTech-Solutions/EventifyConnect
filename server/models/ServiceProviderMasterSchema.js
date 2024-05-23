@@ -19,7 +19,6 @@ const serviceProviderMasterSchema = new mongoose.Schema({
     vendorCity:{ type: String },
     vendorTaluk:{ type: String },
     vendorState:{ type: String },
-    vendorState:{ type: String },
     vendorCountry:{ type: String },
     vendorPincode:{ type: String },
     vendorProfileImage: { type: String },

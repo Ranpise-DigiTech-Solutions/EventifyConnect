@@ -83,35 +83,12 @@ router.post('/registerHall', async (req, res) => {
         return res.status(404).json({message: "Required Fields missing in the Request body!!"});
     }
 
-    const { hallRegisterDocument, hallImages, hallParking, ...hallData } = req.body;
-    const userId = req.query.userId;
-    let hallRegisterDocumentUrl = "";
-    const hallImagesUrl = [];
-    const hallRegisterDocumentRef = ref(firebaseStorage, `VENDOR/BanquetHall/${userId}/RegistrationDocument`);
-    const hallImagesRef = ref(firebaseStorage, `VENDOR/BanquetHall/${userId}/HallImages/image.jpg`);
-
+    const { hallParking, ...hallData } = req.body;
+    
     try {
-        if(hallRegisterDocument) {
-            await uploadBytes(hallRegisterDocumentRef ,hallRegisterDocument);
-            hallRegisterDocumentUrl = await getDownloadURL(hallRegisterDocumentRef);
-        }
-
-        console.log("ENTERED0")
-        console.log("ENTERED0")
-
-        if(hallImages || hallImages.length !== 0) {
-            for (const hallImage of hallImages) {
-                await uploadBytes(hallImagesRef ,hallImage);
-                const getHallImageURL = await getDownloadURL(hallImagesRef);
-                hallImagesUrl.push(getHallImageURL);
-            }
-        }
-
         const postBody = {
             ...hallData,
-            hallParking: hallParking === "AVAILABLE", 
-            hallRegisterDocument: hallRegisterDocumentUrl,
-            hallImages: hallImagesUrl
+            hallParking: hallParking === "AVAILABLE",
         }
 
         const newDocument = new hallMaster(postBody);

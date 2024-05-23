@@ -26,17 +26,8 @@ const customerMasterSchema = new mongoose.Schema({
 
     customerDocumentType: { type: String },
     customerDocumentId: { type: String },
-    customerGender:{ type: String },
-    customerAltMobileNumber:{ type: String,unique: true },
-    customerAltEmail:{ type: String },
-    customerAddress:{ type: String },
-    customerLandmark:{ type: String },
-    customerCity:{ type: String },
-    customerTaluk:{ type: String },
-    customerState:{ type: String },
-    customerState:{ type: String },
-    customerCountry:{ type: String },
-    customerPincode:{ type: String },
+    customerGender:{ type: String }, 
+    
     customerProfileImage: { type: String },
 
     programId: { type: String, required: true }, // required-true
