@@ -1,0 +1,100 @@
+/* UserSettings.scss */
+.settings {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    background-color: white;
+    width: 40%;
+    height: 60vh;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    margin: 20px auto;
+  }
+  
+  .settings__menu {
+    width: 100%;
+    background-color: #f7f7f7;
+    padding: 10px 0;
+    display: flex;
+    justify-content: space-around;
+    border-bottom: 1px solid #e7e7e7;
+  }
+  
+  .settings__menu button {
+    background: none;
+    border: none;
+    padding: 10px 20px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+  
+  .settings__menu button:hover,
+  .settings__menu button:focus {
+    background-color: #b0a4a4;
+  }
+  
+  .settings__content {
+    padding: 20px;
+    height: 100%;
+    overflow-y: auto;
+  }
+  
+  .settings__section {
+    margin-bottom: 20px;
+  }
+  
+  .settings__option {
+    margin: 10px 0;
+  }
+  
+  .settings__option label {
+    display: block;
+    margin-bottom: 5px;
+  }
+  
+  .settings__option select {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    box-sizing: border-box;
+  }
+  
+  .settings__option button {
+    background-color: #007bff;
+    color: white;
+    border: none;
+    margin-right: 10px;
+    margin-top: 10px;
+    border-radius: 4px;
+    padding: 10px 20px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+  
+  .settings__option button:hover,
+  .settings__option button:focus {
+    background-color: darken(#007bff, 10%);
+  }
+  
+  .settings__actions {
+    width: 100%;
+    padding: 10px 0;
+    text-align: center;
+  }
+  
+  .settings__actions button {
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    padding: 10px 20px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+  
+  
+  

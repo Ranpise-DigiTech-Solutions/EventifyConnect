@@ -1,0 +1,28 @@
+.userFavorites__container {
+  // Add styling to center the container content
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  h1{
+    font-size: large;
+    color: aliceblue;
+  }
+}
+
+.favorites__wrapper {
+  // Add styling for flexbox layout
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center; // Centers the cards horizontally
+  
+  // Set margin between cards
+  margin-top: 20px;
+}
+
+.PackagesCard {
+  // Add styling to adjust the width of each card
+  width: calc(33.33% - 20px); // 33.33% width for each card, subtracting margin
+  
+  // Add margin to create space between cards
+  margin: 10px;
+}

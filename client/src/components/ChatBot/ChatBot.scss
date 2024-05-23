@@ -1,0 +1,97 @@
+.chatbot__container {
+    font-family: Arial;
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background-color: rgb(234, 238, 243);
+    border-radius: 20px 20px 20px 20px;
+    width: 400px;
+    box-shadow: 3px 3px 10px rgba(255, 255, 255, 0.2);
+    height: 650px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    animation: openAnimation 0.5s ease; 
+    z-index: 0;/* Animation added */
+
+    .chatbot__header {
+      background-color: white;
+      display: flex;
+      height: 100px;
+      justify-content: space-between;
+      align-items: center;
+      margin: 0;
+      border-bottom: 1px solid grey;
+
+      .logo-container {
+        display: flex;
+        align-items: center;
+
+        .logo {
+          width: 60px;
+          height: 60px;
+          border-radius: 50%;
+          margin-right: 30px;
+          margin-left: 30px;
+          box-shadow: 3px 3px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        .brand-name {
+          font-family: Arial;
+          margin-top: 20px;
+        }
+
+        .close-icon{
+          position: absolute;
+          top: 10px;
+          right: 25px;
+          cursor: pointer;
+        }
+      }
+    }
+
+    .message-box {
+      background-color: rgb(234, 238, 243);
+      flex: 1;
+      overflow-y: auto;
+      margin-bottom: 65px;
+    }
+
+    .input-container {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 55px;
+      background-color: white;
+      padding: 7px;
+      border-top: 1px solid grey;
+
+      .input-form {
+        display: flex;
+        align-items: center;
+
+        .input-field {
+          font-family: Arial;
+          font-size: 18px;
+          flex: 1;
+        }
+        
+        .send-icon {
+          font-size: 20px;
+        }
+
+      }
+    }
+  }
+
+  @keyframes openAnimation {
+    0% {
+      transform: translateY(50px);
+      opacity: 0;
+    }
+    100% {
+      transform: translateY(0);
+      opacity: 1;
+    }
+  }

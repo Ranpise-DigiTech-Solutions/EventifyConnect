@@ -1,0 +1,121 @@
+* {
+  margin: 0;
+  padding: 0;
+}
+
+.destinations__container {
+  padding-bottom: 4rem;
+
+  .destination__wrapper {
+    width: 100%;
+    height: 100%;
+    color: #ffffff;
+
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-start;
+
+    padding: 4rem 5rem 5rem 6rem;
+
+    .sub__wrapper_1 {
+      width: 100%;
+
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: flex-start;
+
+      .caption {
+        width: 100%;
+        text-transform: uppercase;
+        font-weight: 600;
+        color: #ff8000;
+        font-family: var(--font-family);
+
+        letter-spacing: 1px;
+        margin-bottom: 0.5rem;
+      }
+
+      .wrapper {
+        width: 100%;
+        display: flex;
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: flex-end;
+        margin-bottom: 2rem;
+
+        .title {
+          h2 {
+            text-transform: capitalize;
+            font-size: 40px;
+            font-family: var(--font-family);
+            font-weight: 800;
+            line-height: 3rem;
+          }
+        }
+
+        .navigation__buttons {
+          display: flex;
+          flex-direction: row;
+          justify-content: center;
+          align-items: flex-end;
+
+          .button {
+            margin: 1rem;
+            border: 2px solid rgba(255, 255, 255, 0.36);
+            padding: 1rem;
+
+            font-size: 15px;
+            font-weight: 600;
+
+            transition: all 0.3s ease-in-out;
+            cursor: pointer;
+
+            &:hover {
+              background-color: rgba(255, 255, 255, 0.36);
+              border: 2px solid rgba(255, 255, 255, 0.15);
+            }
+          }
+
+          .main__button {
+            border-radius: 2rem;
+            text-transform: capitalize;
+            font-family: var(--font-family);
+          }
+
+          .arrow__buttons {
+            border-radius: 999px;
+          }
+        }
+      }
+    }
+
+    .sub__wrapper_2 {
+      margin-top: 2rem;
+      width: 100%;
+      // padding: 2rem 0 0 0;
+      overflow: visible;
+
+      .card {
+        height: 400px;
+        width: 700px;
+        transition: all 0.4s ease-out;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+        position: relative;
+        align-items: center;
+        z-index: 10;
+
+        &:hover {
+            height: 440px;
+            width: 740px;
+            margin-right: 5rem;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+            transform: translateY(-5px);
+        }  
+
+      }
+
+  }
+}
+}

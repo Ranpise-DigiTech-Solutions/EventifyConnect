@@ -1,0 +1,30 @@
+/* MyCart.scss */
+
+.my-user-cart__container {
+  width: 90%;
+  margin: 30px auto;
+  padding: 20px;
+  background-color: #f9f9f9;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+ 
+  .cart-header {
+    margin-bottom: 20px;
+
+    h2 {
+      color: #333;
+      font-size: 24px;
+      font-weight: bold;
+      margin-bottom: 20px;
+    }
+  }
+
+  .cart-container {
+
+    .cart-empty {
+      text-align: center;
+      color: #999;
+      font-size: 18px;
+    }
+  }
+}

@@ -1,0 +1,93 @@
+.notification__container {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;  // This ensures all child elements align to the start unless specified otherwise.
+  width: 100%;  // Ensure the container takes full width if not already set
+
+  .clear-button {
+    padding: 10px 20px;
+    font-size: 16px;
+    align-self: flex-end;  // This aligns the button to the right of the flex container.
+    color: #ffffff;
+    background-color: #007bff;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    margin-top: 10px;
+    margin-bottom: 20px;
+    margin-right: 15px;
+    transition: background-color 0.3s;
+
+    &:hover {
+      background-color: #0056b3;
+    }
+
+    &:focus {
+      outline: none;
+      box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+    }
+
+    &:active {
+      background-color: #004085;
+      box-shadow: inset 0 3px 5px rgba(0, 0, 0, 0.125);
+    }
+  }
+
+  h1 {
+    padding: 1rem 0;
+    font-size: 1.5rem;
+    color: aliceblue;
+    font-weight: bold;
+    text-align: center;
+    align-self: center;  // Ensures the heading is centered within the container.
+  }
+
+  .notification-card {
+    width: 98%;  // To ensure it takes full width available.
+    margin-left: 10px;
+    margin-bottom: 1rem;
+    border: 2px solid rgb(210, 243, 239);
+    border-radius: 5px;
+    background-color: aliceblue;
+    color: #2B193D;
+
+    .message-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1rem;
+      cursor: pointer;
+
+      .title {
+        font-size: 1.2rem;
+        font-weight: bold;
+        color: black;
+      }
+
+      .time {
+        font-size: 1rem;
+        color: black;
+        margin-left: auto;  // This ensures that the time is pushed to the right
+        margin-right: 20px;
+      }
+
+      .arrow {
+        width: 0;
+        height: 0;
+        border-left: 5px solid transparent;
+        border-right: 5px solid transparent;
+        border-top: 5px solid #2B193D;
+        transition: transform 0.3s ease;
+      }
+
+      .down {
+        transform: rotate(180deg);
+      }
+    }
+
+    .message-body {
+      padding: 1rem;
+      font-size: 1rem;
+    }
+  }
+}

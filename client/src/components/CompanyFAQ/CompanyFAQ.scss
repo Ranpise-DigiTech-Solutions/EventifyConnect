@@ -1,0 +1,47 @@
+.faqPopup__container {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    max-height: 70vh; 
+    
+    display: flex;
+    justify-content: center;
+    background-color: rgba(0,0,0,0.5); // Dim background
+    animation: slideIn 0.5s ease;
+  
+    &-container {
+      background-color: white;
+      overflow-y: auto;
+      scroll-behavior: smooth;
+      width: 100%; // Take full width
+      border-radius: 8px 8px 0 0; // Only round the top corners
+      padding: 20px;
+      box-sizing: border-box; // Ensure padding doesn't add to the width
+    }
+  
+    &-header {
+      display: flex;
+      justify-content: space-between; // Adjust based on your layout
+      align-items: center; // Center items vertically
+    }
+  
+    .close-icon {
+      cursor: pointer;
+      font-size: 24px; // Adjust size as needed
+      color: #333; // Ensure visibility against the background
+      margin-left: auto; // Push to the right
+    }
+  }
+  
+  @keyframes slideIn {
+    from {
+      transform: translateY(100%); // Start from the bottom
+      opacity: 0;
+    }
+    to {
+      transform: translateY(0);
+      opacity: 1;
+    }
+  }
+  
