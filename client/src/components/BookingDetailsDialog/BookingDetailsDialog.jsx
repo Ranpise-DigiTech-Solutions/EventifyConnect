@@ -37,6 +37,8 @@ import { GiSandsOfTime } from "react-icons/gi";
 import { LoadingScreen } from "../../sub-components";
 import { Images } from "../../constants";
 
+//@TODO: Vendors cannot book halls
+
 export default function BookingDetailsDialog({
   open,
   handleClose,
@@ -44,7 +46,7 @@ export default function BookingDetailsDialog({
   serviceProviderData,
 }) {
   // const history = useHistory();
-  
+
   const dataStore = useSelector((state) => state.data); // CITIES, EVENT_TYPES & VENDOR_TYPES data
   const bookingInfoStore = useSelector((state) => state.bookingInfo); // user Booking information
   const userInfoStore = useSelector((state) => state.userInfo); // user Authentication information
@@ -56,7 +58,8 @@ export default function BookingDetailsDialog({
     useState(false);
   const [formErrorUpdateFlag, setFormErrorUpdateFlag] = useState(false); // error update flag for form
 
-  const [bookingConfirmationScreen, setBookingConfirmationScreen] = useState(false); // toggle booking confirmation screen
+  const [bookingConfirmationScreen, setBookingConfirmationScreen] =
+    useState(false); // toggle booking confirmation screen
 
   const customStyles = {
     control: (provided, state) => ({
@@ -159,17 +162,8 @@ export default function BookingDetailsDialog({
     }
   }
 
-  //cleanup function
-  // useEffect(() => {
-  //   return () => {
-  //     setFormType("FORM_ONE");
-  //     setBookingDetails({ ...bookingDetailsTemplate });
-  //     setBookingConfirmationScreen(false);
-  //   };
-  // }, []);
-
   useEffect(() => {
-    if(!bookingDetails.eventTypeInfo.eventTypeId) {
+    if (!bookingDetails.eventTypeInfo.eventTypeId) {
       return;
     }
 
@@ -266,7 +260,7 @@ export default function BookingDetailsDialog({
   };
 
   const handleFormSubmit = async () => {
-    setIsLoading(true);
+    // setIsLoading(true);
     try {
       const parsedStartDateObject = parseDate(
         bookingInfoStore.bookingStartDate,
@@ -288,6 +282,9 @@ export default function BookingDetailsDialog({
         0,
         0
       );
+
+      console.log("FINAL BOOKING START DATE: " + parsedStartDateObject);
+      console.log("FINAL BOOKING END DATE: " + parsedEndDateObject);
 
       const postData = {
         hallId: hallData._id,
@@ -387,66 +384,50 @@ export default function BookingDetailsDialog({
               <h2 className="title">Your booking was successful !!</h2>
               <div className="description">
                 Your booking is on hold, pending confirmation from the vendor.
-                We&lsquo;ve notified the vendor about your request. Once they confirm
-                your booking, we&apos;ll send you a confirmation.
+                We&lsquo;ve notified the vendor about your request. Once they
+                confirm your booking, we&apos;ll send you a confirmation.
               </div>
               <div className="bookingDetails__wrapper">
-                <h2 className="title">
-                  Booking Details
-                </h2>
+                <h2 className="title">Booking Details</h2>
                 <div className="details__wrapper">
                   <div className="sub-wrapper">
-                    <div className="key">
-                      Booking Id:
-                    </div>
-                    <div className="value">
-                      {bookingDetails.bookingId}
-                    </div>
+                    <div className="key">Booking Id:</div>
+                    <div className="value">{bookingDetails.bookingId}</div>
                   </div>
                   <div className="verticalLineSeparator"></div>
                   <div className="sub-wrapper">
-                    <div className="key">
-                      Start Date:
-                    </div>
+                    <div className="key">Start Date:</div>
                     <div className="value">
                       {bookingInfoStore.bookingStartDate}
                     </div>
                   </div>
                   <div className="verticalLineSeparator"></div>
                   <div className="sub-wrapper">
-                    <div className="key">
-                      End Date:
-                    </div>
+                    <div className="key">End Date:</div>
                     <div className="value">
                       {bookingInfoStore.bookingEndDate}
                     </div>
                   </div>
                   <div className="verticalLineSeparator"></div>
                   <div className="sub-wrapper">
-                    <div className="key">
-                      Total:
-                    </div>
-                    <div className="value">
-                      $0
-                    </div>
+                    <div className="key">Total:</div>
+                    <div className="value">$0</div>
                   </div>
                   <div className="verticalLineSeparator"></div>
                   <div className="sub-wrapper">
-                    <div className="key">
-                      Status:
-                    </div>
-                    <div className="value">
-                      PENDING
-                    </div>
+                    <div className="key">Status:</div>
+                    <div className="value">PENDING</div>
                   </div>
                 </div>
-              </div>  
-              <button 
+              </div>
+              <button
                 className="continueBtn"
-                onClick={()=> {
+                onClick={() => {
                   handleClose();
                 }}
-              >Continue</button>
+              >
+                Continue
+              </button>
             </div>
           </div>
         </div>
@@ -1033,9 +1014,13 @@ export default function BookingDetailsDialog({
                       <input
                         type="text"
                         value={
-                          userInfoStore.userDetails?.Document?.customerName.split(
+                          userInfoStore.userDetails?.Document?.customerName.includes(
                             " "
-                          )[0]
+                          )
+                            ? userInfoStore.userDetails?.Document?.customerName.split(
+                                " "
+                              )[0]
+                            : userInfoStore.userDetails?.Document?.customerName
                         }
                         className="input"
                         disabled
@@ -1051,9 +1036,13 @@ export default function BookingDetailsDialog({
                       <input
                         type="text"
                         value={
-                          userInfoStore.userDetails?.Document?.customerName.split(
+                          userInfoStore.userDetails?.Document?.customerName.includes(
                             " "
-                          )[1]
+                          )
+                            ? userInfoStore.userDetails?.Document?.customerName.split(
+                                " "
+                              )[1]
+                            : ""
                         }
                         className="input"
                         disabled

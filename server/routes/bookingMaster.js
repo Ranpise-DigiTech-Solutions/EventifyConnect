@@ -53,6 +53,7 @@ router.put('/:id', async (req, res) => {
       }
   });
 
+  // route only created for hall bookings
   router.post("/", async (req, res) => { 
     const postData = req.body;
     console.log(postData);

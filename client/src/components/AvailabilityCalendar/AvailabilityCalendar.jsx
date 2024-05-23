@@ -138,18 +138,12 @@ export default function AvailabilityCalendar({ hallData }) {
         if (bookings) {
           bookings.map((booking) => {
             const tempCalendar = { ...availabilityCalendar };
-            const bookingStartDateTimestamp = new Date(
+            const bookingStartDate = new Date(
               booking.bookingStartDateTimestamp
             );
-            const bookingEndDateTimestamp = new Date(
+            const bookingEndDate = new Date(
               booking.bookingEndDateTimestamp
             );
-            const bookingStartDate = new Date(
-              bookingStartDateTimestamp.getTime() - 5.5 * 60 * 60 * 1000
-            ); // to UTC time
-            const bookingEndDate = new Date(
-              bookingEndDateTimestamp.getTime() - 5.5 * 60 * 60 * 1000
-            ); // to UTC time
             console.log(
               "BOOKING START and END DATES ",
               bookingStartDate.toString(),
