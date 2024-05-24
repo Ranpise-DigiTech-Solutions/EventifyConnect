@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import OrderDetailsPage from '../OrderDetailsPage/OrderDetailsPage';
 import './OrderHistoryPage.scss';
 import axios from 'axios';
-
+import UserProfileLeftPanel from '../UserProfileLeftPanel/UserProfileLeftPanel';
 import { useSelector } from "react-redux";
 import AdminBookingCard from './AdminBookingCard.jsx';
 import VendorBookingCard from './VendorBookingCard.jsx';
@@ -14,8 +14,12 @@ const OrderHistoryPage = () => {
   const [selectedOrder, setSelectedOrder] = useState(null);
   const userInfoStore = useSelector((state) => state.userInfo);
   const userType = userInfoStore.userDetails.userType;
-  const userId = userInfoStore.userDetails.Document._id;
-  
+  const userId = userInfoStore.userDetails.Document?._id;
+  const [activeComponent, setActiveComponent] = useState(null);
+
+  const handleSetActiveComponent = (component) => {
+      setActiveComponent(component);
+  };
   
     const fetchBookings = async () => {
       try {
@@ -128,6 +132,9 @@ const OrderHistoryPage = () => {
   };
 
   return (
+    <><div className="left-panel-container">
+    <UserProfileLeftPanel setActiveComponent={handleSetActiveComponent} />
+  </div>
     <div className="order-history-page">
       <div className="order-history-panel">
         <div className="order-history">
@@ -148,6 +155,7 @@ const OrderHistoryPage = () => {
         </div>
       </div>
     </div>
+    </>
   );
 };
 

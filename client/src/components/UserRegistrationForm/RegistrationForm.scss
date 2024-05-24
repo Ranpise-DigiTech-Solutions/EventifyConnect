@@ -57,7 +57,7 @@
         }
 
         .userProfile {
-            width: 30%;
+            width: auto;
             display: flex;
             flex-direction: row;
             justify-content: flex-start;
@@ -81,7 +81,6 @@
             }
 
             .verificationIcon {
-                position: absolute;
                 right: 1rem;   
                 color: #00cc00;
             }
@@ -1183,4 +1182,48 @@
         }
 
     }
+}
+@media (max-width: 768px) {
+
+.registrationFormMain__wrapper {
+
+
+    .img__wrapper {
+        display: none;
+
+    
+    .bgCover {
+        display: none;
+
+        
+
+    }
+    // img{
+    //     display: none;
+    // }
+}
+.contents__wrapper{
+    width: 100%;
+
+    .form__container{
+        .userInput__wrapper{
+            .textField__wrapper{
+                display: block;
+
+                .sub-wrapper{
+                    margin: 0;
+                    padding: 0;
+                }
+                .sub-wrapper:nth-child(2){
+                    margin: 1.5rem 0 0 0;
+                } 
+            }
+            .pinCode__wrapper{
+                width: 100%;
+            }
+        }
+    }
+}
+}
+
 }

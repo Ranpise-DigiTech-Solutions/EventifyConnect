@@ -1,28 +1,35 @@
-/* eslint-disable no-unused-vars */
-/* eslint-disable react-hooks/exhaustive-deps */
 import "./NavBar.scss";
 
 import React, { useState, useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
-import Button from "@mui/material/Button";
-import { Link } from "react-router-dom";
+
+import { Link } from 'react-router-dom';
 import PropTypes from "prop-types";
 
 import { getAuth, onAuthStateChanged } from "firebase/auth";
 
 import HomeIcon from "@mui/icons-material/Home";
+import Button from "@mui/material/Button";
 import Tooltip from "@mui/material/Tooltip";
 import Avatar from "@mui/material/Avatar";
 import IconButton from "@mui/material/IconButton";
-import Menu from "@mui/material/Menu";
-import MenuItem from "@mui/material/MenuItem";
-import ListItemIcon from "@mui/material/ListItemIcon";
-import Divider from "@mui/material/Divider";
-import PersonAdd from "@mui/icons-material/PersonAdd";
-import Settings from "@mui/icons-material/Settings";
-import Logout from "@mui/icons-material/Logout";
+import Menu from '@mui/material/Menu';
+import MenuItem from '@mui/material/MenuItem';
+import ListItemIcon from '@mui/material/ListItemIcon';
+import Divider from '@mui/material/Divider';
+import PersonAdd from '@mui/icons-material/PersonAdd';
+import Settings from '@mui/icons-material/Settings';
+import Logout from '@mui/icons-material/Logout';
 import AddBusinessOutlinedIcon from "@mui/icons-material/AddBusinessOutlined";
-
+import MenuIcon from '@mui/icons-material/Menu';
+import CloseIcon from '@mui/icons-material/Close';
+import Box from '@mui/material/Box';
+import Drawer from '@mui/material/Drawer';
+import List from '@mui/material/List';
+import ListItem from '@mui/material/ListItem';
+import ListItemText from '@mui/material/ListItemText';
+import useMediaQuery from '@mui/material/useMediaQuery';
+import UserProfileLeftPanel from '../../components/UserProfileLeftPanel/UserProfileLeftPanel';
 import { Images } from "../../constants";
 import {
   UserAuthDialog,
@@ -34,6 +41,8 @@ import {
   userInfoActions,
   userAuthStateChangeFlag,
 } from "../../states/UserInfo/index.js";
+import ProfileIcon from '@mui/icons-material/AccountCircle';
+import { useNavigate } from 'react-router-dom';
 import axios from "axios";
 // import { SignedIn, SignedOut, UserButton} from "@clerk/clerk-react";
 
@@ -56,6 +65,8 @@ export default function NavBar({
   const [serviceProviderData, setServiceProviderData] = useState(null);
   const open = Boolean(anchorEl);
   const dispatch = useDispatch();
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const navigate = useNavigate();
 
   const handleUserProfileClick = (event) => {
     setAnchorEl(event.currentTarget);
@@ -79,7 +90,20 @@ export default function NavBar({
   const handleRegistrationDialogClose = () => {
     setIsRegistrationDialogOpen(false);
   };
-
+// Function to toggle the mobile menu
+const toggleMobileMenu = () => {
+  setMobileMenuOpen(!mobileMenuOpen);
+};
+// Function to handle menu item clicks
+const handleMenuItemClick = (componentKey) => {
+  console.log(componentKey);
+  // Add any additional functionality you need
+};
+// Function to handle setting the active component
+const handleSetActiveComponent = (componentKey) => {
+  console.log('Active component:', componentKey);
+  // Add any additional functionality you need
+};
   const handleWalkInCustomerBookingDialogClose = () => {
     setIsWalkInCustomerBookingDialogOpen(false);
   };
@@ -182,7 +206,7 @@ export default function NavBar({
       window.removeEventListener("scroll", handleScroll);
     };
   }, [prevScrollY]);
-
+  const isMobile = useMediaQuery('(max-width:768px)');
   return (
     <div className="navbar__container">
       <div className={`navbar__wrapper ${scrolled ? "scrolled" : ""}`}>
@@ -193,75 +217,132 @@ export default function NavBar({
             <p className="tagline">- Connecting people together</p>
           </div>
         </div>
-
-        <div className="tags__wrapper">
-          <a href="#" className="tag">
+        {isMobile ? (
+          // Mobile view
+          <div >
+            <IconButton onClick={toggleMobileMenu} color="inherit">
+              {mobileMenuOpen ? <CloseIcon /> : <MenuIcon />}
+            </IconButton>
+            <Drawer
+             
+              anchor="right"
+              open={mobileMenuOpen}
+              onClose={toggleMobileMenu}
+            >
+              <Box
+                sx={{
+                  width: 250,
+                  height: '100vh',
+                  bgcolor: 'rgb(17, 24, 39)', // Set the background color to red
+                  color: 'rgb(156, 163, 175)', // Set the text color to white
+                }}
+                role="presentation"
+                onClick={toggleMobileMenu}
+                onKeyDown={toggleMobileMenu}
+                
+              >
+                {user ? (
+                  <UserProfileLeftPanel
+                    user={user}
+                    handleLogout={handleLogout}
+                    handleMenuItemClick={handleMenuItemClick}
+                    setActiveComponent={handleSetActiveComponent} // Pass the handleSetActiveComponent function as a prop
+                  />
+                ) : (
+                  <List >
+                    {/* Add your menu items here */}
+                    <ListItem button onClick={() => handleMenuItemClick('venues')}>
+                      <ListItemText primary="Venues" />
+                    </ListItem>
+                    <ListItem button onClick={() => handleMenuItemClick('ourValue')}>
+                      <ListItemText primary="Our Value" />
+                    </ListItem>
+                    <ListItem button onClick={() => handleMenuItemClick('contactUs')}>
+                      <ListItemText primary="Contact Us" />
+                    </ListItem>
+                    <ListItem button onClick={() => handleMenuItemClick('getStarted')}>
+                      <ListItemText primary="Get Started" />
+                    </ListItem>
+                    <ListItem button onClick={handleSignInButtonClick}>
+                    <ListItemIcon style={{ color: 'rgb(156, 163, 175)' }}>
+                        <PersonAdd fontSize="small" />
+                      </ListItemIcon>
+                      <ListItemText primary="Sign In" />
+                    </ListItem>
+                  </List>
+                )}
+              </Box>
+            </Drawer>
+          </div>
+        ) : (
+          <div className="tags__wrapper">
+          <a href="#" className="tag" onClick={() => handleMenuItemClick('venues')}>
             Venues
           </a>
-          <a href="#" className="tag">
+          <a href="#" className="tag" onClick={() => handleMenuItemClick('ourValue')}>
             Our Value
           </a>
-          <a href="#" className="tag">
+          <a href="#" className="tag" onClick={() => handleMenuItemClick('contactUs')}>
             Contact Us
           </a>
-          <a href="#" className="tag">
+          <a href="#" className="tag" onClick={() => handleMenuItemClick('getStarted')}>
             Get Started
           </a>
           {user ? (
-            <React.Fragment>
-              <Tooltip title="Account settings">
-                <IconButton
-                  onClick={handleUserProfileClick}
-                  size="small"
-                  sx={{ ml: 2 }}
-                  aria-controls={open ? "account-menu" : undefined}
-                  aria-haspopup="true"
-                  aria-expanded={open ? "true" : undefined}
-                  className="userProfile"
+              <React.Fragment>
+                <Tooltip title="Account settings">
+                  <IconButton
+                    onClick={handleUserProfileClick}
+                    size="small"
+                    sx={{ ml: 2 }}
+                    aria-controls={open ? "account-menu" : undefined}
+                    aria-haspopup="true"
+                    aria-expanded={open ? "true" : undefined}
+                    className="userProfile"
+                  >
+                    <Avatar sx={{ width: 36, height: 36 }}>M</Avatar>
+                  </IconButton>
+                </Tooltip>
+                <Menu
+                  anchorEl={anchorEl}
+                  id="account-menu"
+                  open={open}
+                  onClose={handleUserProfileClose}
+                  onClick={handleUserProfileClose}
+                  PaperProps={{
+                    elevation: 0,
+                    sx: {
+                      overflow: "visible",
+                      filter: "drop-shadow(0px 2px 8px rgba(0,0,0,0.32))",
+                      mt: 1.5,
+                      "& .MuiAvatar-root": {
+                        width: 32,
+                        height: 32,
+                        ml: -0.5,
+                        mr: 1,
+                      },
+                      "&::before": {
+                        content: '""',
+                        display: "block",
+                        position: "absolute",
+                        top: 0,
+                        right: 14,
+                        width: 10,
+                        height: 10,
+                        bgcolor: "background.paper",
+                        transform: "translateY(-50%) rotate(45deg)",
+                        zIndex: 0,
+                      },
+                    },
+                  }}
+                  transformOrigin={{ horizontal: "right", vertical: "top" }}
+                  anchorOrigin={{ horizontal: "right", vertical: "bottom" }}
                 >
-                  <Avatar sx={{ width: 36, height: 36 }}>M</Avatar>
-                </IconButton>
-              </Tooltip>
-              <Menu
-                anchorEl={anchorEl}
-                id="account-menu"
-                open={open}
-                onClose={handleUserProfileClose}
-                onClick={handleUserProfileClose}
-                PaperProps={{
-                  elevation: 0,
-                  sx: {
-                    overflow: "visible",
-                    filter: "drop-shadow(0px 2px 8px rgba(0,0,0,0.32))",
-                    mt: 1.5,
-                    "& .MuiAvatar-root": {
-                      width: 32,
-                      height: 32,
-                      ml: -0.5,
-                      mr: 1,
-                    },
-                    "&::before": {
-                      content: '""',
-                      display: "block",
-                      position: "absolute",
-                      top: 0,
-                      right: 14,
-                      width: 10,
-                      height: 10,
-                      bgcolor: "background.paper",
-                      transform: "translateY(-50%) rotate(45deg)",
-                      zIndex: 0,
-                    },
-                  },
-                }}
-                transformOrigin={{ horizontal: "right", vertical: "top" }}
-                anchorOrigin={{ horizontal: "right", vertical: "bottom" }}
-              >
-                <MenuItem>
-                  <Link to="/">
-                    <ListItemIcon>
-                      <HomeIcon fontSize="small" />
-                    </ListItemIcon>
+                 <MenuItem>
+             <Link to="/">
+              <ListItemIcon>
+                    <HomeIcon fontSize="small" />
+              </ListItemIcon>
                     Home
                   </Link>
                 </MenuItem>
@@ -314,18 +395,18 @@ export default function NavBar({
                   Logout
                 </MenuItem>
               </Menu>
-            </React.Fragment>
-          ) : (
-            <Button
-              variant="contained"
-              className="button"
-              onClick={handleSignInButtonClick}
-              // onClick={handleRegistrationDialogOpen}
-            >
-              Sign In
-            </Button>
-          )}
-        </div>
+              </React.Fragment>
+            ) : (
+              <Button
+                variant="contained"
+                className="button"
+                onClick={handleSignInButtonClick}
+              >
+                Sign In
+              </Button>
+            )}
+          </div>
+        )}
       </div>
       {isSignInDialogOpen && (
         <div className="signInDialog">

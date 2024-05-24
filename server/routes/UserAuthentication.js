@@ -94,7 +94,7 @@ router.post("/passwordlessSignIn/", async (req, res) => {
 router.post("/loginWithPassword", async (req, res) => {
 
     const { userEmail, userPassword, userType } = req.body;
-    console.log("Login attempt:", userEmail, userPassword, userType); 
+  
     try {
         const user = userType === "CUSTOMER" ? await customerMaster.findOne({"customerEmail": userEmail}) : await serviceProviderMaster.findOne({"vendorEmail": userEmail});
 

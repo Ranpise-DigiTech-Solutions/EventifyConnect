@@ -4,7 +4,7 @@ import './OrderDetailsPage.scss';
 import logo from '../../assets/logo.png';
 import defualtImage from '../../assets/upload-photo-here.jpg';
 import { useNavigate } from "react-router-dom";
-
+import emailjs from 'emailjs-com';
 import { FaWifi, FaUtensils, FaParking, FaArrowRight, FaCheckCircle, FaExclamationCircle, FaTimesCircle, FaEdit, FaSave, FaTimes, FaUser, FaEnvelope, FaPhone, FaMapMarkerAlt, FaCalendarAlt, FaHotel, FaUsers, FaClock, FaCarSide, FaBed, FaCommentAlt } from 'react-icons/fa';
 
 const OrderDetailsPage = ({ order,userId, onClose, userType ,fetchBookings}) => {
@@ -110,8 +110,8 @@ const OrderDetailsPage = ({ order,userId, onClose, userType ,fetchBookings}) => 
             <h2>Customer Contact Details</h2>
             <p><FaUser /><strong>Name:</strong> {order.customerData.customerName || "Not defined"}</p>
             <p><FaPhone /> <strong>Contact Number:</strong> {order.customerData.customerContact || "Not defined"}</p>
-            <p><FaPhone /><strong>Alternative Contact Number:</strong> {order.customerData.customerAltContact || "Not defined"}</p>
-            <p><FaEnvelope /><strong>Email:</strong> {order.customerData.customerEmail || "Not defined"}</p>
+            <p><FaPhone /><strong>Alternative Contact Number:</strong> {order.customerData.customerAlternateMobileNo || "Not defined"}</p>
+            <p><FaEnvelope /><strong>Email:</strong> {order.customerData.customerAlternateEmail || "Not defined"}</p>
             <p><FaMapMarkerAlt /><strong>City:</strong> {order.customerData.customerCurrentLocation || "Not defined"}</p>
             <p><FaCalendarAlt /><strong>Date of Booking:</strong> {new Date(order.createdAt).toLocaleString()}</p>
           </div>
