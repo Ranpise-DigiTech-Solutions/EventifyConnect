@@ -1,12 +1,13 @@
 import { default as express } from 'express';
 const router = express.Router();
 import { ObjectId } from 'mongodb';
+import mongoose from "mongoose";
 import { firebaseStorage } from '../database/FirebaseDb.js';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 
 import { hallMaster } from '../models/index.js';
 
-router.get("/getHallDetails", async (req, res) => {
+router.get("/getHallById", async (req, res) => {
 
     const { hallId } = req.query;
     const filter = {};
@@ -28,6 +29,32 @@ router.get("/getHallDetails", async (req, res) => {
     }
 });
 
+
+router.get("/getHallByUserId", async (req, res) => {
+    console.log(req.query.id);
+
+    const userId = req.query.userId;
+    const filter = {};
+
+    if (!userId) {
+        return res.status(404).json({ message: "Query parameter 'userId' is required" });
+    }
+
+    const hallUserObjectId = new mongoose.Types.ObjectId(userId);
+    filter["hallUserId"] = hallUserObjectId;
+
+    try {
+        const hallDetails = await hallMaster.find(filter);
+
+        if (!hallDetails || hallDetails.length === 0) {
+            return res.status(404).json({ message: "No Records Found" });
+        }
+
+        return res.status(200).json(hallDetails);
+    } catch (error) {
+        return res.status(500).json({ message: "Error: " + error.message });
+    }
+});
 
 router.get('/', async(req, res)=> {
 

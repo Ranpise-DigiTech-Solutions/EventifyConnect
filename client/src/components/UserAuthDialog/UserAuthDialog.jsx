@@ -248,7 +248,11 @@ export default function UserAuthDialog({
           "UID": userDetails.uid,
           "Document": response.data,
           userType: userType,
-          vendorType: ""
+          vendorType: userType === "VENDOR" ? data.vendorTypes.data.map((item) => {
+            if (item._id === response.data.vendorTypeId) {
+              return item.vendorType;
+            }
+          }) : ""
         }));
         dispatch(userAuthStateChangeFlag());
         setLoadingScreen(false);

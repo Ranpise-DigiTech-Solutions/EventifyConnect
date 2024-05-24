@@ -5,52 +5,62 @@ import "./NavBar.scss";
 import React, { useState, useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import Button from "@mui/material/Button";
-import { Link } from 'react-router-dom';
+import { Link } from "react-router-dom";
 import PropTypes from "prop-types";
 
-import { getAuth, onAuthStateChanged } from 'firebase/auth';
+import { getAuth, onAuthStateChanged } from "firebase/auth";
 
-import HomeIcon from '@mui/icons-material/Home';
+import HomeIcon from "@mui/icons-material/Home";
 import Tooltip from "@mui/material/Tooltip";
 import Avatar from "@mui/material/Avatar";
 import IconButton from "@mui/material/IconButton";
-import Menu from '@mui/material/Menu';
-import MenuItem from '@mui/material/MenuItem';
-import ListItemIcon from '@mui/material/ListItemIcon';
-import Divider from '@mui/material/Divider';
-import PersonAdd from '@mui/icons-material/PersonAdd';
-import Settings from '@mui/icons-material/Settings';
-import Logout from '@mui/icons-material/Logout';
+import Menu from "@mui/material/Menu";
+import MenuItem from "@mui/material/MenuItem";
+import ListItemIcon from "@mui/material/ListItemIcon";
+import Divider from "@mui/material/Divider";
+import PersonAdd from "@mui/icons-material/PersonAdd";
+import Settings from "@mui/icons-material/Settings";
+import Logout from "@mui/icons-material/Logout";
+import AddBusinessOutlinedIcon from "@mui/icons-material/AddBusinessOutlined";
 
 import { Images } from "../../constants";
 import {
   UserAuthDialog,
-  RegistrationForm
-} from '../../components';
+  RegistrationForm,
+  WalkInCustomerBookingDialog,
+} from "../../components";
 import { firebaseAuth } from "../../firebaseConfig.js";
-import { 
-  userInfoActions, 
-  userAuthStateChangeFlag
+import {
+  userInfoActions,
+  userAuthStateChangeFlag,
 } from "../../states/UserInfo/index.js";
 import axios from "axios";
 // import { SignedIn, SignedOut, UserButton} from "@clerk/clerk-react";
 
-
-export default function NavBar({ setIsLoading }) {
+export default function NavBar({
+  setIsLoading,
+}) {
   const [scrolled, setScrolled] = useState(false);
   const [isSignInDialogOpen, setSignInDialogOpen] = useState(false);
-  const [isRegistrationDialogOpen, setIsRegistrationDialogOpen] = useState(false);
+  const [isRegistrationDialogOpen, setIsRegistrationDialogOpen] =
+    useState(false);
+  const [
+    isWalkInCustomerBookingDialogOpen,
+    setIsWalkInCustomerBookingDialogOpen,
+  ] = useState(false);
   const [prevScrollY, setPrevScrollY] = useState(0);
   const [user, setUser] = useState(null);
   const userInfoStore = useSelector((state) => state.userInfo);
   const [anchorEl, setAnchorEl] = useState(null);
+  const [hallData, setHallData] = useState(null);
+  const [serviceProviderData, setServiceProviderData] = useState(null);
   const open = Boolean(anchorEl);
   const dispatch = useDispatch();
 
   const handleUserProfileClick = (event) => {
     setAnchorEl(event.currentTarget);
   };
-  
+
   const handleUserProfileClose = () => {
     setAnchorEl(null);
   };
@@ -70,15 +80,24 @@ export default function NavBar({ setIsLoading }) {
     setIsRegistrationDialogOpen(false);
   };
 
+  const handleWalkInCustomerBookingDialogClose = () => {
+    setIsWalkInCustomerBookingDialogOpen(false);
+  };
+
+  const handleWalkInCustomerBookingDialogOpen = () => {
+    setIsWalkInCustomerBookingDialogOpen(true);
+  };
+
   const handleLogout = async () => {
     try {
       await firebaseAuth.signOut(); // Sign out the current user
       dispatch(userAuthStateChangeFlag());
       dispatch(userInfoActions("userDetails", {}));
       setUser(null);
-      console.log('User logged out successfully');
-    } catch (error) { // Handle Error condition
-      console.error('Error logging out:', error.message);
+      console.log("User logged out successfully");
+    } catch (error) {
+      // Handle Error condition
+      console.error("Error logging out:", error.message);
     }
   };
 
@@ -92,11 +111,13 @@ export default function NavBar({ setIsLoading }) {
 
         const getUserData = async () => {
           try {
-            const response = await axios.get(`http://localhost:8000/eventify_server/userAuthentication/getUserData/${currentUser.uid}`);
+            const response = await axios.get(
+              `http://localhost:8000/eventify_server/userAuthentication/getUserData/${currentUser.uid}`
+            );
             dispatch(userInfoActions("userDetails", response.data));
             dispatch(userAuthStateChangeFlag());
           } catch (error) {
-            console.error('Error fetching user data:', error.message);
+            console.error("Error fetching user data:", error.message);
           } finally {
             // setIsLoading(false);
           }
@@ -109,9 +130,33 @@ export default function NavBar({ setIsLoading }) {
       }
     });
 
-    return ()=> unsubscribe();
+    return () => unsubscribe();
   }, [dispatch, userInfoStore.userAuthStateChangeFlag]); // dependency array => [userAuthStateChangeFlag]
 
+  useEffect(() => {
+    try {
+      const getServiceProviderData = async (hallData) => {
+        const response = await axios.get(
+          `http://localhost:8000/eventify_server/serviceProviderMaster/?serviceProviderId=${hallData.hallUserId}`
+        );
+        setServiceProviderData(response.data[0]);
+      };
+      
+      const getHallData = async () => {
+        const response = await axios.get(
+          `http://localhost:8000/eventify_server/hallMaster/getHallByUserId/?userId=${userInfoStore.userDetails.Document._id}`
+        );
+        setHallData(response.data[0]);
+        getServiceProviderData(response.data[0]);
+        setIsLoading(false);
+      };
+
+      getHallData();
+    } catch (error) {
+      console.error(error);
+      setIsLoading(false);
+    }
+  }, [user, userInfoStore.userDetails]);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -213,26 +258,37 @@ export default function NavBar({ setIsLoading }) {
                 anchorOrigin={{ horizontal: "right", vertical: "bottom" }}
               >
                 <MenuItem>
-             <Link to="/">
-              <ListItemIcon>
-                    <HomeIcon fontSize="small" />
-              </ListItemIcon>
+                  <Link to="/">
+                    <ListItemIcon>
+                      <HomeIcon fontSize="small" />
+                    </ListItemIcon>
                     Home
-                 </Link>
-            </MenuItem>
+                  </Link>
+                </MenuItem>
 
-            <MenuItem>
-            <Link to="/ProfileForm" className="profile-link">
-              <div className="avatar-wrapper">
-                 <Avatar />
-               </div>
-              <div className="profile-text">Profile</div>
-               </Link>
-            </MenuItem>
+                <MenuItem>
+                  <Link to="/ProfileForm" className="profile-link">
+                    <div className="avatar-wrapper">
+                      <Avatar />
+                    </div>
+                    <div className="profile-text">Profile</div>
+                  </Link>
+                </MenuItem>
 
                 <MenuItem onClick={handleUserProfileClose}>
-                <Avatar /> My account
+                  <Avatar /> My account
                 </MenuItem>
+                {userInfoStore.userDetails.userType === "VENDOR" && (
+                  <>
+                    <Divider />
+                    <MenuItem onClick={handleWalkInCustomerBookingDialogOpen}>
+                      <ListItemIcon>
+                        <AddBusinessOutlinedIcon fontSize="small" />
+                      </ListItemIcon>
+                      Walk-In Customer
+                    </MenuItem>
+                  </>
+                )}
                 <Divider />
                 <MenuItem onClick={handleUserProfileClose}>
                   <ListItemIcon>
@@ -246,10 +302,12 @@ export default function NavBar({ setIsLoading }) {
                   </ListItemIcon>
                   Settings
                 </MenuItem>
-                <MenuItem onClick={()=> {
-                  handleUserProfileClose();
-                  handleLogout();
-                  }}>
+                <MenuItem
+                  onClick={() => {
+                    handleUserProfileClose();
+                    handleLogout();
+                  }}
+                >
                   <ListItemIcon>
                     <Logout fontSize="small" />
                   </ListItemIcon>
@@ -288,10 +346,22 @@ export default function NavBar({ setIsLoading }) {
           />
         </div>
       )}
+      {isWalkInCustomerBookingDialogOpen && (
+        <div className="walkInCustomerBookingDialog">
+          <WalkInCustomerBookingDialog
+            open={isWalkInCustomerBookingDialogOpen}
+            handleClose={handleWalkInCustomerBookingDialogClose}
+            hallData={hallData}
+            serviceProviderData={serviceProviderData}
+          />
+        </div>
+      )}
     </div>
   );
 }
 
 NavBar.propTypes = {
   setIsLoading: PropTypes.func,
-}
+  hallData: PropTypes.object,
+  serviceProviderData: PropTypes.object,
+};

@@ -51,7 +51,7 @@ export default function DescriptionPage() {
       
       const getHallData = async () => {
         const response = await axios.get(
-          `http://localhost:8000/eventify_server/hallMaster/getHallDetails/?hallId=${hallId}`
+          `http://localhost:8000/eventify_server/hallMaster/getHallById/?hallId=${hallId}`
         );
         setHallData(response.data[0]);
         getServiceProviderData(response.data[0]);
@@ -73,7 +73,9 @@ export default function DescriptionPage() {
         </div>
       ) : (
         <>
-          <NavBar setIsLoading={setIsLoading} />
+          <NavBar 
+            setIsLoading={setIsLoading}
+          />
           <BookingDetailsDialog
             open={openBookingDetailsDialog}
             handleClose={handleBookingDetailsDialogClose}

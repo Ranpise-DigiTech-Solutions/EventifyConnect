@@ -10,6 +10,7 @@ const bookingMasterSchema = new mongoose.Schema({
     vendorTypeId: {type: mongoose.Schema.Types.ObjectId, ref: 'vendortypes', required: true },
     eventId: { type: mongoose.Schema.Types.ObjectId, ref: 'eventtypes', required: true },
     customerId: { type: mongoose.Schema.Types.ObjectId, ref: 'customermasters', required: true },
+    customerType: { type: String, enum: ['WEB-PLATFORM', 'WALK-IN'], default: 'WEB-PLATFORM' },
     bookingType: { type: String, enum: ['HALL', 'VENDOR'], default: "HALL" },
     bookCaterer: { type: Boolean, required: true },
     bookingStartDateTimestamp: {type: Date, required: true,},

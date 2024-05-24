@@ -30,3 +30,4 @@ export {default as Notification} from './Notifications/Notifications';
 export {default as SettingsComponent} from './UserSettings/UserSettings'; 
 export {default as HallForm} from './HallForm/HallForm';
 export {default as OrderHistory} from './OrderHistoryPage/OrderHistoryPage';
+export {default as WalkInCustomerBookingDialog} from './WalkInCustomerBooking/WalkInCustomerBookingDialog.jsx';

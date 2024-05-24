@@ -5,8 +5,10 @@ import { v4 as uuidv4 } from "uuid";
 const hallBookingMasterSchema = new mongoose.Schema({
     documentId: {type: String, default: uuidv4, unique: true},
     bookingId: { type: mongoose.Schema.Types.ObjectId, ref: 'bookingmasters'},
+    customerType: { type: String, enum: ['WEB-PLATFORM', 'WALK-IN'], default: 'WEB-PLATFORM' },
     hallId: { type: mongoose.Schema.Types.ObjectId, ref: 'hallmasters'},
     hallCity: {type: String, required: true},
+    hallUserId:{type: mongoose.Schema.Types.ObjectId, ref: 'serviceprovidermasters'},
     eventId: { type: mongoose.Schema.Types.ObjectId, ref: 'eventtypes'},
     vendorTypeId: {type: mongoose.Schema.Types.ObjectId, ref: 'vendortypes', required: true },
     customerId: { type: mongoose.Schema.Types.ObjectId, ref: 'customermasters'},
@@ -16,6 +18,7 @@ const hallBookingMasterSchema = new mongoose.Schema({
     bookingStartDateTimestamp: {type: Date, required: true,},
     bookingEndDateTimestamp: {type: Date, required: true,},
     bookingDuration: { type: Number, required: true },
+    customerSuggestion: { type: String },
 
     finalGuestCount: { type: Number, required: true },
     finalRoomCount: { type: Number, required: true },
@@ -25,7 +28,6 @@ const hallBookingMasterSchema = new mongoose.Schema({
     finalNonVegRate: { type: Number },
     finalVegItemsList: { type: String },
     finalNonVegItemsList: { type: String },
-    hallUserId:{type: mongoose.Schema.Types.ObjectId, ref: 'serviceprovidermasters'}
 }, { timestamps: true });
 
 // hallBookingMasterSchema.index({ customerId: 1, bookingTimestamp: 1 }, { unique: true });
