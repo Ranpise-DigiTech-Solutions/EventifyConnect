@@ -94,6 +94,7 @@ export default function SearchBar() {
                   ); // Update Details in 'SearchBoxFilter' Redux Store
                 }}
                 placeholder="Select or type a city..."
+                dropDownIndicator={true}
               />
             </div>
           </div>

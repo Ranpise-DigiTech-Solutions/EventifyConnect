@@ -37,9 +37,7 @@ import {
 import axios from "axios";
 // import { SignedIn, SignedOut, UserButton} from "@clerk/clerk-react";
 
-export default function NavBar({
-  setIsLoading,
-}) {
+export default function NavBar({ setIsLoading }) {
   const [scrolled, setScrolled] = useState(false);
   const [isSignInDialogOpen, setSignInDialogOpen] = useState(false);
   const [isRegistrationDialogOpen, setIsRegistrationDialogOpen] =
@@ -141,7 +139,7 @@ export default function NavBar({
         );
         setServiceProviderData(response.data[0]);
       };
-      
+
       const getHallData = async () => {
         const response = await axios.get(
           `http://localhost:8000/eventify_server/hallMaster/getHallByUserId/?userId=${userInfoStore.userDetails.Document._id}`
@@ -151,7 +149,9 @@ export default function NavBar({
         setIsLoading(false);
       };
 
-      getHallData();
+      if(userInfoStore.userDetails.Document !== undefined) {
+        getHallData();
+      }
     } catch (error) {
       console.error(error);
       setIsLoading(false);
@@ -278,16 +278,16 @@ export default function NavBar({
                 <MenuItem onClick={handleUserProfileClose}>
                   <Avatar /> My account
                 </MenuItem>
+
+                <Divider />
+
                 {userInfoStore.userDetails.userType === "VENDOR" && (
-                  <>
-                    <Divider />
-                    <MenuItem onClick={handleWalkInCustomerBookingDialogOpen}>
-                      <ListItemIcon>
-                        <AddBusinessOutlinedIcon fontSize="small" />
-                      </ListItemIcon>
-                      Walk-In Customer
-                    </MenuItem>
-                  </>
+                  <MenuItem onClick={handleWalkInCustomerBookingDialogOpen}>
+                    <ListItemIcon>
+                      <AddBusinessOutlinedIcon fontSize="small" />
+                    </ListItemIcon>
+                    Walk-In Customer
+                  </MenuItem>
                 )}
                 <Divider />
                 <MenuItem onClick={handleUserProfileClose}>

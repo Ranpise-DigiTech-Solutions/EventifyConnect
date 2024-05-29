@@ -19,7 +19,7 @@ MenuList.propTypes = {
   maxHeight: PropTypes.number.isRequired
 };
 
-export default function VirtualizedSelect({ options, value, onChange, placeholder, customStyles }) {
+export default function VirtualizedSelect({ options, value, onChange, placeholder, customStyles, dropDownIndicator }) {
 
     return (
         <Select
@@ -28,7 +28,7 @@ export default function VirtualizedSelect({ options, value, onChange, placeholde
             value={value}
             onChange={onChange}
             placeholder={placeholder}
-            components={{ MenuList, DropdownIndicator: () => <SearchIcon /> }}
+            components={dropDownIndicator && { MenuList, DropdownIndicator: () => <SearchIcon /> }}
             isClearable
             isSearchable
         />
@@ -46,5 +46,6 @@ VirtualizedSelect.propTypes = {
   value: PropTypes.any,
   onChange: PropTypes.func.isRequired,
   placeholder: PropTypes.string,
-  customStyles: PropTypes.object
+  customStyles: PropTypes.object,
+  dropDownIndicator: PropTypes.bool.isRequired,
 };

@@ -157,35 +157,35 @@ export default function PackagesCard({ card }) {
               <h6>VEG</h6>
               <div className="price">
                 <CurrencyRupeeIcon className="icon" />
-                <p>340</p>
+                <p>{card.hallVegRate}</p>
               </div>
             </div>
             <div className="info">
               <h6>NON-VEG</h6>
               <div className="price">
                 <CurrencyRupeeIcon className="icon" />
-                <p>700</p>
+                <p>{card.hallNonVegRate}</p>
               </div>
             </div>
             <div className="info other-info">
               <PeopleAltIcon className="icon" />
-              <p>7000</p>
+              <p>{card.hallCapacity}</p>
             </div>
             <div className="info other-info">
               <HotelIcon className="icon" />
-              <p>50</p>
+              <p>{card.hallRooms}</p>
             </div>
           </div>
           <div className="tag__list">
             <div className="tag">
-              <p>420-700 pax</p>
+              <p>Parking: {card.hallParking ? "A" : "UA"}</p>
             </div>
             <div className="tag">
-              <p>Indoor</p>
+              <p>Freez: {card.hallFreezDay}</p>
             </div>
-            <div className="link">
+            {/* <div className="link">
               <p>+3 more</p>
-            </div>
+            </div> */}
           </div>
           <div className="availability__statustag">
             <div

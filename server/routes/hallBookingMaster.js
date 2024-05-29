@@ -147,6 +147,12 @@ router.get("/getHallsAvailabilityStatus", async (req, res) => {
         hallCity: hall.hallCity,
         hallImages: hall.hallImages,
         hallDescription: hall.hallDescription,
+        hallVegRate: hall.hallVegRate,
+        hallNonVegRate: hall.hallNonVegRate,
+        hallCapacity: hall.hallCapacity,
+        hallRooms: hall.hallRooms,
+        hallParking: hall.hallParking,
+        hallFreezDay: hall.hallFreezDay,
       };
     });
 

@@ -80,7 +80,7 @@ export default function Footer() {
                             <img src={playStoreIcon} alt="Download from Play Store" className="playstore"  />
                         </a>
                         <a href="https://apps.apple.com/YOUR_APP_STORE_LINK" >
-                            <img  src={appStoreIcon} alt="Download from App Store" class="appstore"  />
+                            <img  src={appStoreIcon} alt="Download from App Store" className="appstore"  />
                         </a>
                     </div>
                 </div>

@@ -10,9 +10,11 @@ import Button from "@mui/material/Button";
 
 import { Images } from "../../constants";
 import NavigationDots from "../NavigationDots";
-import { AppWrap } from "../../wrapper";
-import PropTypes from 'prop-types';
+import PropTypes from "prop-types";
 import { useDispatch, useSelector } from "react-redux";
+
+import { VirtualizedSelect } from "../../sub-components";
+import { searchBoxFilterActions } from "../../states/SearchBoxFilter";
 
 function Number({ n }) {
   const { number } = useSpring({
@@ -25,14 +27,39 @@ function Number({ n }) {
 }
 
 Number.propTypes = {
-  n: PropTypes.number.isRequired
-}
+  n: PropTypes.number.isRequired,
+};
 
 const Promotion = () => {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
-  const [cityName, setCityName] = useState("");
   const dispatch = useDispatch();
   const searchBoxFilterStore = useSelector((state) => state.searchBoxFilter);
+  const data = useSelector((state) => state.data);
+
+  const customStyles = {
+    control: (provided, state) => ({
+      ...provided,
+      border: "none",
+      padding: 0,
+      margin: 0,
+      cursor: "pointer",
+      boxShadow: state.isFocused ? "none" : provided.boxShadow,
+    }),
+    indicatorSeparator: () => ({
+      display: "none",
+    }),
+    dropdownIndicator: (provided) => ({
+      ...provided,
+      "& svg": {
+        display: "none", // Hide the default arrow icon
+      },
+      padding: 10,
+    }),
+    placeholder: (provided) => ({
+      ...provided,
+      color: '#999999', // Change the placeholder color here
+    }),
+  };
 
   const imageList = [
     Images.wedding0,
@@ -51,7 +78,7 @@ const Promotion = () => {
 
   const handleSearchClick = (e) => {
     // dispatch(searchBoxFilterStore("cityName", cityName));
-  }
+  };
 
   return (
     <div className="main__container promotion__container">
@@ -71,7 +98,7 @@ const Promotion = () => {
               transition={{ duration: 2, ease: "easeOut" }}
               className="heading_title"
             >
-              Discover <br /> Most Suitable <br /> Partner
+              Effortless <br /> Event Planning at <br /> Fingertips
             </motion.h2>
           </div>
           <div className="description__wrapper">
@@ -84,40 +111,63 @@ const Promotion = () => {
             <a href="#" className="location_icon">
               <LocationOnIcon />
             </a>
-            <input
-              type="text"
-              id="cityName"
-              name="cityName"
-              placeholder="Enter the city name"
-              onChange={(e) => setCityName(e.target.value)}
-            />
-            <Button variant="contained" className="button" onClick={handleSearchClick}>
-              <a href="#searchBar">
-                Search
-              </a>
+            <div className="input">
+              <VirtualizedSelect
+                customStyles={customStyles}
+                options={
+                  Array.isArray(data.citiesOfCountry.data)
+                    ? data.citiesOfCountry.data.map((city) => ({
+                        value: city,
+                        label: city,
+                      }))
+                    : null
+                }
+                value={
+                  searchBoxFilterStore.cityName
+                    ? {
+                        label: searchBoxFilterStore.cityName,
+                        value: searchBoxFilterStore.cityName,
+                      }
+                    : null
+                }
+                onChange={(selectedOption) => {
+                  dispatch(
+                    searchBoxFilterActions("cityName", selectedOption.value)
+                  ); // Update Details in 'SearchBoxFilter' Redux Store
+                }}
+                placeholder="Select or type a city..."
+                dropDownIndicator={false}
+              />
+            </div>
+            <Button
+              variant="contained"
+              className="button"
+              onClick={handleSearchClick}
+            >
+              <a href="#searchBar">Search</a>
             </Button>
           </div>
           <div className="views__wrapper">
             <div className="item">
               <div className="count">
-                <Number n={9000} />
+                <Number n={1000} />
                 &nbsp; <span>+</span>
               </div>
-              <p className="desc">Premium Product</p>
+              <p className="desc">Hall Vendors</p>
             </div>
             <div className="item">
               <div className="count">
-                <Number n={2000} />
+                <Number n={100} />
                 &nbsp; <span>+</span>
               </div>
               <p className="desc">Happy Customer</p>
             </div>
             <div className="item">
               <div className="count">
-                <Number n={28} />
+                <Number n={10} />
                 &nbsp; <span>+</span>
               </div>
-              <p className="desc">Awards Winning</p>
+              <p className="desc">Bookings</p>
             </div>
           </div>
         </div>
@@ -140,7 +190,7 @@ const Promotion = () => {
         <NavigationDots
           active={currentImageIndex}
           imageList={imageList}
-          className='app__navigation-dot'
+          className="app__navigation-dot"
         />
       </div>
     </div>
