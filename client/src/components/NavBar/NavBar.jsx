@@ -346,19 +346,19 @@ const handleSetActiveComponent = (componentKey) => {
                     Home
                   </Link>
                 </MenuItem>
-
+                <Divider />
                 <MenuItem>
                   <Link to="/ProfileForm" className="profile-link">
+                  <ListItemIcon>
                     <div className="avatar-wrapper">
-                      <Avatar />
+                      <Avatar fontSize="small" />
                     </div>
-                    <div className="profile-text">Profile</div>
+                    </ListItemIcon>
+                    Profile
                   </Link>
                 </MenuItem>
-
-                <MenuItem onClick={handleUserProfileClose}>
-                  <Avatar /> My account
-                </MenuItem>
+                <Divider />
+                
                 {userInfoStore.userDetails.userType === "VENDOR" && (
                   <>
                     <Divider />
@@ -371,12 +371,7 @@ const handleSetActiveComponent = (componentKey) => {
                   </>
                 )}
                 <Divider />
-                <MenuItem onClick={handleUserProfileClose}>
-                  <ListItemIcon>
-                    <PersonAdd fontSize="small" />
-                  </ListItemIcon>
-                  Add another account
-                </MenuItem>
+                
                 <MenuItem onClick={handleUserProfileClose}>
                   <ListItemIcon>
                     <Settings fontSize="small" />

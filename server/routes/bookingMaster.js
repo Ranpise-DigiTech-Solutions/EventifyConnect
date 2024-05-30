@@ -38,12 +38,11 @@ router.put('/:id', async (req, res) => {
     
     try {
         const { id } = req.params;
-        const{bookingStatus}=req.body;
-        
+        const{bookingStatus,remarks}=req.body;
         // Update the bookingStatus to 'confirmed' or 'REJECTED' in the bookingMaster table
         const updatedBooking = await bookingMaster.findByIdAndUpdate(
           id,
-          { bookingStatus: bookingStatus },
+          { bookingStatus, remarks },
           { new: true }
         );
     

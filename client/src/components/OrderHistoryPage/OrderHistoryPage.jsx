@@ -28,6 +28,7 @@ const OrderHistoryPage = () => {
         const hallsResponse = await axios.get('http://localhost:8000/eventify_server/hallMaster/');
         const customersResponse = await axios.get('http://localhost:8000/eventify_server/customerMaster/');
         const vendorResponse=await axios.get('http://localhost:8000/eventify_server/serviceProviderMaster/');
+
         const hallsData = hallsResponse.data;
         const customersData = customersResponse.data;
         const vendorsData=vendorResponse.data;
@@ -35,7 +36,7 @@ const OrderHistoryPage = () => {
           const hallData = hallsData.find((hall) => hall._id === booking.hallId);
           const customerData = customersData.find((customer) => customer._id === booking.customerId);
           const serviceProvider=vendorsData.find((vendor) => vendor._id === booking.hallUserId);
-          console.log(serviceProvider);
+           
           return {
             ...booking,
             hallData: hallData ? hallData : '',

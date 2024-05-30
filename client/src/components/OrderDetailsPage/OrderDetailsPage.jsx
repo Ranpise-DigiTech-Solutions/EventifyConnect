@@ -6,7 +6,13 @@ import defualtImage from '../../assets/upload-photo-here.jpg';
 import { useNavigate } from "react-router-dom";
 import emailjs from 'emailjs-com';
 import { FaWifi, FaUtensils, FaParking, FaArrowRight, FaCheckCircle, FaExclamationCircle, FaTimesCircle, FaEdit, FaSave, FaTimes, FaUser, FaEnvelope, FaPhone, FaMapMarkerAlt, FaCalendarAlt, FaHotel, FaUsers, FaClock, FaCarSide, FaBed, FaCommentAlt } from 'react-icons/fa';
-
+import Dialog from '@mui/material/Dialog';
+import DialogTitle from '@mui/material/DialogTitle';
+import DialogContent from '@mui/material/DialogContent';
+import DialogContentText from '@mui/material/DialogContentText';
+import DialogActions from '@mui/material/DialogActions';
+import Button from '@mui/material/Button';
+import TextField from '@mui/material/TextField';
 const OrderDetailsPage = ({ order,userId, onClose, userType ,fetchBookings}) => {
   const [curSlide, setCurSlide] = useState(0);
   const [bookingStatus, setBookingStatus] = useState(order.bookingStatus);
@@ -14,15 +20,59 @@ const OrderDetailsPage = ({ order,userId, onClose, userType ,fetchBookings}) => 
   const [newStatus, setNewStatus] = useState(order.bookingStatus);
   const [selectedOption, setSelectedOption] = useState(null);
   const navigate = useNavigate();
- 
+  const service_id='service_nmoyi47',template_id='template_d5o97qu',user_id='prncI_jPtqNaIhhhU';
+  const [showConfirmationDialog, setShowConfirmationDialog] = useState(false);
+  const [showSuccessDialog, setShowSuccessDialog] = useState(false);
+  const [remarks, setRemarks] = useState('');
+  const [showRemarksDialog, setShowRemarksDialog] = useState(false);
+  const [eventName, setEventName] = useState('');
+
+
+  const fetchEventName = async () => {
+    try {
+      const response = await axios.get(`http://localhost:8000/eventify_server/eventTypes/getEventName/${order.eventId}`);
+      const  eventName = response.data.eventName;
+      setEventName(eventName);
+    } catch (error) {
+      console.error('Error fetching event name:', error);
+    }
+  };
   
+  fetchEventName();
   const handleViewDetails = () => {
     navigate(`/DescriptionPage?hallId=${order.hallData._id}`);
   };
+  console.log(eventName);
+  const getCompleteHallAddress = (hall) => {
+    const addressParts = [
+      hall.hallData.hallAddress,
+      hall.hallData.hallCity,
+      hall.hallData.hallState,
+      hall.hallData.hallCountry,
+      hall.hallData.hallPincode,
+    ];
+    return addressParts.filter(Boolean).join(', ');
+  };
 
   const handleStatusChange = (newStatus) => {
-    setNewStatus(newStatus);
-    setSelectedOption(newStatus); 
+    if (newStatus === 'REJECTED') {
+      setNewStatus(newStatus);
+      setSelectedOption(newStatus);
+    } else {
+      setNewStatus(newStatus);
+      setSelectedOption(newStatus);
+    }
+  };
+  const handleRejectWithRemarks = async (remarks) => {
+    try {
+      await updateBookingToReject(order._id, remarks);
+      setShowRemarksDialog(false);
+      setShowSuccessDialog(true);
+      setSelectedOption(null);
+      setRemarks('');
+    } catch (error) {
+      console.error('Error rejecting booking:', error);
+    }
   };
   
   const updateBookingToconfirm = async (bookingId) => {
@@ -44,6 +94,7 @@ const OrderDetailsPage = ({ order,userId, onClose, userType ,fetchBookings}) => 
   
       // Post the confirmed booking data to the hallBookingMaster table
       await axios.post('http://localhost:8000/eventify_server/hallBookingMaster/', confirmedBooking);
+      sendEmail("CONFIRMED");
       fetchBookings();
   
     } catch (error) {
@@ -52,11 +103,16 @@ const OrderDetailsPage = ({ order,userId, onClose, userType ,fetchBookings}) => 
   };
   
 
-  const updateBookingToReject = async (bookingId) => {
+  const updateBookingToReject = async (bookingId, remarks) => {
     try {
+   
       await axios.put(`http://localhost:8000/eventify_server/bookingMaster/${bookingId}`, {
         bookingStatus: 'REJECTED',
+        remarks: remarks,
       });
+
+      sendEmail("REJECTED",remarks);
+   
       fetchBookings();
    
     } catch (error) {
@@ -65,41 +121,89 @@ const OrderDetailsPage = ({ order,userId, onClose, userType ,fetchBookings}) => 
   };
 
   const handleSaveStatus = () => {
-    setBookingStatus(newStatus);
-    setShowStatusDropdown(false);
+   
+      setShowConfirmationDialog(true);
+  
+ 
+};
+const confirmStatusChange = async () => {
+  setShowConfirmationDialog(false);
 
+  try {
     if (newStatus === 'CONFIRMED') {
-      updateBookingToconfirm(order._id);
-    } else if (newStatus === 'REJECTED') {
-      updateBookingToReject(order._id);
-    } else if (newStatus === 'ONHOLD') {
-      // Call a function to update the booking status to PENDING in the database
-      updateBookingToOnHold(order._id);
+      await updateBookingToconfirm(order._id);
+      setShowSuccessDialog(true);
+    
+    } 
+    else if (newStatus === 'REJECTED') {
+      setShowRemarksDialog(true);
+    }else if (newStatus === 'ONHOLD') {
+      await updateBookingToOnHold(order._id);
+      setShowSuccessDialog(true);
     }
-  };
+    
+  } catch (error) {
+    console.error('Error updating booking status:', error);
+  }
+};
 
+const sendEmail=(bookinStatus,remarks)=>{
+  // Send email to the customer
+  const customerEmail = order.customerData.customerEmail;
+  const vendorEmail=order.vendorData.vendorEmail;
+  const bookingDetails = {
+    to_name: order.customerData.customerName, // Replace with the customer's name
+    from_name: order.vendorData.vendorName, // Replace with the vendor's name
+    customerName: order.customerData.customerName, // Customer's name for the email content
+    hallName: order.hallData.hallName, // Hall name for the email content
+    bookingId:order.documentId,
+    bookingDateTime : new Date(order.createdAt).toLocaleString(),
+    bookedDateTime: new Date(order.bookingStartDateTimestamp).toLocaleString(), 
+    bookingType: order.bookingType, // Booking type for the email content
+    bookingDuration: order.bookingDuration, // Booking duration for the email content
+    guestsCount: order.guestsCount, // Guests count for the email content
+    roomsCount: order.roomsCount, // Rooms count for the email content
+    vehiclesCount: order.vehiclesCount, // Vehicles count for the email content
+    parkingRequirement: order.parkingRequirement ? 'Yes' : 'No', // Parking requirement for the email content
+    vendorName: order.vendorData.vendorName, // Vendor name for the email content
+    bookingStatus:bookinStatus,
+    eventType:eventName,
+    Address:getCompleteHallAddress(order),
+    remark:remarks,
+};
+
+const emailParams = {
+  service_id: service_id,
+  template_id: template_id,
+  user_id: user_id,
+  template_params: {
+    to_email: customerEmail,
+    from_email: vendorEmail, // Add the vendor's email address here
+    ...bookingDetails,
+  },
+};
+emailjs.send(emailParams.service_id, emailParams.template_id, emailParams.template_params, emailParams.user_id)
+.then((response) => {
+  console.log('Email sent successfully', response.status, response.text);
+})
+.catch((error) => {
+  console.error('Failed to send email', error);
+});
+}
   const updateBookingToOnHold = async (bookingId) => {
     try {
       await axios.put(`http://localhost:8000/eventify_server/bookingMaster/${bookingId}`, {
         bookingStatus: 'ONHOLD',
       });
+     sendEmail("ONHOLD");
       // Refetch bookings after updating to PENDING
       fetchBookings();
     } catch (error) {
       console.error('Error updating booking to PENDING:', error);
     }
   };
-  const getCompleteHallAddress = (hall) => {
-    const addressParts = [
-      hall.hallData.hallAddress,
-      hall.hallData.hallCity,
-      hall.hallData.hallState,
-      hall.hallData.hallCountry,
-      hall.hallData.hallPincode,
-    ];
-    return addressParts.filter(Boolean).join(', ');
-  };
   const renderVendorDetails = () => {
+   
     return (
       <div className="vendor-details">
         <div className="customer-profile">
@@ -136,7 +240,7 @@ const OrderDetailsPage = ({ order,userId, onClose, userType ,fetchBookings}) => 
           <p><FaUsers /> <strong>Guests Count:</strong> {order.guestsCount || "Not defined"}</p>
           <p><FaBed /><strong>Rooms Count:</strong> {order.roomsCount || "Not defined"}</p>
           <p><FaCarSide /><strong>Vehicles Count:</strong> {order.vehiclesCount || "Not defined"}</p>
-         
+          <p><FaCalendarAlt /><strong>Event Type:</strong> {eventName || "Not defined"}</p>
           </div>
           <div className='bookingdata-right'>
           <p><FaUtensils /><strong>Book Caterer:</strong> {order.bookCaterer ? 'Yes' : 'No'}</p>
@@ -194,7 +298,7 @@ const OrderDetailsPage = ({ order,userId, onClose, userType ,fetchBookings}) => 
           <p><FaUsers /> <strong>Guests Count:</strong> {order.guestsCount || "Not defined"}</p>
           <p><FaBed /><strong>Rooms Count:</strong> {order.roomsCount || "Not defined"}</p>
           <p><FaCarSide /><strong>Vehicles Count:</strong> {order.vehiclesCount || "Not defined"}</p>
-         
+          <p><FaCalendarAlt /><strong>Event Type:</strong> {eventName || "Not defined"}</p>
           </div>
           <div className='bookingdata-right'>
           <p><FaUtensils /><strong>Book Caterer:</strong> {order.bookCaterer ? 'Yes' : 'No'}</p>
@@ -253,9 +357,80 @@ const OrderDetailsPage = ({ order,userId, onClose, userType ,fetchBookings}) => 
     );
   };
 
-
+  const trimEd = (status) => {
+    if (status.endsWith('ED')) {
+      return status.slice(0, -2);
+    }
+    return status;
+  };
   return (
     <div className="custom-order-detail-page__container">
+    <Dialog open={showRemarksDialog} onClose={() => setSelectedOption(null)}>
+  <DialogTitle>Enter Remarks</DialogTitle>
+  <DialogContent>
+    <TextField
+      autoFocus
+      margin="dense"
+      label="Remarks"
+      multiline
+      rows={4}
+      fullWidth
+      value={remarks}
+      onChange={(e) => setRemarks(e.target.value)}
+    />
+  </DialogContent>
+  <DialogActions>
+    <Button onClick={() => handleRejectWithRemarks(remarks)}>Confirm</Button>
+  </DialogActions>
+</Dialog>
+
+      <Dialog
+  open={showConfirmationDialog}
+  onClose={() => setShowConfirmationDialog(false)}
+  aria-labelledby="confirmation-dialog-title"
+  aria-describedby="confirmation-dialog-description"
+>
+  <DialogTitle id="confirmation-dialog-title">
+    {"Booking Status change"}
+  </DialogTitle>
+  <DialogContent>
+    <DialogContentText id="confirmation-dialog-description">
+      {`Are you sure you want to ${trimEd(newStatus.toLowerCase())} this booking?`}
+    </DialogContentText>
+  </DialogContent>
+  <DialogActions>
+    <Button onClick={() => setShowConfirmationDialog(false)}>Cancel</Button>
+    <Button onClick={confirmStatusChange} autoFocus>
+      Proceed
+    </Button>
+  </DialogActions>
+</Dialog>
+
+{/* Success Dialog */}
+<Dialog
+  open={showSuccessDialog}
+  onClose={() => setShowSuccessDialog(false)}
+  aria-labelledby="success-dialog-title"
+  aria-describedby="success-dialog-description"
+>
+  <DialogTitle id="success-dialog-title">
+    {"Booking Status Updated"}
+  </DialogTitle>
+  <DialogContent>
+    <DialogContentText id="success-dialog-description">
+      {`The booking status has been updated to ${newStatus}.`}
+    </DialogContentText>
+  </DialogContent>
+  <DialogActions>
+    <Button onClick={() => {
+      setShowSuccessDialog(false);
+      setShowStatusDropdown(false);
+      fetchBookings();
+    }} autoFocus>
+      OK
+    </Button>
+  </DialogActions>
+</Dialog>
       <div className="custom-popup">
         <div className="custom-popup-inner">
           <header className="custom-popup-header">
