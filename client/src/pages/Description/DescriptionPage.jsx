@@ -40,25 +40,37 @@ export default function DescriptionPage() {
     setOpenBookingDetailsDialog(false);
   };
 
-  useEffect(() => {
+  useEffect(()=> {
     try {
       const getServiceProviderData = async (hallData) => {
         const response = await axios.get(
-          `http://localhost:8000/eventify_server/serviceProviderMaster/?serviceProviderId=${hallData.hallUserId}`
+          `http://localhost:8000/eventify_server/serviceProviderMaster/getServiceProviderDetails/?serviceProviderId=${hallData.hallUserId}`
         );
-        setServiceProviderData(response.data[0]);
+        setServiceProviderData(response.data);
+        setIsLoading(false);
       };
+
+      if(hallData._id) {
+        getServiceProviderData(hallData);
+      }
+    } catch(error) {
+      console.error(error);
+    }
+  }, [hallData])
+
+  useEffect(() => {
+    try {
       
       const getHallData = async () => {
         const response = await axios.get(
           `http://localhost:8000/eventify_server/hallMaster/getHallById/?hallId=${hallId}`
         );
         setHallData(response.data[0]);
-        getServiceProviderData(response.data[0]);
-        setIsLoading(false);
       };
 
-      getHallData();
+      if(hallId) {
+        getHallData();
+      }
     } catch (error) {
       console.error(error);
       setIsLoading(false);

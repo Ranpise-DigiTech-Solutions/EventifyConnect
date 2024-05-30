@@ -198,6 +198,7 @@ router.get("/getHallAvailability", async (req, res) => {
           bookingStartDateTimestamp: 1,
           bookingEndDateTimestamp: 1,
           bookingDuration: 1,
+          customerType: 1,
         },
       },
     ]);

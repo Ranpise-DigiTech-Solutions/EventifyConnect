@@ -22,8 +22,9 @@ router.get("/", async (req, res) => {
 });
 
   
-router.get("/:customerId", async (req, res) => {
-    const serviceProviderId = req.params.customerId;
+router.get("/getServiceProviderDetails", async (req, res) => {
+    const serviceProviderId = req.query.serviceProviderId;
+    console.log("SERVICEPROVID", serviceProviderId)
 
     try {
         const serviceProvider = await serviceProviderMaster.findById(serviceProviderId);
@@ -31,6 +32,7 @@ router.get("/:customerId", async (req, res) => {
         if (!serviceProvider) {
             return res.status(404).json({ message: "Customer not found" });
         }
+        console.log(serviceProvider)
 
         return res.status(200).json(serviceProvider);
     } catch (error) {
