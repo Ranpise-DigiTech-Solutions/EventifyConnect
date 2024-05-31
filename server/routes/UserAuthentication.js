@@ -6,51 +6,51 @@ import {
     signInWithEmailAndPassword, 
     sendSignInLinkToEmail 
 } from 'firebase/auth';
-// Developer Note:- Please refrain from using fetchSignInMethodsForEmail... since it always returns null as "Enumeration" is enabled by default in the firebase project
-  
 import { firebaseAuth, firebaseDb } from '../database/FirebaseDb.js';
 import { v4 as uuidv4 } from 'uuid';
 import { serviceProviderMaster, customerMaster, vendorMaster } from '../models/index.js';
-
 import axios from 'axios';
-
 import {
     getAuth,
     signInWithRedirect,
     getRedirectResult,
     GoogleAuthProvider
 } from "firebase/auth";
-import CryptoJS from 'crypto-js';
+import crypto from 'crypto';
 import jwt from 'jsonwebtoken';
 
+const algorithm = 'aes-256-cbc'; // Algorithm to use for encryption
+const key = Buffer.from(process.env.PASSWORD_ENCRYPTION_SECRET_KEY, 'hex'); // Secret key, should be 32 bytes
+const iv = crypto.randomBytes(16); // Initialization vector, should be 16 bytes
+
+function encrypt(text) {
+    const cipher = crypto.createCipheriv(algorithm, key, iv);
+    let encrypted = cipher.update(text, 'utf8', 'hex');
+    encrypted += cipher.final('hex');
+    return `${iv.toString('hex')}:${encrypted}`;
+}
+
+function decrypt(text) {
+    const [iv, encryptedText] = text.split(':');
+    const decipher = crypto.createDecipheriv(algorithm, key, Buffer.from(iv, 'hex'));
+    let decrypted = decipher.update(encryptedText, 'hex', 'utf8');
+    decrypted += decipher.final('utf8');
+    return decrypted;
+}
+
 router.post("/passwordlessSignIn/", async (req, res) => {
-
     const { inputValue, inputType, userType } = req.query;
-
-    // var cipherText = CryptoJS.AES.encrypt(req.body.password, process.env.PASSWORD_ENCRYPTION_SECRET_KEY).toString();
     console.log("ENTERED")
 
     try {
-
         if (inputType === "EMAIL") {
-            // Implementing Firebase Email password-less sign in
             const actionCodeSettings = {
                 url: 'http://localhost:5173/DescriptionPage',
                 handleCodeInApp: true,
-                // iOS: {
-                //   bundleId: 'com.example.ios'
-                // },
-                // android: {
-                //   packageName: 'com.example.android',
-                //   installApp: true,
-                //   minimumVersion: '12'
-                // },
-                // dynamicLinkDomain: 'example.page.link'
             };
 
             sendSignInLinkToEmail(firebaseAuth, "adikrishna1972@gmail.com", actionCodeSettings)
                 .then(() => {
-                    // window.localStorage.setItem('emailForSignIn', email);
                     return res.status(200).json({ message: "Successfully Sent Sign-In mail" });
                 })
                 .catch((error) => {
@@ -58,53 +58,27 @@ router.post("/passwordlessSignIn/", async (req, res) => {
                     const errorMessage = error.message;
                     return res.status(errorCode).json({ message: errorMessage });
                 });
-
-
-
         } else if (inputType === "PHONE") {
-
+            // Implement phone sign-in logic here
         }
-
-        // const existingUsers = await fetchSignInMethodsForEmail(auth, req.body.email);
-
-        // if (existingUsers.length > 0) {
-        //   console.log('User already exists with this email. Operation canceled!!');
-        //   return response.status(401).json({message: 'User already exists!!'});
-        // }
-
-        // const userCredential = await createUserWithEmailAndPassword(auth, req.body?.email, req.body?.password);
-        // const user =  userCredential.user;
-
-        // const userRef = ref(db, 'Users/' + user.uid);
-        // set(userRef, {
-        //     email : req.body.email,
-        //     password : cipherText,
-        //     userType: req.body.userType,
-        //     uid: uuidv4()
-        // });
-
-        // console.log("User Created Successfully!!", user.uid);
-        // return res.status(200).json({message: user.uid});
     } catch (error) {
         return res.status(500).json({ message: error.message });
     }
-
 });
 
 router.post("/loginWithPassword", async (req, res) => {
-
     const { userEmail, userPassword, userType } = req.body;
-  
+
     try {
         const user = userType === "CUSTOMER" ? await customerMaster.findOne({"customerEmail": userEmail}) : await serviceProviderMaster.findOne({"vendorEmail": userEmail});
 
-        if(!user){
+        if (!user) {
             return res.status(401).json({message: "No User records found!! Please check your email to continue or Sign Up."});
         }
 
-        const originalPassword = CryptoJS.AES.decrypt(userType === "CUSTOMER" ? user.customerPassword : user.vendorPassword, process.env.PASSWORD_ENCRYPTION_SECRET_KEY).toString(CryptoJS.enc.Utf8);
+        const originalPassword = decrypt(userType === "CUSTOMER" ? user.customerPassword : user.vendorPassword);
 
-        if(originalPassword !== userPassword) {
+        if (originalPassword !== userPassword) {
             return res.status(401).json({message: "Wrong password"});
         }
 
@@ -116,40 +90,37 @@ router.post("/loginWithPassword", async (req, res) => {
 
         const { customerPassword, vendorPassword, ...info } = user._doc;
 
-        res.status(200).json({ ...info, accessToken});
-    } catch(error) {
-        return res.status(500).json({message: error.message});
+        res.status(200).json({ ...info, accessToken });
+    } catch (error) {
+        return res.status(500).json({ message: error.message });
     }
 });
 
 router.post("/registerUser", async (req, res) => {
+    const { userType, data, user } = req.body;
 
-    const { userType, data, user } = req.body; // user = FirebaseUser
-
-    var cipherText = CryptoJS.AES.encrypt(data.password, process.env.PASSWORD_ENCRYPTION_SECRET_KEY).toString();
+    const cipherText = encrypt(data.password);
 
     try {
-        // const existingUsers = await fetchSignInMethodsForEmail(firebaseAuth, data.email);
-
         const existingCustomers = await customerMaster.find({
             $or: [
-              { "customerEmail": data.email },
-              { "customerContact": data.phone }
+                { "customerEmail": data.email },
+                { "customerContact": data.phone }
             ]
-          });
+        });
+
         const existingVendors = await serviceProviderMaster.find({
             $or: [
-              { "vendorEmail": data.email },
-              { "vendorContact": data.phone }
+                { "vendorEmail": data.email },
+                { "vendorContact": data.phone }
             ]
-          });
+        });
 
         if (existingCustomers.length > 0 || existingVendors.length > 0) {
             console.log('User already exists with this email. Operation canceled!!');
             return res.status(401).json({ message: 'User already exists!!' });
         }
 
-        // Create a new entry in mongodb
         const response = userType === "CUSTOMER" ? await axios.post(`${process.env.SERVER_URL}/eventify_server/customerMaster/`, {
             customerUid: user.uid,
             customerName: data.fullName,
@@ -173,7 +144,7 @@ router.post("/registerUser", async (req, res) => {
         });
 
         const userRef = ref(firebaseDb, 'Users/' + user.uid);
-        await set(userRef, {  // Creating a new entry in firebase
+        await set(userRef, {
             userType: userType,
             name: data.fullName,
             email: data.email,
@@ -193,29 +164,28 @@ router.post("/registerUser", async (req, res) => {
 });
 
 router.get("/getUserData/:id", async (req, res) => {
-
     const currentUserId = req.params.id;
 
-    console.log(currentUserId)
+    console.log(currentUserId);
 
-    if(!currentUserId) {
+    if (!currentUserId) {
         return res.status(404).json({message: "Data not found!"});
     }
 
     try {
         const userRef = ref(firebaseDb, 'Users/' + currentUserId);
         const snapshot = await get(userRef);
-        if(snapshot.exists()) {
-            const userData = snapshot.val(); // firebase data
+        if (snapshot.exists()) {
+            const userData = snapshot.val();
             console.log(snapshot.val());
 
-            let userRecord; // Mongo record
+            let userRecord;
             const userType = userData.userType;
             let vendorType;
 
-            if(userType === "CUSTOMER") {
+            if (userType === "CUSTOMER") {
                 userRecord = await customerMaster.findById(userData._id);
-            } else if(userType === "VENDOR") {
+            } else if (userType === "VENDOR") {
                 userRecord = await serviceProviderMaster.findById(userData._id);
                 vendorType = await vendorMaster.findById(userRecord.vendorTypeId);
             }
@@ -226,7 +196,7 @@ router.get("/getUserData/:id", async (req, res) => {
                 Document: userRecord,
                 userType: userType,
                 vendorType: vendorType
-            })
+            });
         } else {
             return res.status(404).json({message: "User not found!"});
         }

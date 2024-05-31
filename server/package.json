@@ -8,6 +8,11 @@
     "start": "nodemon index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
+  "resolutions": {
+    "glob": "9.0.0",
+    "rimraf": "4.0.0",
+    "@npmcli/move-file": "3.0.0"
+  },
   "author": "",
   "license": "ISC",
   "dependencies": {
@@ -29,7 +34,9 @@
     "multer": "^1.4.5-lts.1",
     "nodemailer": "^6.9.13",
     "nodemon": "^3.1.0",
-    "react-router-dom": "^6.23.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-router-dom": "^6.23.1",
     "socket.io": "^4.7.5",
     "uuid": "^9.0.1"
   }
