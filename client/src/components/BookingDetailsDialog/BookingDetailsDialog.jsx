@@ -355,7 +355,7 @@ export default function BookingDetailsDialog({
       };
 
       const response = await axios.post(
-        "http://localhost:8000/eventify_server/bookingMaster/",
+        `${import.meta.env.VITE_SERVER_URL}/eventify_server/bookingMaster/`,
         postData
       );
       console.log(response);

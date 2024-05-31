@@ -63,7 +63,7 @@ function App() {
     }
   }, []);
   useEffect(() => {
-    const eventSource = new EventSource('http://localhost:8000/eventify_server/dashboard/userVisits');
+    const eventSource = new EventSource(`${import.meta.env.VITE_SERVER_URL}/eventify_server/dashboard/userVisits`);
     eventSource.onmessage = function(event) {
       console.log('User visits:', JSON.parse(event.data));
     

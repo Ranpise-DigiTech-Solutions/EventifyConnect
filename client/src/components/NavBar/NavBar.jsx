@@ -6,7 +6,7 @@ import { useSelector, useDispatch } from "react-redux";
 import { Link } from 'react-router-dom';
 import PropTypes from "prop-types";
 
-import { getAuth, onAuthStateChanged } from "firebase/auth";
+import { onAuthStateChanged } from "firebase/auth";
 
 import HomeIcon from "@mui/icons-material/Home";
 import Button from "@mui/material/Button";
@@ -41,8 +41,6 @@ import {
   userInfoActions,
   userAuthStateChangeFlag,
 } from "../../states/UserInfo/index.js";
-import ProfileIcon from '@mui/icons-material/AccountCircle';
-import { useNavigate } from 'react-router-dom';
 import axios from "axios";
 // import { SignedIn, SignedOut, UserButton} from "@clerk/clerk-react";
 
@@ -64,7 +62,6 @@ export default function NavBar({ setIsLoading }) {
   const open = Boolean(anchorEl);
   const dispatch = useDispatch();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const navigate = useNavigate();
 
   const handleUserProfileClick = (event) => {
     setAnchorEl(event.currentTarget);
@@ -134,7 +131,7 @@ const handleSetActiveComponent = (componentKey) => {
         const getUserData = async () => {
           try {
             const response = await axios.get(
-              `http://localhost:8000/eventify_server/userAuthentication/getUserData/${currentUser.uid}`
+              `${import.meta.env.VITE_SERVER_URL}/eventify_server/userAuthentication/getUserData/${currentUser.uid}`
             );
             dispatch(userInfoActions("userDetails", response.data));
             dispatch(userAuthStateChangeFlag());
@@ -159,14 +156,14 @@ const handleSetActiveComponent = (componentKey) => {
     try {
       const getServiceProviderData = async (hallData) => {
         const response = await axios.get(
-          `http://localhost:8000/eventify_server/serviceProviderMaster/?serviceProviderId=${hallData.hallUserId}`
+          `${import.meta.env.VITE_SERVER_URL}/eventify_server/serviceProviderMaster/?serviceProviderId=${hallData.hallUserId}`
         );
         setServiceProviderData(response.data[0]);
       };
 
       const getHallData = async () => {
         const response = await axios.get(
-          `http://localhost:8000/eventify_server/hallMaster/getHallByUserId/?userId=${userInfoStore.userDetails.Document._id}`
+          `${import.meta.env.VITE_SERVER_URL}/eventify_server/hallMaster/getHallByUserId/?userId=${userInfoStore.userDetails.Document._id}`
         );
         setHallData(response.data[0]);
         getServiceProviderData(response.data[0]);

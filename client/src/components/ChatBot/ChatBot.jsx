@@ -20,7 +20,7 @@ function ChatBot({ onChatClose }) {
 
   useEffect(() => {
     const loadMessages = async () => {
-      const response = await axios.get('http://localhost:8000/eventify_server/chatBot/', {
+      const response = await axios.get(`${import.meta.env.VITE_SERVER_URL}/eventify_server/chatBot/`, {
         params: {
           sessionId
         }
@@ -35,7 +35,7 @@ function ChatBot({ onChatClose }) {
     event.preventDefault();
     if (inputValue.trim() !== '') {
       try {
-        const response = await axios.post('http://localhost:8000/eventify_server/chatBot/', {
+        const response = await axios.post(`${import.meta.env.VITE_SERVER_URL}/eventify_server/chatBot/`, {
             sessionId ,
             sender: "user",
             inputValue ,

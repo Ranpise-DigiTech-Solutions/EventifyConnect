@@ -50,7 +50,7 @@ const ProfileForm = () => {
     const fetchUserProfile = async () => {
       try {
         // Fetch user profile based on user type
-        const response = await axios.get(`http://localhost:8000/eventify_server/${userType === 'CUSTOMER' ? 'customerMaster' : 'serviceProviderMaster'}/${userId}`);
+        const response = await axios.get(`${import.meta.env.VITE_SERVER_URL}/eventify_server/${userType === 'CUSTOMER' ? 'customerMaster' : 'serviceProviderMaster'}/${userId}`);
         const userData = response.data;
         //user maybe vendor or customer so fileds follows the suffix either vendor or customer 
         let prefix = userType.toLowerCase(); // Lowercase userType for consistency,
@@ -137,7 +137,7 @@ const handleFormSubmit = async (formType) => {
 
     // Send PATCH request to update user data
     await axios.patch(
-      `http://localhost:8000/eventify_server/${
+      `${import.meta.env.VITE_SERVER_URL}/eventify_server/${
         userType === 'CUSTOMER' ? 'customerMaster' : 'serviceProviderMaster'
       }/${userId}`,
       updatedData
@@ -222,7 +222,7 @@ const handleSaveImage = async () => {
     // Send PATCH request to update user data with the image URL
     const updatedData = { [`${userType.toLowerCase()}ProfileImage`]: avatarURL };
     await axios.patch(
-      `http://localhost:8000/eventify_server/${userType === 'CUSTOMER' ? 'customerMaster' : 'serviceProviderMaster'}/${userId}`,
+      `${import.meta.env.VITE_SERVER_URL}/eventify_server/${userType === 'CUSTOMER' ? 'customerMaster' : 'serviceProviderMaster'}/${userId}`,
       updatedData
     );
 
@@ -677,7 +677,7 @@ const ProfileForm = () => {
     const fetchUserProfile = async () => {
       try {
         // Fetch user profile based on user type
-        const response = await axios.get(`http://localhost:8000/eventify_server/${userType === 'CUSTOMER' ? 'customerMaster' : 'serviceProviderMaster'}/${userId}`);
+        const response = await axios.get(`${import.meta.env.VITE_SERVER_URL}/eventify_server/${userType === 'CUSTOMER' ? 'customerMaster' : 'serviceProviderMaster'}/${userId}`);
         const userData = response.data;
         // user maybe vendor or customer so fileds follows the suffix either vendor or customer
         let prefix = userType.toLowerCase(); // Lowercase userType for consistency
@@ -764,7 +764,7 @@ const ProfileForm = () => {
 
       // Send PATCH request to update user data
       await axios.patch(
-        `http://localhost:8000/eventify_server/${userType === 'CUSTOMER' ? 'customerMaster' : 'serviceProviderMaster'}/${userId}`,
+        `${import.meta.env.VITE_SERVER_URL}/eventify_server/${userType === 'CUSTOMER' ? 'customerMaster' : 'serviceProviderMaster'}/${userId}`,
         updatedData
       );
 
@@ -845,7 +845,7 @@ try {
 // Send PATCH request to update user data with the image URL
 const updatedData = { [`${userType.toLowerCase()}ProfileImage`]: avatarURL };
 await axios.patch(
-`http://localhost:8000/eventify_server/${userType === 'CUSTOMER' ? 'customerMaster' : 'serviceProviderMaster'}/${userId}`,
+`${import.meta.env.VITE_SERVER_URL}/eventify_server/${userType === 'CUSTOMER' ? 'customerMaster' : 'serviceProviderMaster'}/${userId}`,
 updatedData
 );
 

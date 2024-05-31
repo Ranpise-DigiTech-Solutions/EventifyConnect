@@ -23,11 +23,11 @@ const OrderHistoryPage = () => {
   
     const fetchBookings = async () => {
       try {
-        let AllBookingResponse = await axios.get('http://localhost:8000/eventify_server/bookingMaster/');
-        let confirmedResponse = await axios.get('http://localhost:8000/eventify_server/hallBookingMaster/');
-        const hallsResponse = await axios.get('http://localhost:8000/eventify_server/hallMaster/');
-        const customersResponse = await axios.get('http://localhost:8000/eventify_server/customerMaster/');
-        const vendorResponse=await axios.get('http://localhost:8000/eventify_server/serviceProviderMaster/');
+        let AllBookingResponse = await axios.get(`${import.meta.env.VITE_SERVER_URL}/eventify_server/bookingMaster/`);
+        let confirmedResponse = await axios.get(`${import.meta.env.VITE_SERVER_URL}/eventify_server/hallBookingMaster/`);
+        const hallsResponse = await axios.get(`${import.meta.env.VITE_SERVER_URL}/eventify_server/hallMaster/`);
+        const customersResponse = await axios.get(`${import.meta.env.VITE_SERVER_URL}/eventify_server/customerMaster/`);
+        const vendorResponse=await axios.get(`${import.meta.env.VITE_SERVER_URL}/eventify_server/serviceProviderMaster/`);
 
         const hallsData = hallsResponse.data;
         const customersData = customersResponse.data;

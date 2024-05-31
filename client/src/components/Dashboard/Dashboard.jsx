@@ -33,10 +33,10 @@ const Dashboard = () => {
         try {
             const urls = [
                 'https://chatbot-5f9b6-default-rtdb.firebaseio.com/Users.json',
-                'http://localhost:8000/eventify_server/bookingMaster/',
-                'http://localhost:8000/eventify_server/hallBookingMaster/',
-                'http://localhost:8000/eventify_server/hallMaster/',
-                'http://localhost:8000/eventify_server/vendorMaster/'
+                `${import.meta.env.VITE_SERVER_URL}/eventify_server/bookingMaster/`,
+                `${import.meta.env.VITE_SERVER_URL}/eventify_server/hallBookingMaster/`,
+                `${import.meta.env.VITE_SERVER_URL}/eventify_server/hallMaster/`,
+                `${import.meta.env.VITE_SERVER_URL}/eventify_server/vendorMaster/`
                 
             ];
     
@@ -167,7 +167,7 @@ function countCanceledBookings(bookings) {
 }
 const fetchCustomerData = async (customerIds) => {
     try {
-        const response = await axios.get(`http://localhost:8000/eventify_server/customerMaster/`);
+        const response = await axios.get(`${import.meta.env.VITE_SERVER_URL}/eventify_server/customerMaster/`);
         const allCustomerData = response.data;
 
         // Filter customer data based on the provided customerIds
@@ -415,7 +415,7 @@ const fetchCustomerData = async (customerIds) => {
         const upcomingEventsData = bookingConfirmed.filter(booking => new Date(booking.bookingStartDateTimestamp) > currentDate);
         console.log(upcomingEventsData);
         for (const booking of upcomingEventsData) {
-            const eventTypeResponse = await axios.get(`http://localhost:8000/eventify_server/eventTypes/getEventName/${booking.eventId}`);
+            const eventTypeResponse = await axios.get(`${import.meta.env.VITE_SERVER_URL}/eventify_server/eventTypes/getEventName/${booking.eventId}`);
             
             const eventType = eventTypeResponse.data;
             booking.eventType = eventType.eventName; // Assuming name is the property for event type

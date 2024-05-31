@@ -24,7 +24,7 @@ import axios from 'axios';
 const fetchCountries = async (dispatch) => {
     dispatch(fetchCountriesRequest());
     try {
-        const URL = `http://localhost:8000/eventify_server/countriesNow/getCountries/`
+        const URL = `${import.meta.env.VITE_SERVER_URL}/eventify_server/countriesNow/getCountries/`
 
         await axios
             .get(URL)
@@ -42,7 +42,7 @@ const fetchCountries = async (dispatch) => {
 const fetchStates = (countryName) => async (dispatch) => {
     dispatch(fetchStatesRequest());
     try {
-        const URL = `http://localhost:8000/eventify_server/countriesNow/getStates/?countryName=${countryName}`;
+        const URL = `${import.meta.env.VITE_SERVER_URL}/eventify_server/countriesNow/getStates/?countryName=${countryName}`;
 
         await axios
             .get(URL)
@@ -60,7 +60,7 @@ const fetchStates = (countryName) => async (dispatch) => {
 const fetchCitiesOfCountry = (countryName) => async (dispatch) => {
     dispatch(fetchCitiesOfCountryRequest());
     try {
-        const URL = `http://localhost:8000/eventify_server/countriesNow/getCitiesOfCountry/?countryName=${countryName}`;
+        const URL = `${import.meta.env.VITE_SERVER_URL}/eventify_server/countriesNow/getCitiesOfCountry/?countryName=${countryName}`;
 
         await axios
             .get(URL)
@@ -78,7 +78,7 @@ const fetchCitiesOfCountry = (countryName) => async (dispatch) => {
 const fetchCitiesOfState = (countryName, stateName) => async (dispatch) => {
     dispatch(fetchCitiesOfStateRequest());
     try {
-        const URL = `http://localhost:8000/eventify_server/countriesNow/getCitiesOfState/?countryName=${countryName}&stateName=${stateName}`;
+        const URL = `${import.meta.env.VITE_SERVER_URL}/eventify_server/countriesNow/getCitiesOfState/?countryName=${countryName}&stateName=${stateName}`;
 
         await axios
             .get(URL)
@@ -96,7 +96,7 @@ const fetchCitiesOfState = (countryName, stateName) => async (dispatch) => {
 const fetchEventTypes = async (dispatch) => {
     dispatch(fetchEventTypesRequest());
     try {
-        const URL = "http://localhost:8000/eventify_server/eventTypes/";
+        const URL = `${import.meta.env.VITE_SERVER_URL}/eventify_server/eventTypes/`;
         
         await axios
             .get(URL)
@@ -114,7 +114,7 @@ const fetchEventTypes = async (dispatch) => {
 const fetchVendorTypes = async (dispatch) => {
     dispatch(fetchVendorTypesRequest());
     try {
-        const URL = "http://localhost:8000/eventify_server/vendorTypes/";
+        const URL = `${import.meta.env.VITE_SERVER_URL}/eventify_server/vendorTypes/`;
 
         await axios
             .get(URL)

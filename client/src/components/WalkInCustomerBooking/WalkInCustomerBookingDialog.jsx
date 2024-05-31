@@ -370,7 +370,7 @@ export default function WalkInCustomerBookingDialog({
       };
 
       const response = await axios.post(
-        "http://localhost:8000/eventify_server/hallBookingMaster/bookWalkInCustomer",
+        `${import.meta.env.VITE_SERVER_URL}/eventify_server/hallBookingMaster/bookWalkInCustomer`,
         postData
       );
       console.log(response);

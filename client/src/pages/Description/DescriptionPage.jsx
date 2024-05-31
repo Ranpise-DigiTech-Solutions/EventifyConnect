@@ -44,7 +44,7 @@ export default function DescriptionPage() {
     try {
       const getServiceProviderData = async (hallData) => {
         const response = await axios.get(
-          `http://localhost:8000/eventify_server/serviceProviderMaster/getServiceProviderDetails/?serviceProviderId=${hallData.hallUserId}`
+          `${import.meta.env.VITE_SERVER_URL}/eventify_server/serviceProviderMaster/getServiceProviderDetails/?serviceProviderId=${hallData.hallUserId}`
         );
         setServiceProviderData(response.data);
         setIsLoading(false);
@@ -63,7 +63,7 @@ export default function DescriptionPage() {
       
       const getHallData = async () => {
         const response = await axios.get(
-          `http://localhost:8000/eventify_server/hallMaster/getHallById/?hallId=${hallId}`
+          `${import.meta.env.VITE_SERVER_URL}/eventify_server/hallMaster/getHallById/?hallId=${hallId}`
         );
         setHallData(response.data[0]);
       };

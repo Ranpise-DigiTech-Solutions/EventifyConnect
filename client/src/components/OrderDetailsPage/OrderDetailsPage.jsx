@@ -30,7 +30,7 @@ const OrderDetailsPage = ({ order,userId, onClose, userType ,fetchBookings}) => 
 
   const fetchEventName = async () => {
     try {
-      const response = await axios.get(`http://localhost:8000/eventify_server/eventTypes/getEventName/${order.eventId}`);
+      const response = await axios.get(`${import.meta.env.VITE_SERVER_URL}/eventify_server/eventTypes/getEventName/${order.eventId}`);
       const  eventName = response.data.eventName;
       setEventName(eventName);
     } catch (error) {
@@ -78,12 +78,12 @@ const OrderDetailsPage = ({ order,userId, onClose, userType ,fetchBookings}) => 
   const updateBookingToconfirm = async (bookingId) => {
     try {
       // Update the bookingStatus in the bookingMaster table
-      const updatedbookingresponse=await axios.put(`http://localhost:8000/eventify_server/bookingMaster/${bookingId}`, {
+      const updatedbookingresponse=await axios.put(`${import.meta.env.VITE_SERVER_URL}/eventify_server/bookingMaster/${bookingId}`, {
         bookingStatus: 'CONFIRMED',
       });
      const updatedbooking=updatedbookingresponse.data;
       // Get the confirmed booking data
-      const confirmedBookingResponse = await axios.get(`http://localhost:8000/eventify_server/bookingMaster/${bookingId}`);
+      const confirmedBookingResponse = await axios.get(`${import.meta.env.VITE_SERVER_URL}/eventify_server/bookingMaster/${bookingId}`);
       const confirmedBooking = confirmedBookingResponse.data;
   
       // Manually add the required fields with default values
@@ -93,7 +93,7 @@ const OrderDetailsPage = ({ order,userId, onClose, userType ,fetchBookings}) => 
       confirmedBooking.finalGuestCount = updatedbooking.guestsCount;
   
       // Post the confirmed booking data to the hallBookingMaster table
-      await axios.post('http://localhost:8000/eventify_server/hallBookingMaster/', confirmedBooking);
+      await axios.post(`${import.meta.env.VITE_SERVER_URL}/eventify_server/hallBookingMaster/`, confirmedBooking);
       sendEmail("CONFIRMED");
       fetchBookings();
   
@@ -106,7 +106,7 @@ const OrderDetailsPage = ({ order,userId, onClose, userType ,fetchBookings}) => 
   const updateBookingToReject = async (bookingId, remarks) => {
     try {
    
-      await axios.put(`http://localhost:8000/eventify_server/bookingMaster/${bookingId}`, {
+      await axios.put(`${import.meta.env.VITE_SERVER_URL}/eventify_server/bookingMaster/${bookingId}`, {
         bookingStatus: 'REJECTED',
         remarks: remarks,
       });
@@ -192,7 +192,7 @@ emailjs.send(emailParams.service_id, emailParams.template_id, emailParams.templa
 }
   const updateBookingToOnHold = async (bookingId) => {
     try {
-      await axios.put(`http://localhost:8000/eventify_server/bookingMaster/${bookingId}`, {
+      await axios.put(`${import.meta.env.VITE_SERVER_URL}/eventify_server/bookingMaster/${bookingId}`, {
         bookingStatus: 'ONHOLD',
       });
      sendEmail("ONHOLD");

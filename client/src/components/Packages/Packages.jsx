@@ -70,7 +70,7 @@ export default function Packages() {
     const getEventId = async () => {
       try {
         if(searchBoxFilterStore.eventType) { // if user has chosen a event return its ID.. else return NULL
-          const eventMasterResponse = await axios.get('http://localhost:8000/eventify_server/eventTypes/getEventId', {
+          const eventMasterResponse = await axios.get(`${import.meta.env.VITE_SERVER_URL}/eventify_server/eventTypes/getEventId`, {
             params: {
               eventName: searchBoxFilterStore.eventType
             }
@@ -92,7 +92,7 @@ export default function Packages() {
       const selectedCityName = searchBoxFilterStore.cityName.split(',')[0].trim();
       const selectedDate = searchBoxFilterStore.bookingDate;
       try {
-        const hallMasterResponse = await axios.get(`http://localhost:8000/eventify_server/hallBookingMaster/getHallsAvailabilityStatus/`, {
+        const hallMasterResponse = await axios.get(`${import.meta.env.VITE_SERVER_URL}/eventify_server/hallBookingMaster/getHallsAvailabilityStatus/`, {
           params: {
             selectedCity: selectedCityName ? selectedCityName : "Mangalore",
             selectedDate: selectedDate ? selectedDate : formattedDate,

@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import './Favorites.scss'
 import axios from 'axios';
 import { motion } from 'framer-motion';
-import { format } from 'date-fns';
 import { PackagesCard } from '../../sub-components';
 import UserProfileLeftPanel from '../UserProfileLeftPanel/UserProfileLeftPanel';
 
@@ -17,7 +16,7 @@ const Favorites = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const hallMasterResponse = await axios.get('http://localhost:8000/eventify_server/hallBookingMaster/getHallsAvailabilityStatus/');
+        const hallMasterResponse = await axios.get(`${import.meta.env.VITE_SERVER_URL}/eventify_server/hallBookingMaster/getHallsAvailabilityStatus/`);
         setData(hallMasterResponse.data);
       } catch (error) {
         console.error('Error fetching data:', error);
