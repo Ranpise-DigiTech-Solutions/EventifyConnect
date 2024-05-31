@@ -150,7 +150,7 @@ router.post("/registerUser", async (req, res) => {
         }
 
         // Create a new entry in mongodb
-        const response = userType === "CUSTOMER" ? await axios.post("http://localhost:8000/eventify_server/customerMaster/", {
+        const response = userType === "CUSTOMER" ? await axios.post(`${process.env.SERVER_URL}/eventify_server/customerMaster/`, {
             customerUid: user.uid,
             customerName: data.fullName,
             customerEmail: data.email,
@@ -158,7 +158,7 @@ router.post("/registerUser", async (req, res) => {
             customerContact: data.phone,
             customerCurrentLocation: data.location,
             programId: "USER"
-        }) : await axios.post("http://localhost:8000/eventify_server/serviceProviderMaster/", {
+        }) : await axios.post(`${process.env.SERVER_URL}/eventify_server/serviceProviderMaster/`, {
             vendorUid: user.uid,
             vendorName: data.fullName,
             vendorTypeId: data.vendorTypeInfo,
