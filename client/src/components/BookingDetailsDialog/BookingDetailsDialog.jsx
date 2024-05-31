@@ -36,7 +36,7 @@ import { GiSandsOfTime } from "react-icons/gi";
 
 import { LoadingScreen } from "../../sub-components";
 import { Images } from "../../constants";
-
+import emailjs from 'emailjs-com';
 //@TODO: Vendors cannot book halls
 
 export default function BookingDetailsDialog({
@@ -46,7 +46,6 @@ export default function BookingDetailsDialog({
   serviceProviderData,
 }) {
   // const history = useHistory();
-
   const dataStore = useSelector((state) => state.data); // CITIES, EVENT_TYPES & VENDOR_TYPES data
   const bookingInfoStore = useSelector((state) => state.bookingInfo); // user Booking information
   const userInfoStore = useSelector((state) => state.userInfo); // user Authentication information
@@ -57,10 +56,9 @@ export default function BookingDetailsDialog({
   const [submissionConfirmationDialog, setSubmissionConfirmationDialog] =
     useState(false);
   const [formErrorUpdateFlag, setFormErrorUpdateFlag] = useState(false); // error update flag for form
-
   const [bookingConfirmationScreen, setBookingConfirmationScreen] =
     useState(false); // toggle booking confirmation screen
-
+   
   const customStyles = {
     control: (provided, state) => ({
       ...provided,
@@ -125,6 +123,46 @@ export default function BookingDetailsDialog({
     roomsCount: "",
     vehiclesCount: "",
   });
+  
+  const sendConfirmationEmail = (bookingId,type) => {
+    // Configure the email service, template, and user ID
+    const service_id = 'service_2fup20o';
+    let template_id;
+    if(type=='sendtocustomer'){
+      template_id = 'template_l4np6ir';
+    }else{
+      template_id='template_4t80nyc';
+    }
+    const user_id = '0oIWr5bjMsZhioM54';
+    const customerEmail=userInfoStore.userDetails.Document.customerEmail;
+    const vendorEmail=serviceProviderData.vendorEmail;
+    // Prepare the email parameters
+    const emailParams = {
+      service_id: service_id,
+      template_id: template_id,
+      user_id: user_id,
+      template_params: {
+        // Add the relevant details from the `bookingDetails` object and other data sources
+        to_email: customerEmail, // Replace with the recipient's email
+        vendor_email:vendorEmail, // Replace with the sender's email
+        vendor_name:serviceProviderData.vendorName,
+        to_name:userInfoStore.userDetails.Document.customerName,
+        bookingId:bookingId,
+        hallName:hallData.hallName,
+      },
+    };
+  
+    // Send the email
+    emailjs.send(emailParams.service_id, emailParams.template_id, emailParams.template_params, emailParams.user_id)
+      .then((response) => {
+        console.log('Email sent successfully', response.status, response.text);
+        // Handle successful email send
+      })
+      .catch((error) => {
+        console.error('Failed to send email', error);
+        // Handle email send failure
+      });
+  };
 
   const handleSubmissionConfirmationDialogOpen = () => {
     setSubmissionConfirmationDialog(true);
@@ -147,6 +185,9 @@ export default function BookingDetailsDialog({
       [key]: value,
     }));
   };
+
+  console.log(serviceProviderData);
+  console.log(hallData);
 
   function parseDate(dateString, splitCriteria) {
     if (splitCriteria === "/") {
@@ -185,8 +226,7 @@ export default function BookingDetailsDialog({
     }
   }, [formErrorUpdateFlag]);
 
-  console.log(hallData);
-  console.log(serviceProviderData);
+  
 
   const validateFormTwo = () => {
     if (!bookingDetails.eventTypeInfo.eventType) {
@@ -319,6 +359,9 @@ export default function BookingDetailsDialog({
         postData
       );
       console.log(response);
+      sendConfirmationEmail(response.data?.documentId,"sendtocustomer");
+      //sendConfirmationEmail(response.data?.documentId,"sendtovendor");
+      
       handleBookingDetailsInfo("bookingId", response.data?.documentId);
     } catch (error) {
       console.log(error);

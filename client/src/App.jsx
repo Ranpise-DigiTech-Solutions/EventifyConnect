@@ -10,7 +10,7 @@ import './App.scss'
 import { 
   HomePage,
   DescriptionPage,
-  UserProfilePage,
+  
 } from './pages'
 import {
   fetchCitiesOfCountryData,

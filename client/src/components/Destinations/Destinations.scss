@@ -32,7 +32,6 @@
         font-weight: 600;
         color: #ff8000;
         font-family: var(--font-family);
-
         letter-spacing: 1px;
         margin-bottom: 0.5rem;
       }
@@ -51,7 +50,8 @@
             font-size: 40px;
             font-family: var(--font-family);
             font-weight: 800;
-            line-height: 3rem;
+            line-height: 1.5rem;
+            padding: 10px;
           }
         }
 
@@ -65,10 +65,8 @@
             margin: 1rem;
             border: 2px solid rgba(255, 255, 255, 0.36);
             padding: 1rem;
-
             font-size: 15px;
             font-weight: 600;
-
             transition: all 0.3s ease-in-out;
             cursor: pointer;
 
@@ -94,28 +92,213 @@
     .sub__wrapper_2 {
       margin-top: 2rem;
       width: 100%;
-      // padding: 2rem 0 0 0;
       overflow: visible;
 
+      .react-multi-carousel-item {
+        margin: 0 1rem;
+      }
+
       .card {
+        border-radius: 2rem;
         height: 400px;
-        width: 700px;
+        width: 100%;
+        max-width: 700px;
         transition: all 0.4s ease-out;
         box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
         position: relative;
         align-items: center;
         z-index: 10;
+        margin: 0 1rem; // Add margin between cards
 
         &:hover {
-            height: 440px;
-            width: 740px;
-            margin-right: 5rem;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
-            transform: translateY(-5px);
-        }  
+          height: 440px;
+          width: 100%;
+          max-width: 740px;
+        }
 
+        .title {
+          color: #ff8000;
+        }
+
+        img {
+          filter: brightness(50%);
+        }
+
+        .description-container {
+          position: absolute;
+          bottom: 1rem;
+          left: 1rem;
+          right: 1rem;
+          background-color: rgba(0, 0, 0, 0.6);
+          padding: 0.5rem;
+          border-radius: 0.5rem;
+          display: flex;
+          flex-direction: column;
+          justify-content: center;
+          align-items: flex-start;
+
+          .description {
+            font-size: 14px;
+            margin-bottom: 0.5rem;
+          }
+
+          .deadline {
+            font-size: 14px;
+            background: rgba(255, 255, 255, 0.8);
+            padding: 0.2rem 0.5rem;
+            border-radius: 0.5rem;
+          }
+        }
       }
-
+    }
   }
 }
+
+// Media queries for mobile devices
+@media (max-width: 480px) {
+  .destinations__container {
+    .destination__wrapper {
+      padding: 1rem; // Reduced padding for smaller mobile devices
+
+      .sub__wrapper_1 {
+        .wrapper {
+          flex-direction: column; // Stack title and buttons vertically
+          align-items: flex-start; // Align items to the left
+
+          .title {
+            h2 {
+              font-size: 24px; // Reduced font size for mobile title
+            }
+          }
+
+          .navigation__buttons {
+            margin-top: 1rem; // Add some spacing between title and buttons
+            flex-wrap: wrap; // Allow buttons to wrap on smaller screens
+.button {
+              font-size: 12px; // Reduced font size for buttons
+              padding: 0.5rem; // Reduced padding for buttons
+              margin: 0.25rem; // Reduced margin for buttons
+            }
+          }
+        }
+      }
+
+      .sub__wrapper_2 {
+        .react-multi-carousel-item {
+          margin: 0;
+        }
+
+        .card {
+          height: 370px; // Reduced height for mobile cards
+          width: 100%; // Make cards full width on mobile
+          margin: 0.5rem 0; // Add margin between cards
+
+          &:hover {
+            height: 320px; // Reduced hover height for mobile cards
+            width: 100%; // Prevent cards from overflowing on hover
+            margin-right: 0; // Remove right margin on hover
+          }
+
+          .description-container {
+            position: absolute;
+            bottom: 1rem;
+            left: 1rem;
+            right: 1rem;
+            background-color: rgba(0, 0, 0, 0.6);
+            padding: 0.5rem;
+            border-radius: 0.5rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: flex-start;
+
+            .description {
+              font-size: 12px; // Reduced font size for mobile description
+              margin-bottom: 0.5rem;
+            }
+
+            .deadline {
+              font-size: 12px; // Reduced font size for mobile deadline
+              background: rgba(255, 255, 255, 0.8);
+              padding: 0.2rem 0.5rem;
+              border-radius: 0.5rem;
+              align-self: flex-start; // Align deadline to the start
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+// Media queries for very small mobile devices
+@media (max-width: 360px) {
+  .destinations__container {
+    .destination__wrapper {
+      padding: 0.5rem; // Further reduced padding
+
+      .sub__wrapper_1 {
+        .caption {
+          font-size: 12px; // Reduced font size for caption
+        }
+
+        .wrapper {
+          .title {
+            h2 {
+              font-size: 20px; // Further reduced font size for title
+            }
+          }
+
+          .navigation__buttons {
+            .button {
+              font-size: 10px; // Further reduced font size for buttons
+              padding: 0.3rem; // Further reduced padding for buttons
+              margin: 0.2rem; // Further reduced margin for buttons
+            }
+          }
+        }
+      }
+
+      .sub__wrapper_2 {
+        .react-multi-carousel-item {
+          margin: 0;
+        }
+
+        .card {
+          height: 250px; // Further reduced height for cards
+
+          &:hover {
+            height: 270px; // Further reduced hover height for cards
+          }
+
+          .description-container {
+            position: absolute;
+            bottom: 1rem;
+            left: 1rem;
+            right: 1rem;
+            background-color: rgba(0, 0, 0, 0.6);
+            padding: 0.5rem;
+            border-radius: 0.5rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: flex-start;
+
+            .description {
+              font-size: 10px; // Further reduced font size for mobile description
+              margin-bottom: 0.5rem;
+            }
+
+            .deadline {
+              font-size: 10px; // Further reduced font size for mobile deadline
+              background: rgba(255, 255, 255, 0.8);
+              padding: 0.2rem 0.5rem;
+              border-radius: 0.5rem;
+              align-self: flex-start; // Align deadline to the start
+            }
+          }
+        }
+      }
+    }
+  }
 }

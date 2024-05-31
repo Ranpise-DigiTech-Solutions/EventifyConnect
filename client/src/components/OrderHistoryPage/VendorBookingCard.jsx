@@ -1,11 +1,10 @@
 import React, { useState } from 'react';
 import { FaCheckCircle, FaExclamationCircle, FaTimesCircle } from 'react-icons/fa';
 import AlertDialogSlide from '../../sub-components/Alertwindow/Popup'; // Import the AlertDialogSlide component
-
+import { FaWifi, FaUsers /* ... other icons ... */ } from 'react-icons/fa';
 const VendorBookingCard = ({ order, bookingStatus, onViewDetails }) => {
  
-
-  
+  let isOnlineBooking=order.customerType;
 
   return (
     <div className={`order-card ${bookingStatus.toLowerCase()}`}>
@@ -49,6 +48,10 @@ const VendorBookingCard = ({ order, bookingStatus, onViewDetails }) => {
           <button className="view-btn" onClick={() => onViewDetails(order)}>
             View Details
           </button>
+          <div className="booking-type-icon">
+             {isOnlineBooking=='WALK-IN'? <FaWifi /> : <FaUsers />}
+          </div>
+
         </div>
       </div>
       

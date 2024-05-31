@@ -30,7 +30,7 @@ const bookingMasterSchema = new mongoose.Schema({
     customerNonVegItemsList: { type: String },
     customerInfo: { type: String },
     customerSuggestion: { type: String },
-
+    remarks:{ type: String },
     // OTHER VENDORS BOOKING
     vendorId: { type: mongoose.Schema.Types.ObjectId, ref: "vendormasters"},
 

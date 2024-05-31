@@ -855,3 +855,133 @@
   cursor: pointer;
   color: #007bff;
 }
+
+@media (max-width: 768px) {
+  .signInDialogMain__container {
+    height: auto;
+    flex-direction: column-reverse;
+    margin: auto 0;
+
+    .img__wrapper {
+      display: none;
+
+      p {
+        font-size: 24px;
+        margin: 0.5rem 0 0 0.5rem;
+      }
+    }
+
+    .contents__wrapper {
+      width: 100%;
+      padding: 1rem;
+
+
+      .logo__wrapper {
+        margin: 0.5rem 0;
+      }
+
+      .otherSignInOptions__wrapper {
+        flex-direction: column;
+
+        .box {
+          margin: 0.5rem 0;
+          padding: 0.5rem;
+        }
+      }
+
+      .line__separators {
+        p {
+          font-size: 16px;
+          margin: 0 0.5rem;
+        }
+      }
+
+      .userInput__wrapper {
+        padding: 0;
+
+        .inputField__wrapper {
+          .caption {
+            margin-bottom: 0.5rem;
+          }
+
+          .title {
+            margin-bottom: 0.5rem;
+          }
+        }
+
+        button {
+          padding: 0.5rem 0;
+        }
+      }
+
+      .signUp__link {
+        margin: 0;
+        font-size: 12px;
+      }
+
+      .otpVerificationForm__wrapper {
+        .wrapper {
+          .editInfo {
+            padding: 0.5rem;
+
+            p {
+              font-size: 14px;
+            }
+          }
+
+          .passwordField__wrapper {
+            .title {
+              margin-bottom: 0.5rem;
+            }
+
+            .inputField__wrapper {
+              margin-bottom: 0.75rem;
+            }
+          }
+
+          .otpField__wrapper {
+            .sub__title {
+              font-size: 14px;
+            }
+
+            .sub__desc {
+              font-size: 13px;
+            }
+
+            .otp__wrapper {
+              .otp-digit {
+                width: 28px;
+                height: 28px;
+                font-size: 16px;
+                margin-right: 8px;
+                margin-bottom: 1rem;
+              }
+            }
+
+            .comment {
+              font-size: 12px;
+              margin-bottom: 1.5rem;
+            }
+          }
+        }
+      }
+
+      .switchUser__wrapper {
+        padding: 0.5rem;
+
+        p {
+          font-size: 14px;
+        }
+
+        button {
+          font-size: 14px;
+          padding: 0.2rem 0.4rem;
+        }
+      }
+    }
+  }
+
+  .cancelIcon {
+    margin: 0.25rem 0.25rem 0 0;
+  }
+}

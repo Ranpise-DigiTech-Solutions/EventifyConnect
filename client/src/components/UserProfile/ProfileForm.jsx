@@ -701,8 +701,8 @@ const ProfileForm = () => {
         setContactFormData({
           mobileNumber: userData[`${prefix}Contact`],
           email: userData[`${prefix}Email`],
-          altMobileNumber: userData[`${prefix}AltMobileNumber`],
-          altEmail: userData[`${prefix}AltEmail`],
+          altMobileNumber: userData[`${prefix}AlternateMobileNo`],
+          altEmail: userData[`${prefix}AlternateEmail`],
         });
         setAddressFormData({
           address: userData[`${prefix}Address`],
@@ -743,8 +743,8 @@ const ProfileForm = () => {
           ...updatedData,
           [`${prefix}Contact`]: contactFormData.mobileNumber,
           [`${prefix}Email`]: contactFormData.email,
-          [`${prefix}AltMobileNumber`]: contactFormData.altMobileNumber,
-          [`${prefix}AltEmail`]: contactFormData.altEmail,
+          [`${prefix}AlternateMobileNo`]: contactFormData.altMobileNumber,
+          [`${prefix}AlternateEmail`]: contactFormData.altEmail,
         };
       }
 

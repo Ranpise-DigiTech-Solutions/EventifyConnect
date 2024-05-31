@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import Cart from './Cart';
 import './MyCart.scss'; // Ensure this is the correct path to your SCSS file
-
+import UserProfileLeftPanel from '../UserProfileLeftPanel/UserProfileLeftPanel';
 const MyCart = () => {
     const [cartItems, setCartItems] = useState([
         // Initial cart item as an example
@@ -16,7 +16,11 @@ const MyCart = () => {
         },
         // Add more items as needed
     ]);
+    const [activeComponent, setActiveComponent] = useState(null);
 
+    const handleSetActiveComponent = (component) => {
+        setActiveComponent(component);
+    };
     // Remove an item from the cart
     const handleRemove = (item) => {
         setCartItems(cartItems.filter(cartItem => cartItem.id !== item.id));
@@ -28,6 +32,10 @@ const MyCart = () => {
     };
 
     return (
+        <>
+        <div className="left-panel-container">
+        <UserProfileLeftPanel setActiveComponent={handleSetActiveComponent} />
+      </div>
         <div className="my-user-cart__container">
             <div className="cart-header">
                 <h2>My Cart</h2>
@@ -40,6 +48,7 @@ const MyCart = () => {
                 />
             </div>
         </div>
+        </>
     );
 };
 

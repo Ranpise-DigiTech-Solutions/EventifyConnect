@@ -3,7 +3,7 @@ import mongoose from "mongoose";
 import { v4 as uuidv4 } from "uuid";
 
 const hallBookingMasterSchema = new mongoose.Schema({
-    documentId: {type: String, default: uuidv4, unique: true},
+    documentId: {type: Number, default: uuidv4, unique: true},
     bookingId: { type: mongoose.Schema.Types.ObjectId, ref: 'bookingmasters'},
     customerType: { type: String, enum: ['WEB-PLATFORM', 'WALK-IN'], default: 'WEB-PLATFORM' },
     hallId: { type: mongoose.Schema.Types.ObjectId, ref: 'hallmasters'},

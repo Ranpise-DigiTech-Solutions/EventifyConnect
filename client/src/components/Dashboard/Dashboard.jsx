@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './Dashboard.scss';
-
+import UserProfileLeftPanel from '../UserProfileLeftPanel/UserProfileLeftPanel';
 import { FaClock } from 'react-icons/fa';
 import Chart from 'chart.js/auto';
 import axios from 'axios';
@@ -22,14 +22,12 @@ const Dashboard = () => {
     const userVisits= JSON.parse(sessionStorage.getItem('userVisits'));
     const userType=userInfoStore.userDetails.userType;
     
-    
+    const [activeComponent, setActiveComponent] = useState(null);
+
+    const handleSetActiveComponent = (component) => {
+        setActiveComponent(component);
+    };
     const [topLocations, setTopLocations] = useState([]);
-   
-
-    
-     
-
-   
     
     const fetchAnalyticsData = async () => {
         try {
@@ -358,10 +356,6 @@ const fetchCustomerData = async (customerIds) => {
         
 
     
-
-    
-
-    
     useEffect(() => {
         if (bookingConfirmed.length > 0) {
             fetchUpcomingEvents();
@@ -438,7 +432,11 @@ const fetchCustomerData = async (customerIds) => {
     
 
     return (
-        <div className="dashboard-page">
+        <>
+        <div className="left-panel-container">
+        <UserProfileLeftPanel setActiveComponent={handleSetActiveComponent} />
+      </div>
+        <div className="dashboard-page__container">
             <h1>Analytics Dashboard</h1>
             
                 <div className="analytics-container">
@@ -523,6 +521,7 @@ const fetchCustomerData = async (customerIds) => {
             </div>
           
         </div>
+        </>
     );
 };
 

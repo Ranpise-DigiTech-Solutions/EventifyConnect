@@ -2,7 +2,8 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  
+  width: 80%;
+  float: right;
  
 
   .order-history-panel {
@@ -90,6 +91,12 @@
             background-color: #0056b3;
           }
         }
+        .booking-type-icon{
+          position: absolute;
+          right:0;
+          top:10px; 
+        }
+        
 
         .order-info {
           display: flex;

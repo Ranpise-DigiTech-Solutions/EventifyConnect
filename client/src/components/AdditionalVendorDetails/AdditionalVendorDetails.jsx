@@ -332,7 +332,7 @@ export default function AdditionalVendorDetails({
             <div className="input">
               <input
                 type="date"
-                value={bookingInfoStore?.bookingStartDate}
+                value={bookingInfoStore.bookingStartDate ? bookingInfoStore.bookingStartDate : ""}
                 placeholder="dd/mm/yyyy"
                 onChange={handleBookingStartDateChange}
               />
@@ -344,7 +344,7 @@ export default function AdditionalVendorDetails({
               <input
                 type="time"
                 placeholder="dd/mm/yyyy"
-                value={bookingInfoStore?.startTime}
+                value={bookingInfoStore.startTime ? bookingInfoStore.startTime : ""}
                 onChange={handleBookingStartTimeChange}
               />
             </div>
@@ -354,7 +354,7 @@ export default function AdditionalVendorDetails({
             <div className="input">
               <input
                 type="date"
-                value={bookingInfoStore?.bookingEndDate}
+                value={bookingInfoStore.bookingEndDate ? bookingInfoStore.bookingEndDate : ""}
                 placeholder="dd/mm/yyyy"
                 onChange={handleBookingEndDateChange}
               />
@@ -365,7 +365,7 @@ export default function AdditionalVendorDetails({
             <div className="input">
               <input
                 type="time"
-                value={bookingInfoStore?.endTime}
+                value={bookingInfoStore.endTime ? bookingInfoStore.endTime : ""}
                 placeholder="dd/mm/yyyy"
                 onChange={handleBookingEndTimeChange}
               />
@@ -381,9 +381,9 @@ export default function AdditionalVendorDetails({
                 <input
                   type="number"
                   name="hoursInput"
-                  value={parseInt(
-                    bookingInfoStore?.bookingDuration.split(":")[0]
-                  )}
+                  value={bookingInfoStore.bookingDuration ? parseInt(
+                    bookingInfoStore.bookingDuration.split(":")[0]
+                  ) : ""}
                   className="sub-input"
                   disabled
                 />
@@ -395,9 +395,9 @@ export default function AdditionalVendorDetails({
                 <input
                   type="number"
                   name="minutesInput"
-                  value={parseInt(
+                  value={bookingInfoStore.bookingDuration ? parseInt(
                     bookingInfoStore?.bookingDuration.split(":")[1]
-                  )}
+                  ) : ""}
                   className="sub-input"
                   disabled
                 />
