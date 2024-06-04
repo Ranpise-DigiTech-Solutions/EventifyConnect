@@ -61,7 +61,7 @@ export default function SearchBar() {
 
   return (
     <div className="search__container" id="searchBar">
-      <div className="main__wrapper">
+      <div className="mainSearchBar__wrapper">
         <div className="title">search package</div>
         <div className="description">
           Find best Wedding Vendors with, <br /> thousands of trusted Reviews

@@ -3,22 +3,7 @@ const router = express.Router();
 import { firebaseStorage } from '../database/FirebaseDb.js';
 import { ObjectId } from "mongodb";
 import mongoose from "mongoose";
-import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
-// import { default as multer } from 'multer';
-// import { upload } from '../index.js';
-
 import { customerMaster } from '../models/index.js';
-
-// const storage = multer.diskStorage({
-//     destination: function (req, file, cb) {
-//         cb(null, 'uploads/');
-//     },
-//     filename: function (req, file, cb) {
-//         cb(null, file.originalname);
-//     }
-// });
-
-// export const upload = multer({ storage: storage });
 
 router.get("/", async (req, res) => {
     const filter = {};
@@ -31,6 +16,24 @@ router.get("/", async (req, res) => {
         }
 
         return res.status(200).json(customerDetails); 
+    } catch(error) {
+        return res.status(500).json({message: error.message});
+    }
+});
+
+// get the total hall owner count
+router.get("/getCustomerCount", async(req, res) => {
+
+    const filter = {};
+
+    try {
+        const customerCount = await customerMaster.countDocuments(filter);
+
+        if(typeof customerCount !== "number") {
+            return res.status(501).json({message: "Connection to server failed."});
+        }
+
+        return res.status(200).json(customerCount);
     } catch(error) {
         return res.status(500).json({message: error.message});
     }

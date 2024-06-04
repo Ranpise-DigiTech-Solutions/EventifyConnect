@@ -50,8 +50,7 @@
             font-size: 40px;
             font-family: var(--font-family);
             font-weight: 800;
-            line-height: 1.5rem;
-            padding: 10px;
+            line-height: 3rem;
           }
         }
 
@@ -94,14 +93,10 @@
       width: 100%;
       overflow: visible;
 
-      .react-multi-carousel-item {
-        margin: 0 1rem;
-      }
-
       .card {
         border-radius: 2rem;
         height: 400px;
-        width: 100%;
+        width: 90%;
         max-width: 700px;
         transition: all 0.4s ease-out;
         box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
@@ -109,19 +104,24 @@
         align-items: center;
         z-index: 10;
         margin: 0 1rem; // Add margin between cards
+        color: #ffffff;
 
         &:hover {
           height: 440px;
-          width: 100%;
+          width: 90%;
           max-width: 740px;
         }
 
         .title {
-          color: #ff8000;
+          color: #ffffff;
+
+          &:hover {
+            color: #ff8000;
+          }
         }
 
         img {
-          filter: brightness(50%);
+          filter: brightness(75%);
         }
 
         .description-container {

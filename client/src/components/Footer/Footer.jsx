@@ -1,5 +1,5 @@
 import './Footer.scss'; // Import your custom styles for the footer
-import React, { useRef ,useState} from 'react';
+import { useRef ,useState} from 'react';
 import FacebookIcon from '@mui/icons-material/Facebook';
 import InstagramIcon from '@mui/icons-material/Instagram';
 import playStoreIcon from '../../assets/Playstore_icon.png'; 
@@ -49,7 +49,7 @@ export default function Footer() {
     const mapLink = 'https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3766.5045085375023!2d73.1332210737419!3d19.260414546160078!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3be796881823811b%3A0xc9e1a4474c36940c!2sRanpise%20DigiTech%20Solutions%20Private%20Limited!5e0!3m2!1sen!2sin!4v1711347263461!5m2!1sen!2sin';
 
     return (
-        <div className='footer__container'>
+        <div className='footer__container' id='footer'>
             <div className='company__logo'>
                 <h2>EventifyConnect</h2>
             </div>
@@ -113,7 +113,7 @@ export default function Footer() {
                     </form>
                     {isSuccess && (
                         <div className="confirmation-message">
-                            <p><strong>Thanks for connecting! We'll get back to you soon.</strong></p>
+                            <p><strong>Thanks for connecting! We&apos;ll get back to you soon.</strong></p>
                         </div>
                     )}
                 </div>

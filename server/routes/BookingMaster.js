@@ -18,6 +18,25 @@ router.get("/", async (req, res) => {
         return res.status(500).json({message: error.message});
     }
 });
+
+// get the total hall owner count
+router.get("/getBookingCount", async(req, res) => {
+
+    const filter = {};
+
+    try {
+        const bookingCount = await bookingMaster.countDocuments(filter);
+
+        if(typeof bookingCount !== "number") {
+            return res.status(501).json({message: "Connection to server failed."});
+        }
+
+        return res.status(200).json(bookingCount);
+    } catch(error) {
+        return res.status(500).json({message: error.message});
+    }
+});
+
 router.get("/:id", async (req, res) => {
     const bookingId = req.params.id;
 

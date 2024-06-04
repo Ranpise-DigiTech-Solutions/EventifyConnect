@@ -1,9 +1,11 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable no-unused-vars */
 import "./Promotion.scss";
 
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useSpring, animated } from "react-spring";
+import axios from "axios";
 
 import LocationOnIcon from "@mui/icons-material/LocationOn";
 import Button from "@mui/material/Button";
@@ -15,6 +17,13 @@ import { useDispatch, useSelector } from "react-redux";
 
 import { VirtualizedSelect } from "../../sub-components";
 import { searchBoxFilterActions } from "../../states/SearchBoxFilter";
+
+const totalCountTemplate = {
+  hallVendors: 0,
+  otherServiceProviders: 0,
+  customers: 0,
+  bookings: 0,
+};
 
 function Number({ n }) {
   const { number } = useSpring({
@@ -32,9 +41,18 @@ Number.propTypes = {
 
 const Promotion = () => {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [totalCount, setTotalCount] = useState({ ...totalCountTemplate });
+
   const dispatch = useDispatch();
   const searchBoxFilterStore = useSelector((state) => state.searchBoxFilter);
   const data = useSelector((state) => state.data);
+
+  const handleTotalCount = (key, value) => {
+    setTotalCount((previousInfo => ({
+      ...previousInfo,
+      [key]: value,
+    })));
+  };
 
   const customStyles = {
     control: (provided, state) => ({
@@ -44,6 +62,7 @@ const Promotion = () => {
       margin: 0,
       cursor: "pointer",
       boxShadow: state.isFocused ? "none" : provided.boxShadow,
+      color: "#000000"
     }),
     indicatorSeparator: () => ({
       display: "none",
@@ -57,7 +76,7 @@ const Promotion = () => {
     }),
     placeholder: (provided) => ({
       ...provided,
-      color: '#999999', // Change the placeholder color here
+      color: "#000000", // Change the placeholder color here
     }),
   };
 
@@ -76,9 +95,91 @@ const Promotion = () => {
     return () => clearInterval(intervalId);
   }, [imageList.length]);
 
+  useEffect(() => {
+    const getHallVendorCount = async () => {
+      try {
+        const URL = `${
+          import.meta.env.VITE_SERVER_URL
+        }/eventify_server/hallMaster/getHallCount`;
+        const response = await axios.get(URL);
+
+        if (typeof response.data !== "number") {
+          return;
+        }
+        handleTotalCount("hallVendors", parseInt(response.data));
+
+        console.log("HALLVENDORCOUNT", response.data);
+        parseInt();
+      } catch (error) {
+        console.error(error);
+      }
+    };
+    const getOtherVendorCount = async () => {
+      try {
+        const URL = `${
+          import.meta.env.VITE_SERVER_URL
+        }/eventify_server/vendorMaster/getOtherVendorsCount`;
+        const response = await axios.get(URL);
+
+        if (typeof response.data !== "number") {
+          return;
+        }
+        handleTotalCount("otherServiceProviders", parseInt(response.data));
+        console.log("OTHERVENDORCOUNT", response.data);
+        parseInt();
+
+      } catch (error) {
+        console.error(error);
+      }
+    };
+    const getCustomerCount = async () => {
+      try {
+        const URL = `${
+          import.meta.env.VITE_SERVER_URL
+        }/eventify_server/customerMaster/getCustomerCount`;
+        const response = await axios.get(URL);
+
+        if (typeof response.data !== "number") {
+          return;
+        }
+        handleTotalCount("customers", parseInt(response.data));
+        console.log("CUSTOMERCOUNT", response.data);
+        parseInt();
+
+      } catch (error) {
+        console.error(error);
+      }
+    };
+    const getBookingCount = async () => {
+      try {
+        const URL = `${
+          import.meta.env.VITE_SERVER_URL
+        }/eventify_server/bookingMaster/getBookingCount`;
+        const response = await axios.get(URL);
+
+        if (typeof response.data !== "number") {
+          return;
+        }
+        handleTotalCount("bookings", parseInt(response.data));
+        console.log("BOOKINGCOUNT", response.data);
+        parseInt();
+
+      } catch (error) {
+        console.error(error);
+      }
+    };
+
+    getHallVendorCount();
+    getOtherVendorCount();
+    getCustomerCount();
+    getBookingCount();
+  }, []);
+
   const handleSearchClick = (e) => {
     // dispatch(searchBoxFilterStore("cityName", cityName));
   };
+
+  console.log(totalCount);
 
   return (
     <div className="main__container promotion__container">
@@ -98,7 +199,8 @@ const Promotion = () => {
               transition={{ duration: 2, ease: "easeOut" }}
               className="heading_title"
             >
-              Effortless <br /> Event Planning at <br /> Fingertips
+              Effortless <br /> Event Planning
+              <br /> at Fingertips
             </motion.h2>
           </div>
           <div className="description__wrapper">
@@ -107,7 +209,7 @@ const Promotion = () => {
               <br /> Plan every detail and share the magic with loved ones.
             </p>
           </div>
-          <div className="search__wrapper">
+          <div className="searchBar__wrapper">
             <a href="#" className="location_icon">
               <LocationOnIcon />
             </a>
@@ -150,24 +252,31 @@ const Promotion = () => {
           <div className="views__wrapper">
             <div className="item">
               <div className="count">
-                <Number n={1000} />
+                <Number n={totalCount.hallVendors} />
                 &nbsp; <span>+</span>
               </div>
               <p className="desc">Hall Vendors</p>
             </div>
             <div className="item">
               <div className="count">
-                <Number n={100} />
+                <Number n={totalCount.otherServiceProviders} />
+                &nbsp; <span>+</span>
+              </div>
+              <p className="desc">Service Providers</p>
+            </div>
+            <div className="item">
+              <div className="count">
+                <Number n={totalCount.customers} />
                 &nbsp; <span>+</span>
               </div>
               <p className="desc">Happy Customer</p>
             </div>
             <div className="item">
               <div className="count">
-                <Number n={10} />
+                <Number n={totalCount.bookings} />
                 &nbsp; <span>+</span>
               </div>
-              <p className="desc">Bookings</p>
+              <p className="desc">Bookings Done</p>
             </div>
           </div>
         </div>
@@ -175,11 +284,11 @@ const Promotion = () => {
           <AnimatePresence mode="wait">
             <motion.div
               key={currentImageIndex}
-              className="sub__wrapper_2"
+              className="image-container"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              transition={{ duration: 0.5 }}
+              transition={{ duration: 0.3 }}
             >
               <img src={imageList[currentImageIndex]} alt="" />
             </motion.div>
@@ -197,5 +306,4 @@ const Promotion = () => {
   );
 };
 
-// export default AppWrap(Promotion, "app__promotion", "");
 export default Promotion;

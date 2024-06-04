@@ -107,7 +107,8 @@
             transition: all 0.4s ease-in;
             overflow: hidden;
             z-index: 1;
-            cursor: pointer;
+            // cursor: pointer;
+            cursor: not-allowed;
   
             &:hover {
               opacity: 1;

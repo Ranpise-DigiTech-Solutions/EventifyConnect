@@ -1,11 +1,10 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import "./NavBar.scss";
 
 import React, { useState, useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
-
 import { Link } from 'react-router-dom';
 import PropTypes from "prop-types";
-
 import { onAuthStateChanged } from "firebase/auth";
 
 import HomeIcon from "@mui/icons-material/Home";
@@ -273,16 +272,16 @@ const handleSetActiveComponent = (componentKey) => {
           </div>
         ) : (
           <div className="tags__wrapper">
-          <a href="#" className="tag" onClick={() => handleMenuItemClick('venues')}>
+          <a href="#destinations" className="tag" onClick={() => handleMenuItemClick('venues')}>
             Venues
           </a>
-          <a href="#" className="tag" onClick={() => handleMenuItemClick('ourValue')}>
+          <a href="#aboutUs" className="tag" onClick={() => handleMenuItemClick('ourValue')}>
             Our Value
           </a>
-          <a href="#" className="tag" onClick={() => handleMenuItemClick('contactUs')}>
+          <a href="#footer" className="tag" onClick={() => handleMenuItemClick('contactUs')}>
             Contact Us
           </a>
-          <a href="#" className="tag" onClick={() => handleMenuItemClick('getStarted')}>
+          <a href="#searchBar" className="tag" onClick={() => handleMenuItemClick('getStarted')}>
             Get Started
           </a>
           {user ? (

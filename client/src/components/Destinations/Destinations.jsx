@@ -36,7 +36,7 @@ const cardsData = {
     img: Images.Hall_01,
     video: "https://v4.cdnpk.net/videvo_files/video/free/video0483/large_watermarked/_import_60d962f06b3ef8.86089157_FPpreview.mp4",
     description:
-      "6 excursions to the main cities of the country, admire the beautiful autumn gardens",
+      "6 excursions to the main cities of the country, admire the beautiful autumn season",
     deadline: "7 days",
   },
   card2: {
@@ -48,7 +48,7 @@ const cardsData = {
     img: Images.Hall_02,
     video: "",
     description:
-      "6 excursions to the main cities of the country, admire the beautiful autumn gardens",
+      "6 excursions to the main cities of the country, admire the beautiful autumn season",
     deadline: "7 days",
   },
   card3: {
@@ -60,7 +60,7 @@ const cardsData = {
     img: Images.Hall_03,
     video: "https://v4.cdnpk.net/videvo_files/video/free/video0483/large_watermarked/_import_60d962f06b3ef8.86089157_FPpreview.mp4",
     description:
-      "6 excursions to the main cities of the country, admire the beautiful autumn gardens",
+      "6 excursions to the main cities of the country, admire the beautiful autumn season",
     deadline: "7 days",
   },
   card4: {
@@ -72,7 +72,7 @@ const cardsData = {
     img: Images.Hall_04,
     video: "",
     description:
-      "6 excursions to the main cities of the country, admire the beautiful autumn gardens",
+      "6 excursions to the main cities of the country, admire the beautiful autumn season",
     deadline: "7 days",
   },
   card5: {
@@ -84,7 +84,7 @@ const cardsData = {
     img: Images.Hall_05,
     video: "https://v4.cdnpk.net/videvo_files/video/free/video0483/large_watermarked/_import_60d962f06b3ef8.86089157_FPpreview.mp4",
     description:
-      "6 excursions to the main cities of the country, admire the beautiful autumn gardens",
+      "6 excursions to the main cities of the country, admire the beautiful autumn season",
     deadline: "7 days",
   },
   card6: {
@@ -96,7 +96,7 @@ const cardsData = {
     img: Images.Hall_06,
     video: "",
     description:
-      "6 excursions to the main cities of the country, admire the beautiful autumn gardens",
+      "6 excursions to the main cities of the country, admire the beautiful autumn season",
     deadline: "7 days",
   },
 };
@@ -126,7 +126,7 @@ const Destinations = () => {
   };
 
   return (
-    <div className="main__container destinations__container">
+    <div className="main__container destinations__container" id="destinations">
       <div className="destination__wrapper">
         <div className="sub__wrapper_1">
           <p className="caption">popularity</p>
@@ -182,5 +182,4 @@ const Destinations = () => {
   );
 }
 
-// export default MotionWrap(Destinations, "");
 export default Destinations;

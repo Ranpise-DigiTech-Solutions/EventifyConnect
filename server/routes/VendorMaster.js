@@ -17,6 +17,24 @@ router.get("/", async (req, res) => {
     }
 });
 
+// get the total hall owner count
+router.get("/getOtherVendorsCount", async(req, res) => {
+
+    const filter = {};
+
+    try {
+        const otherVendorCount = await vendorMaster.countDocuments(filter);
+
+        if(typeof otherVendorCount !== "number") {
+            return res.status(501).json({message: "Connection to server failed."});
+        }
+
+        return res.status(200).json(otherVendorCount);
+    } catch(error) {
+        return res.status(500).json({message: error.message});
+    }
+});
+
 router.post('/', async (req, res) => {
     const newDocument = new vendorMaster(req.body);
 

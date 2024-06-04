@@ -7,6 +7,7 @@ import { Link } from "react-router-dom";
 
 import "./Packages.scss";
 import { PackagesCard } from '../../sub-components'
+import { Images } from "../../constants";
 
 export default function Packages() {
 
@@ -139,6 +140,10 @@ export default function Packages() {
     const endIndex = startIndex + itemsPerPage;
     const slicedData = Object.values(filteredCards).slice(startIndex, endIndex);
 
+    if(!slicedData.length) {
+      return null;
+    }
+
     return slicedData.map((card, index) => (
       <div className="card" key={index} >
         <Link 
@@ -263,7 +268,10 @@ export default function Packages() {
         animate={animateCard}
         transition={{ duration: 0.5, delayChildren: 0.5 }}
       >
-        {renderCards()}
+        {renderCards() || 
+        <div className="loadingCardsImg">
+          <img src={Images.loading} alt="" />
+        </div>}
       </motion.div>
       <div className="packagecount__wrapper">
         <div className="counter" onClick={() => handlePageChange(1)}><a href="#packages">First</a></div>

@@ -56,6 +56,7 @@ router.get("/getHallByUserId", async (req, res) => {
     }
 });
 
+// get initial hall list to be displayed on Home Page
 router.get('/', async(req, res)=> {
 
     const { hallCity, eventId } = req.query;
@@ -84,6 +85,24 @@ router.get('/', async(req, res)=> {
             }
         ]);
         return res.status(200).json(hallDetails); 
+    } catch(error) {
+        return res.status(500).json({message: error.message});
+    }
+});
+
+// get the total hall owner count
+router.get('/getHallCount', async(req, res) => {
+
+    const filter = {};
+
+    try {
+        const hallCount = await hallMaster.countDocuments(filter);
+
+        if(typeof hallCount !== "number") {
+            return res.status(501).json({message: "Connection to server failed."});
+        }
+
+        return res.status(200).json(hallCount);
     } catch(error) {
         return res.status(500).json({message: error.message});
     }

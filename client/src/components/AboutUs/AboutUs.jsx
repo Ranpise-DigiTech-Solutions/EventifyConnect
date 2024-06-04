@@ -15,7 +15,7 @@ export default function AboutUs() {
   };
 
   return (
-    <div className='aboutus__container'>
+    <div className='aboutus__container' id='aboutUs'>
       <div className='aboutus__wrapper'>
         <div className="sub__wrapper_1">
           <img src={Images.wedding4} alt="" />
