@@ -33,6 +33,7 @@ import congratsBg from '../assets/congratsBg.jpg';
 import blogs01 from '../assets/blogs01.jpg';
 import blogs02 from '../assets/blogs02.jpg';
 import loading from '../assets/loading.png';
+import advertisement01 from '../assets/advertisement01.png';
 
 export default {
     logo,
@@ -69,5 +70,6 @@ export default {
     congratsBg,
     blogs01,
     blogs02,
-    loading
+    loading,
+    advertisement01
 };

@@ -107,9 +107,7 @@ const Promotion = () => {
           return;
         }
         handleTotalCount("hallVendors", parseInt(response.data));
-
-        console.log("HALLVENDORCOUNT", response.data);
-        parseInt();
+        
       } catch (error) {
         console.error(error);
       }
@@ -125,8 +123,6 @@ const Promotion = () => {
           return;
         }
         handleTotalCount("otherServiceProviders", parseInt(response.data));
-        console.log("OTHERVENDORCOUNT", response.data);
-        parseInt();
 
       } catch (error) {
         console.error(error);
@@ -143,8 +139,6 @@ const Promotion = () => {
           return;
         }
         handleTotalCount("customers", parseInt(response.data));
-        console.log("CUSTOMERCOUNT", response.data);
-        parseInt();
 
       } catch (error) {
         console.error(error);
@@ -161,8 +155,6 @@ const Promotion = () => {
           return;
         }
         handleTotalCount("bookings", parseInt(response.data));
-        console.log("BOOKINGCOUNT", response.data);
-        parseInt();
 
       } catch (error) {
         console.error(error);
@@ -178,8 +170,6 @@ const Promotion = () => {
   const handleSearchClick = (e) => {
     // dispatch(searchBoxFilterStore("cityName", cityName));
   };
-
-  console.log(totalCount);
 
   return (
     <div className="main__container promotion__container">

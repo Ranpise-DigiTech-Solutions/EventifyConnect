@@ -2,25 +2,25 @@ import { default as express } from "express";
 const router = express.Router();
 import { ObjectId } from "mongodb";
 import mongoose from "mongoose";
-import {doc, getDoc, updateDoc} from 'firebase/firestore';
-import {firestore} from "../database/FirebaseDb.js";
+import { doc, getDoc, updateDoc } from 'firebase/firestore';
+import { firestore } from "../database/FirebaseDb.js";
 
 import { hallMaster, hallBookingMaster } from "../models/index.js";
 
 router.get("/", async (req, res) => {
   try {
-      // Add logic here to fetch data from the database
-      const data = await hallBookingMaster.find(); // Example: fetching all bookingMaster documents
+    // Add logic here to fetch data from the database
+    const data = await hallBookingMaster.find(); // Example: fetching all bookingMaster documents
 
-      // Send the fetched data in the response
-      return res.status(200).json(data);
+    // Send the fetched data in the response
+    return res.status(200).json(data);
   } catch (error) {
-      return res.status(500).json({message: error.message});
+    return res.status(500).json({ message: error.message });
   }
 });
 
 router.get("/getHallsAvailabilityStatus", async (req, res) => {
-  const { selectedDate, selectedCity, eventId } = req.query;
+  const { selectedDate, selectedCity, eventId, filter } = req.query;
 
   let eventObjectId = ""; // Event Type Object ID in Str
 
@@ -37,18 +37,41 @@ router.get("/getHallsAvailabilityStatus", async (req, res) => {
     eventObjectId = null;
   }
 
+  // Function to determine sort criteria
+  function getSortCriteria(filter) {
+    switch (filter) {
+      case 'Oldest':
+        return { createdTime: 1 };  // Ascending order for oldest first
+      case 'Most Liked':
+        return { hallLikesCount: -1 };  // Descending order for most liked first
+      case 'Most Popular':
+        return { hallMaxBookings: -1 };  // Descending order for most popular first
+      case 'Top Rated':
+        return { hallUserRating: -1 };  // Descending order for top rated first
+      default:
+        return null;  // Default sort criteria (no sorting)
+    }
+  }
+
+  const sortCriteria = getSortCriteria(filter);
+
   try {
     // Get all halls
-    const allHalls = await hallMaster.aggregate([
+    const allHallsPipeline = [
       {
         $match: {
           hallCity: selectedCity ? selectedCity : { $exists: true },
-          hallEventTypes: eventObjectId
-            ? { $in: [eventObjectId] }
-            : { $exists: true },
+          hallEventTypes: eventObjectId ? { $in: [eventObjectId] } : { $exists: true },
         },
       },
-    ]);
+    ];
+
+    if (sortCriteria) {
+      allHallsPipeline.push({ $sort: sortCriteria });
+    }
+    
+    const allHalls = await hallMaster.aggregate(allHallsPipeline);
+    
 
     // Find bookings for the given date
     const startDate = new Date(selectedDate + "T00:00:00.000Z");
@@ -94,9 +117,9 @@ router.get("/getHallsAvailabilityStatus", async (req, res) => {
                   // 2. check if booking starts on or after the selected date
                   { $gte: ["$bookingStartDateTimestamp", startDate] },
                   // if it does, calculate the duration from the start of selected date to the end of booking date
-                  { $subtract: [endDate, "$bookingStartDateTimestamp"] },
+                  { $divide: [{ $subtract: [endDate, "$bookingStartDateTimestamp"] }, 3600000] }, // Convert to hours
                   // if it doesn't, calculate the duration from booking start date to the end of the selected date
-                  { $subtract: ["$bookingEndDateTimestamp", startDate] },
+                  { $divide: [{ $subtract: ["$bookingEndDateTimestamp", startDate] }, 3600000] }, // Convert to hours
                 ],
               },
             ],
@@ -122,18 +145,22 @@ router.get("/getHallsAvailabilityStatus", async (req, res) => {
       },
     ]);
 
+    console.log("BOOKINGS", bookings);
+
     // Group bookings by hall
     const bookingsByHall = {};
     bookings.forEach((booking) => {
       bookingsByHall[booking.hallId] = booking;
     });
 
+
     // Calculate availability status for each hall
     const hallAvailability = allHalls.map((hall) => {
       const isHallAvailable = !bookingsByHall[hall._id]; //check if the hall is booked atleast once
       const checkAvailability = () => {
         const hallBookingDetails = bookingsByHall[hall._id];
-        return hallBookingDetails.totalDuration > 8
+        console.log(hallBookingDetails);
+        return hallBookingDetails.totalDuration > 18
           ? "UNAVAILABLE"
           : "LIMITED AVAILABILITY";
       };
@@ -166,7 +193,7 @@ router.get("/getHallsAvailabilityStatus", async (req, res) => {
 router.get("/getHallAvailability", async (req, res) => {
   const { hallId, startDate, endDate } = req.query;
   const hallObjectId = new mongoose.Types.ObjectId(hallId);
-  
+
   const startDateOfWeek = new Date(startDate);
   const endDateOfWeek = new Date(endDate);
 
@@ -258,7 +285,7 @@ router.get("/getHallBookings", async (req, res) => {
       }
     ]);
     console.log(hallBookings);
-    if(hallBookings.length === 0) {
+    if (hallBookings.length === 0) {
       return res.status(200).json({ count: 0 });
     }
 
@@ -270,9 +297,9 @@ router.get("/getHallBookings", async (req, res) => {
 });
 
 router.post("/", async (req, res) => {
- 
+
   const newDocument = new hallBookingMaster(req.body);
-     
+
   if (!newDocument) {
     return res
       .status(404)
@@ -288,11 +315,11 @@ router.post("/", async (req, res) => {
   }
 });
 
-router.post("/bookWalkInCustomer", async (req, res) => { 
+router.post("/bookWalkInCustomer", async (req, res) => {
   const postData = req.body;
   console.log(postData);
-  if(!postData) {
-      return res.status(404).json({message: "Request Body attachment not found!!"});
+  if (!postData) {
+    return res.status(404).json({ message: "Request Body attachment not found!!" });
   }
 
   const hallObjectId = new mongoose.Types.ObjectId(postData.hallId);
@@ -305,44 +332,44 @@ router.post("/bookWalkInCustomer", async (req, res) => {
   const docSnap = await getDoc(docRef);
 
   if (!docSnap.exists()) {
-      return res.status(404).send("Document not found!");
+    return res.status(404).send("Document not found!");
   }
 
   const data = docSnap.data();
   const prevId = data.currentId;
   const newId = prevId + 1;
-  
+
   console.log("New Booking Id: " + newId);
 
   const updatedData = {
-      documentId: parseInt(newId),
-      ...postData,
-      hallId: hallObjectId,
-      vendorTypeId: vendorTypeObjectId,
-      eventId: eventTypeObjectId,
-      hallUserId: hallUserObjectId
+    documentId: parseInt(newId),
+    ...postData,
+    hallId: hallObjectId,
+    vendorTypeId: vendorTypeObjectId,
+    eventId: eventTypeObjectId,
+    hallUserId: hallUserObjectId
   };
 
   const newDocument = new hallBookingMaster(updatedData);
   console.log("ENTERED 1")
   console.log(hallUserObjectId);
 
-  if(!newDocument) {
-      return res.status(404).json({message: "Operation Failed!!"});
+  if (!newDocument) {
+    return res.status(404).json({ message: "Operation Failed!!" });
   }
   console.log("ENTERED 2")
-  
-  try {
-      const savedDocument = await newDocument.save();
-      
-      console.log("ENTERED 2")
-      // Update the Firestore document with the new ID
-      await updateDoc(docRef, {currentId: newId});
 
-      return res.status(200).json(savedDocument);
-  } catch(error) {
-      console.error(error);
-      return res.status(500).json(error);
+  try {
+    const savedDocument = await newDocument.save();
+
+    console.log("ENTERED 2")
+    // Update the Firestore document with the new ID
+    await updateDoc(docRef, { currentId: newId });
+
+    return res.status(200).json(savedDocument);
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json(error);
   }
 });
 

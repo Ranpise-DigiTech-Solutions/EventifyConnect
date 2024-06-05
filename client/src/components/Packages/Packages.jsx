@@ -11,8 +11,6 @@ import { Images } from "../../constants";
 
 export default function Packages() {
 
-  const [data, setData] = useState([]);
-
   const [activeFilter, setActiveFilter] = useState("Available"); // Current Active Filter
   const [animateCard, setAnimateCard] = useState({ y: 0, opacity: 1 }); // Card Animation when clicked on TAGS
   const [filteredCards, setFilteredCards] = useState([]); // Filtering cards based on the TAGS..Ex: Most Popular, Top Rated etc..
@@ -22,7 +20,8 @@ export default function Packages() {
   const [totalPages, setTotalPages] = useState(1);
   const itemsPerPage = 6;
   
-  const searchBoxFilterStore = useSelector((state) => state.searchBoxFilter);
+  const searchBoxFilterStore = useSelector((state) => state.searchBoxFilter); // searchBoxFilterStore react-redux
+  const dataStore = useSelector((state) => state.data); // dataStore react-redux
 
   const handlePageChange = (pageNumber) => {
     if (pageNumber !== currentPage) {
@@ -71,12 +70,14 @@ export default function Packages() {
     const getEventId = async () => {
       try {
         if(searchBoxFilterStore.eventType) { // if user has chosen a event return its ID.. else return NULL
-          const eventMasterResponse = await axios.get(`${import.meta.env.VITE_SERVER_URL}/eventify_server/eventTypes/getEventId`, {
-            params: {
-              eventName: searchBoxFilterStore.eventType
-            }
-          });
-          return eventMasterResponse.data;
+          if(dataStore.eventTypes.data.length === 0) {
+            return null;
+          }
+          const eventId = dataStore.eventTypes.data.find((item) => {
+            return item.eventName === searchBoxFilterStore.eventType;
+          })?._id;
+          
+          return eventId;
         }
         return null; // if NULL is returned ...then the event filter wont be applied in the backend
       }
@@ -97,13 +98,17 @@ export default function Packages() {
           params: {
             selectedCity: selectedCityName ? selectedCityName : "Mangalore",
             selectedDate: selectedDate ? selectedDate : formattedDate,
-            eventId: eventId
+            eventId: eventId,
+            filter: activeFilter
           }
         });
-
-        setData(hallMasterResponse.data);
-        const filteredCardsBasedOnAvailability = mergeSort(hallMasterResponse.data);
-        setFilteredCards(filteredCardsBasedOnAvailability);
+        console.log("HALL MASTER RESPONSE: ", hallMasterResponse.data);
+        
+        if(activeFilter === "Available") {
+          const filteredCardsBasedOnAvailability = mergeSort(hallMasterResponse.data);
+          setFilteredCards(filteredCardsBasedOnAvailability);
+        }
+        setFilteredCards(hallMasterResponse.data);
         setTotalPages(Math.ceil(Object.values(hallMasterResponse.data).length / itemsPerPage));
       } catch (error) {
         console.error('Error fetching data:', error);
@@ -111,7 +116,7 @@ export default function Packages() {
     };
     fetchData();
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [searchBoxFilterStore]);
+  }, [searchBoxFilterStore, activeFilter]);
 
   // To provide the scroll effect when the cards change
   useEffect(() => {
@@ -125,11 +130,11 @@ export default function Packages() {
   const handleCardFilter = (item) => { // Filtering Criteria to be passed in arguments ...Ex: Most Popular, Top Rated etc... 
     setActiveFilter(item) // Set Active Filter
     setAnimateCard({y:100, opacity:0}) //to get the shuffled animation of the cards
-    if(item === "Available") {
-      setFilteredCards(mergeSort(data));
-     }else {
-      setFilteredCards(data);
-    }
+    // if(item === "Available") {
+    //   setFilteredCards(mergeSort(data));
+    //  }else {
+    //   setFilteredCards(data);
+    // }
     setTimeout(() => {
       setAnimateCard({y:0, opacity:1})
     }, 500);

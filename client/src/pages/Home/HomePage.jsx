@@ -4,7 +4,7 @@ import './HomePage.scss'
 import { useState } from 'react';
 import { AppWrap } from '../../wrapper'
 import { NavBar, Promotion, Destinations, SearchBar, Packages, AboutUs, Stories, Blogs, Footer } from '../../components'
-import { LoadingScreen } from "../../sub-components";
+import { Advertisement, LoadingScreen } from "../../sub-components";
 
 const HomePage = () => {
 
@@ -21,8 +21,10 @@ const HomePage = () => {
         <NavBar setIsLoading={setIsLoading}/>
         <Promotion />
         <Destinations />
+        <Advertisement theme='dark' />
         <SearchBar /> 
         <Packages />
+        <Advertisement theme='light' />
         <AboutUs />
         <Stories />
         <Blogs />

@@ -1,0 +1,26 @@
+* {
+    margin: 0;
+    padding: 0;
+}
+
+.advertisement__container {
+    width: 100%;
+    padding: 0 5rem;
+    
+    padding-bottom: 5rem;
+    
+    img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        object-position: center center;
+    }
+}
+
+.dark-bg {
+    background-color: var(--primary-color);
+}
+
+.light-bg {
+    background-color: var(--secondary-color);
+}

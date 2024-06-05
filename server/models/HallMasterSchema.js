@@ -1,3 +1,4 @@
+import { Double } from "mongodb";
 import mongoose from "mongoose";
 
 const hallMasterSchema = new mongoose.Schema({
@@ -37,6 +38,10 @@ const hallMasterSchema = new mongoose.Schema({
 
     hallEventTypes: [{ type: mongoose.Schema.Types.ObjectId, ref: 'eventtypes', required: true}], 
     hallImages: [{ type: String, required: true }],
+
+    hallLikesCount: { type: Number, required: true, default: 0 },
+    hallMaxBookings: { type: Number, required: true, default: 0 },
+    hallUserRating: { type: Number, required: true, default: 0 },
 
     programId: { type: String, required: true },
     hallUserId: { type: mongoose.Schema.Types.ObjectId, ref: 'serviceprovidermasters', required: true }
