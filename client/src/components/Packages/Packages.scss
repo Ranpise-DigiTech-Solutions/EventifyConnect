@@ -58,7 +58,23 @@
       justify-content: center;
       align-items: center;
       padding: 0 1rem 2rem;
+
+      margin: -2rem 0 2rem 0;
   
+      .altImg-container {
+        width: 100%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+
+        img {
+          width: auto;
+          object-fit: cover;
+          object-position: center center;
+
+        }
+      }
+
       .card {
         width: 100%;
         margin-bottom: 1rem;
@@ -121,13 +137,21 @@
       }
     }
   }
+
   .packagesCardBox__wrapper{
     max-width: 100%;
+  }
+
+  @media (max-width: 768px) {
+    .packages__container {
+      padding-bottom: 2rem;
+    }
   }
   
   // Media queries for larger screens
   @media (min-width: 768px) {
     .packages__container {
+      
       .packages__wrapper {
         flex-direction: row;
         flex-wrap: wrap;

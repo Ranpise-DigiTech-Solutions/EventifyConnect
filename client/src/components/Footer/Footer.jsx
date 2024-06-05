@@ -74,7 +74,7 @@ export default function Footer() {
                         <FacebookIcon className='icon' />
                         <InstagramIcon className='icon' />
                     </div>
-                    <div className="app_icon_description"> For better experience, download the <br/>eventifyConnect app now</div>
+                    <div className="app_icon_description"> For better experience, download the eventifyConnect app now</div>
                     <div className="app__download__icons">
                         <a href="https://play.google.com/store/apps/details?id=YOUR_APP_PACKAGE_NAME" >
                             <img src={playStoreIcon} alt="Download from Play Store" className="playstore"  />

@@ -11,7 +11,7 @@
     min-height: 100vh;
     width: 100%;
     background-color: var(--primary-color);
-    padding: 4rem 7rem;
+    padding: 4rem 5rem;
     color: aliceblue;
     flex: 1;
     display: flex;
@@ -53,12 +53,22 @@
       justify-content: space-between;
       align-items: center;
       margin-bottom: 4rem;
-  
+
       .card {
-        height: 500px;
+        height: auto;
         width: 600px;
         background-color: unset;
+        overflow-y: hidden;
+
+        &:nth-child(1) {
+          margin-right: 1rem;
+        }
+
+        &:nth-child(2) {
+          margin-left: 1rem;
+        }
       }
+
     }
   
     button {
@@ -91,11 +101,26 @@
         flex-direction: column;
         justify-content: center;
         align-items: center;
+
+        margin-bottom: 1rem;
   
         .card {
           height: auto;
           width: 100%;
           margin-bottom: 2rem;
+        }
+      }
+    }
+  }
+
+  @media only screen and (min-width: 768px) and (max-width: 1199px) {
+    .blogs__container {
+
+      .articles__wrapper {
+        margin-bottom: 4rem;
+
+        .card {
+
         }
       }
     }

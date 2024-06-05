@@ -34,6 +34,7 @@ import blogs01 from '../assets/blogs01.jpg';
 import blogs02 from '../assets/blogs02.jpg';
 import loading from '../assets/loading.png';
 import advertisement01 from '../assets/advertisement01.png';
+import NoResults from '../assets/NoResults.png';
 
 export default {
     logo,
@@ -71,5 +72,6 @@ export default {
     blogs01,
     blogs02,
     loading,
-    advertisement01
+    advertisement01,
+    NoResults
 };
