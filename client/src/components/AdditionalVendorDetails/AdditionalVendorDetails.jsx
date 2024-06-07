@@ -1,9 +1,12 @@
 /* eslint-disable no-unused-vars */
 import "./AdditionalVendorDetails.scss";
-import { useState } from "react";
+import React, { useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import PropTypes from "prop-types";
 
+import Snackbar from '@mui/material/Snackbar';
+import IconButton from '@mui/material/IconButton';
+import CloseIcon from '@mui/icons-material/Close';
 import Button from "@mui/material/Button";
 import Dialog from "@mui/material/Dialog";
 import DialogActions from "@mui/material/DialogActions";
@@ -27,6 +30,10 @@ import VerifiedIcon from "@mui/icons-material/Verified";
 import { Images } from "../../constants";
 import { bookingInfoActions } from "../../states/BookingInfo";
 import { firebaseAuth } from "../../firebaseConfig.js";
+import { 
+  ContactForm,
+  ContactInfoDialog
+} from '../../sub-components';
 
 const similarVendorsData = [
   {
@@ -57,11 +64,16 @@ const similarVendorsData = [
 
 export default function AdditionalVendorDetails({
   handleBookingDetailsDialogOpen,
+  hallData
 }) {
   const dispatch = useDispatch();
   const bookingInfoStore = useSelector((state) => state.bookingInfo);
 
   const [openSignInAlertDialog, setOpenSignInAlertDialog] = useState(false);
+  const [openSendMessageDialog, setOpenSendMessageDialog] = useState(false); 
+  const [openContactInfoDialog, setOpenContactInfoDialog] = useState(false);
+  const [isMessageSent, setIsMessageSent] = useState(false); // to toggle snackBar
+
   const theme = useTheme();
   const fullScreen = useMediaQuery(theme.breakpoints.down("md"));
 
@@ -86,6 +98,47 @@ export default function AdditionalVendorDetails({
   const handleSignInAlertDialogClose = () => {
     setOpenSignInAlertDialog(false);
   };
+
+  const handleSendMessageDialogOpen = ()=> {
+    setOpenSendMessageDialog(true);
+  }
+
+  const handleSendMessageDialogClose = ()=> {
+    setOpenSendMessageDialog(false);
+  }
+
+  const handleContactInfoDialogOpen = () => {
+    setOpenContactInfoDialog(true);
+  }
+
+  const handleContactInfoDialogClose = () => {
+    setOpenContactInfoDialog(false);
+  }
+
+  const handleSnackBarClose = (event, reason) => {
+    if (reason === "clickaway") {
+      return;
+    }
+
+    setIsMessageSent(false);
+  };
+
+  const snackBarAction = (
+    <React.Fragment>
+      <Button color="secondary" size="small" onClick={handleSnackBarClose}>
+        Un-Send
+      </Button>
+      <IconButton
+        size="small"
+        aria-label="close"
+        color="inherit"
+        onClick={handleSnackBarClose}
+      >
+        <CloseIcon fontSize="small" />
+      </IconButton>
+    </React.Fragment>
+  );
+
 
   const handleBookingStartDateChange = (event) => {
     const bookingStartDate = new Date(event.target.value);
@@ -208,6 +261,15 @@ export default function AdditionalVendorDetails({
 
   return (
     <div className="additionalVendorDetails__container">
+      {/* SnackBar */}
+      <Snackbar
+        open={isMessageSent}
+        autoHideDuration={6000}
+        onClose={handleSnackBarClose}
+        message="Thank you for connecting! We'll get back to you soon!!"
+        action={snackBarAction}
+      />
+      {/* Sign-In Alert Dialog */}
       <Dialog
         fullScreen={fullScreen}
         open={openSignInAlertDialog}
@@ -231,6 +293,48 @@ export default function AdditionalVendorDetails({
           </Button>
         </DialogActions>
       </Dialog>
+      {/* Send Message Dialog */}
+      <Dialog
+        fullScreen={fullScreen}
+        open={openSendMessageDialog}
+        onClose={handleSendMessageDialogClose}
+        aria-labelledby="responsive-dialog-title"
+        aria-describedby="responsive-dialog-description"
+        maxWidth="sm"
+        fullWidth
+      >
+        <div className="sendMessageDialog__wrapper" style={{padding: "2rem", backgroundColor: "#333333"}}>
+          <ContactForm setIsSuccess={setIsMessageSent}/>
+        </div>
+      </Dialog>
+      {/* Contact Info Dialog */}
+      <Dialog
+        fullScreen={fullScreen}
+        open={openContactInfoDialog}
+        onClose={handleContactInfoDialogClose}
+        aria-labelledby="responsive-dialog-title"
+        aria-describedby="responsive-dialog-description"
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogContent>
+          <div className="sendMessageDialog__wrapper" style={{padding: "2rem", backgroundColor: "#f7f7f7" }}>
+            <ContactInfoDialog 
+              profilePic=""
+              name={hallData?.hallMainContactName}
+              designation={hallData?.hallMainDesignation}
+              personalContact={hallData?.hallMainMobileNo}
+              officeContact={hallData?.hallMainOfficeNo}
+              emailId={hallData?.hallMainEmail}
+            />
+          </div>
+        </DialogContent>
+        <DialogActions>
+          <Button autoFocus onClick={handleSignInAlertDialogClose}>
+            Ok
+          </Button>
+        </DialogActions>
+      </Dialog>
       <div className="pricingInformation__wrapper">
         <div className="title__wrapper">
           <p className="title">Starting price</p>
@@ -244,7 +348,7 @@ export default function AdditionalVendorDetails({
           <div className="rate__wrapper">
             <CurrencyRupeeIcon className="icon" />
             <p>
-              1,200 per plate <span>(taxes extra)</span>
+              {hallData.hallVegRate ? hallData.hallVegRate : 0} per plate <span>(taxes extra)</span>
             </p>
           </div>
           <div className="sub-title">Veg</div>
@@ -254,18 +358,18 @@ export default function AdditionalVendorDetails({
           <div className="rate__wrapper">
             <CurrencyRupeeIcon className="icon" />
             <p>
-              1,200 per plate <span>(taxes extra)</span>
+              {hallData.hallNonVegRate ? hallData.hallNonVegRate : 0} per plate <span>(taxes extra)</span>
             </p>
           </div>
           <div className="sub-title">Non-Veg</div>
         </div>
         <div className="lineSeparator"></div>
         <div className="contactBtn__wrapper">
-          <button className="btn">
+          <button className="btn" onClick={handleSendMessageDialogOpen}>
             <MailOutlineIcon className="icon" />
             <p className="btn-caption">Send Message</p>
           </button>
-          <button className="btn">
+          <button className="btn" onClick={handleContactInfoDialogOpen}>
             <PhoneIcon className="icon" />
             <p className="btn-caption">View Contact</p>
           </button>
@@ -433,4 +537,5 @@ export default function AdditionalVendorDetails({
 
 AdditionalVendorDetails.propTypes = {
   handleBookingDetailsDialogOpen: PropTypes.func.isRequired,
+  hallData: PropTypes.object.isRequired,
 };

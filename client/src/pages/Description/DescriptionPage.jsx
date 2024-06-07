@@ -107,6 +107,7 @@ export default function DescriptionPage() {
                     handleBookingDetailsDialogOpen={
                       handleBookingDetailsDialogOpen
                     }
+                    hallData={hallData}
                   />
                 </div>
               </div>

@@ -35,6 +35,8 @@ import blogs02 from '../assets/blogs02.jpg';
 import loading from '../assets/loading.png';
 import advertisement01 from '../assets/advertisement01.png';
 import NoResults from '../assets/NoResults.png';
+import PlayStoreIcon from '../assets/Playstore_icon.png';
+import AppStoreIcon from '../assets/App_store_icon.png';
 
 export default {
     logo,
@@ -73,5 +75,7 @@ export default {
     blogs02,
     loading,
     advertisement01,
-    NoResults
+    NoResults,
+    PlayStoreIcon,
+    AppStoreIcon,
 };
