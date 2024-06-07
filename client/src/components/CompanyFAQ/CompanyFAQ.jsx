@@ -45,8 +45,8 @@ const CompanyFAQ = ({ isOpen, onClose }) => {
     <div className={`faqPopup__container ${animation}`}>
       <div className="faqPopup-container">
         <header className="faqPopup-header">
-          <FaTimes className="close-icon" onClick={onClose} />
-          <h2>FAQs</h2>
+          <FaTimes className="close-icon" onClick={onClose} style={{color: "#ffffff"}}/>
+          {/* <h2>FAQs</h2> */}
         </header>
         <div className="faqPopup-content">
           

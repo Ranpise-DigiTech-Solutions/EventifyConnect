@@ -1,6 +1,6 @@
 /* eslint-disable no-unused-vars */
 import "./AdditionalVendorDetails.scss";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import PropTypes from "prop-types";
 
@@ -34,6 +34,7 @@ import {
   ContactForm,
   ContactInfoDialog
 } from '../../sub-components';
+import { onAuthStateChanged } from 'firebase/auth';
 
 const similarVendorsData = [
   {
@@ -68,11 +69,13 @@ export default function AdditionalVendorDetails({
 }) {
   const dispatch = useDispatch();
   const bookingInfoStore = useSelector((state) => state.bookingInfo);
+  const userInfoStore = useSelector((state) => state.userInfo);
 
   const [openSignInAlertDialog, setOpenSignInAlertDialog] = useState(false);
   const [openSendMessageDialog, setOpenSendMessageDialog] = useState(false); 
   const [openContactInfoDialog, setOpenContactInfoDialog] = useState(false);
   const [isMessageSent, setIsMessageSent] = useState(false); // to toggle snackBar
+  const [isUserLoggedIn, setIsUserLoggedIn] = useState(false); //user login status
 
   const theme = useTheme();
   const fullScreen = useMediaQuery(theme.breakpoints.down("md"));
@@ -139,6 +142,22 @@ export default function AdditionalVendorDetails({
     </React.Fragment>
   );
 
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(firebaseAuth, (currentUser) => {
+      try {
+        if (currentUser) {
+          setIsUserLoggedIn(true);
+        } else {
+          setIsUserLoggedIn(false);
+        }
+      } catch (error) {
+        console.error(error.message);
+      }
+    });
+
+    // Cleanup subscription on unmount
+    return () => unsubscribe();
+  }, [userInfoStore.userAuthStateChangeFlag]);
 
   const handleBookingStartDateChange = (event) => {
     const bookingStartDate = new Date(event.target.value);
@@ -330,7 +349,7 @@ export default function AdditionalVendorDetails({
           </div>
         </DialogContent>
         <DialogActions>
-          <Button autoFocus onClick={handleSignInAlertDialogClose}>
+          <Button autoFocus onClick={handleContactInfoDialogClose}>
             Ok
           </Button>
         </DialogActions>
@@ -369,7 +388,13 @@ export default function AdditionalVendorDetails({
             <MailOutlineIcon className="icon" />
             <p className="btn-caption">Send Message</p>
           </button>
-          <button className="btn" onClick={handleContactInfoDialogOpen}>
+          <button className="btn" onClick={()=> {
+            if(isUserLoggedIn) {
+              handleContactInfoDialogOpen();
+            } else {
+              handleSignInAlertDialogOpen();
+            }
+          }}>
             <PhoneIcon className="icon" />
             <p className="btn-caption">View Contact</p>
           </button>
