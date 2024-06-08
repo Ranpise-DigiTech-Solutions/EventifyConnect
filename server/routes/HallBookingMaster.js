@@ -69,13 +69,16 @@ router.get("/getHallsAvailabilityStatus", async (req, res) => {
     if (sortCriteria) {
       allHallsPipeline.push({ $sort: sortCriteria });
     }
-    
+
     const allHalls = await hallMaster.aggregate(allHallsPipeline);
-    
+
 
     // Find bookings for the given date
     const startDate = new Date(selectedDate + "T00:00:00.000Z");
     const endDate = new Date(selectedDate + "T23:59:59.999Z");
+
+    const startDateUTC = new Date(startDate.getTime() + (startDate.getTimezoneOffset() * 60000)).toISOString();
+    const endDateUTC = new Date(endDate.getTime() + (endDate.getTimezoneOffset() * 60000)).toISOString();
 
     const bookings = await hallBookingMaster.aggregate([
       {
@@ -83,13 +86,13 @@ router.get("/getHallsAvailabilityStatus", async (req, res) => {
           $or: [
             {
               $and: [
-                { bookingStartDateTimestamp: { $lte: endDate } },
-                { bookingEndDateTimestamp: { $gte: startDate } },
+                { bookingStartDateTimestamp: { $lte: new Date(endDateUTC) } },
+                { bookingEndDateTimestamp: { $gte: new Date(startDateUTC) } },
               ],
             },
             {
               $and: [
-                { bookingStartDateTimestamp: { $lte: endDate } },
+                { bookingStartDateTimestamp: { $lte: new Date(endDateUTC) } },
                 { bookingEndDateTimestamp: null }, // Handling bookings that extend beyond the selected date
               ],
             },
@@ -107,19 +110,19 @@ router.get("/getHallsAvailabilityStatus", async (req, res) => {
               // 1. check if booking spans the entire day
               {
                 $and: [
-                  { $lte: ["$bookingStartDateTimestamp", startDate] },
-                  { $gte: ["$bookingEndDateTimestamp", endDate] },
+                  { $lte: ["$bookingStartDateTimestamp", new Date(startDateUTC)] },
+                  { $gte: ["$bookingEndDateTimestamp", new Date(endDateUTC)] },
                 ],
               },
               "$bookingDuration", // Use full duration if booking spans the entire selected date
               {
                 $cond: [
                   // 2. check if booking starts on or after the selected date
-                  { $gte: ["$bookingStartDateTimestamp", startDate] },
+                  { $gte: ["$bookingStartDateTimestamp", new Date(startDateUTC)] },
                   // if it does, calculate the duration from the start of selected date to the end of booking date
-                  { $divide: [{ $subtract: [endDate, "$bookingStartDateTimestamp"] }, 3600000] }, // Convert to hours
+                  { $divide: [{ $subtract: [new Date(endDateUTC), "$bookingStartDateTimestamp"] }, 3600000] }, // Convert to hours
                   // if it doesn't, calculate the duration from booking start date to the end of the selected date
-                  { $divide: [{ $subtract: ["$bookingEndDateTimestamp", startDate] }, 3600000] }, // Convert to hours
+                  { $divide: [{ $subtract: ["$bookingEndDateTimestamp", new Date(startDateUTC)] }, 3600000] }, // Convert to hours
                 ],
               },
             ],
@@ -197,6 +200,11 @@ router.get("/getHallAvailability", async (req, res) => {
   const startDateOfWeek = new Date(startDate);
   const endDateOfWeek = new Date(endDate);
 
+  // Subtract 5 hours and 30 minutes (5*60 + 30 = 330 minutes)
+  const startDateUTC = new Date(startDateOfWeek.getTime() + (startDateOfWeek.getTimezoneOffset() * 60000)).toISOString();
+  const endDateUTC = new Date(endDateOfWeek.getTime() + (endDateOfWeek.getTimezoneOffset() * 60000)).toISOString();
+  console.log(startDateUTC, endDateUTC);
+
   try {
     const hallBookings = await hallBookingMaster.aggregate([
       {
@@ -205,13 +213,13 @@ router.get("/getHallAvailability", async (req, res) => {
           $or: [
             {
               $and: [
-                { bookingStartDateTimestamp: { $lte: endDateOfWeek } },
-                { bookingEndDateTimestamp: { $gte: startDateOfWeek } }
+                { bookingStartDateTimestamp: { $lte: new Date(endDateUTC) } },
+                { bookingEndDateTimestamp: { $gte: new Date(startDateUTC) } }
               ]
             },
             {
               $and: [
-                { bookingStartDateTimestamp: { $lte: endDateOfWeek } },
+                { bookingStartDateTimestamp: { $lte: new Date(endDateUTC) } },
                 { bookingEndDateTimestamp: null } // Handling bookings that extend beyond the selected date
               ]
             }
@@ -246,10 +254,10 @@ router.get("/getHallBookings", async (req, res) => {
   const hallObjectId = new mongoose.Types.ObjectId(hallId);
   const startDate = new Date(bookingStartDateTimestamp);
   const endDate = new Date(bookingEndDateTimestamp);
-  console.log(startDate);
-  console.log(endDate);
-  console.log(bookingStartDateTimestamp);
-  console.log(bookingEndDateTimestamp);
+
+  const startDateUTC = new Date(startDate.getTime() + (startDate.getTimezoneOffset() * 60000)).toISOString();
+  const endDateUTC = new Date(endDate.getTime() + (endDate.getTimezoneOffset() * 60000)).toISOString();
+
   try {
     const hallBookings = await hallBookingMaster.aggregate([
       {
@@ -258,13 +266,13 @@ router.get("/getHallBookings", async (req, res) => {
           $or: [
             {
               $and: [
-                { bookingStartDateTimestamp: { $lte: endDate } },
-                { bookingEndDateTimestamp: { $gte: startDate } }
+                { bookingStartDateTimestamp: { $lte: new Date(endDateUTC) } },
+                { bookingEndDateTimestamp: { $gte: new Date(startDateUTC) } }
               ]
             },
             {
               $and: [
-                { bookingStartDateTimestamp: { $lte: endDate } },
+                { bookingStartDateTimestamp: { $lte: new Date(endDateUTC) } },
                 { bookingEndDateTimestamp: null } // Handling bookings that extend beyond the selected date
               ]
             }
@@ -284,7 +292,6 @@ router.get("/getHallBookings", async (req, res) => {
         }
       }
     ]);
-    console.log(hallBookings);
     if (hallBookings.length === 0) {
       return res.status(200).json({ count: 0 });
     }

@@ -453,14 +453,14 @@ export default function WalkInCustomerBookingDialog({
                   <div className="sub-wrapper">
                     <div className="key">Start Date:</div>
                     <div className="value">
-                      {bookingInfoStore.bookingStartDate}
+                      {bookingInfoStore.bookingStartDate ? bookingInfoStore.bookingStartDate : "..."}
                     </div>
                   </div>
                   <div className="verticalLineSeparator"></div>
                   <div className="sub-wrapper">
                     <div className="key">End Date:</div>
                     <div className="value">
-                      {bookingInfoStore.bookingEndDate}
+                      {bookingInfoStore.bookingEndDate ? bookingInfoStore.bookingEndDate : "..."}
                     </div>
                   </div>
                   <div className="verticalLineSeparator"></div>
@@ -471,7 +471,7 @@ export default function WalkInCustomerBookingDialog({
                   <div className="verticalLineSeparator"></div>
                   <div className="sub-wrapper">
                     <div className="key">Status:</div>
-                    <div className="value">PENDING</div>
+                    <div className="value">CONFIRMED</div>
                   </div>
                 </div>
               </div>

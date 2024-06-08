@@ -150,7 +150,7 @@ export default function AvailabilityCalendar({ hallData }) {
               bookingEndDate.toString()
             );
             console.log(
-              "BOOKING START and END DATES ",
+              "WEEK START and END DATES ",
               startDateOfWeek.toString(),
               endDateOfWeek.toString()
             );
@@ -251,10 +251,10 @@ export default function AvailabilityCalendar({ hallData }) {
                   tempCalendar[day].timeSlots[hour] = true;
                 }
               } else {
-                for (let i = startOfWeekDD; i <= endOfWeekDD; i++) {
+                for (let i = startDD; i <= endDD; i++) {
                   const date = new Date(
-                    startDateOfWeek.getTime() +
-                      (i - startOfWeekDD) * 24 * 60 * 60 * 1000
+                    bookingStartDate.getTime() +
+                      (i - startDD) * 24 * 60 * 60 * 1000
                   );
                   const day = getDayOfWeek(date);
 
