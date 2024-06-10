@@ -20,7 +20,7 @@ const OrderDetailsPage = ({ order,userId, onClose, userType ,fetchBookings}) => 
   const [newStatus, setNewStatus] = useState(order.bookingStatus);
   const [selectedOption, setSelectedOption] = useState(null);
   const navigate = useNavigate();
-  const service_id='service_nmoyi47',template_id='template_d5o97qu',user_id='prncI_jPtqNaIhhhU';
+  const service_id=import.meta.env.VITE_EMAILJS_SERVICE_ID ,template_id= import.meta.env.VITE_EMAILJS_TEMPLATE_ID2,user_id=import.meta.env.VITE_EMAILJS_API_PUBLIC_KEY;
   const [showConfirmationDialog, setShowConfirmationDialog] = useState(false);
   const [showSuccessDialog, setShowSuccessDialog] = useState(false);
   const [remarks, setRemarks] = useState('');

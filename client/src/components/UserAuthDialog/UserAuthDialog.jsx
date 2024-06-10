@@ -241,19 +241,8 @@ export default function UserAuthDialog({
           `${import.meta.env.VITE_SERVER_URL}/eventify_server/userAuthentication/loginWithPassword/`,
           postData
         );
-        const userCredential = await signInWithEmailAndPassword(firebaseAuth, inputValue, signInPasswordValue);
-        const userDetails = userCredential.user;
-        // UPDATE USER DATA IN REDUX STORE
-        dispatch(userInfoActions("userDetails", {
-          "UID": userDetails.uid,
-          "Document": response.data,
-          userType: userType,
-          vendorType: userType === "VENDOR" ? data.vendorTypes.data.map((item) => {
-            if (item._id === response.data.vendorTypeId) {
-              return item.vendorType;
-            }
-          }) : ""
-        }));
+        localStorage.setItem('userAccessToken', JSON.stringify(response.data));
+        await signInWithEmailAndPassword(firebaseAuth, inputValue, signInPasswordValue);
         dispatch(userAuthStateChangeFlag());
         setLoadingScreen(false);
         handleClose(); // Close the Entire Login/Register Dialog after Sign-In
@@ -425,12 +414,7 @@ export default function UserAuthDialog({
       }
 
       const response = await axios.post(url, postData);
-      // UPDATE USER DATA IN REDUX STORE
-      dispatch(userInfoActions("userDetails", {
-        ...response.data,
-        userType: userType,
-        vendorType: vendorInfo.vendorTypeInfo?.vendorType
-      }));
+      localStorage.setItem("userAccessToken", response.data);
       dispatch(userAuthStateChangeFlag());
       setLoadingScreen(false);
       handleClose(); // Close the Entire Login/Register Dialog after Sign-In

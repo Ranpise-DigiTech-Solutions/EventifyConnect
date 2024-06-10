@@ -1,9 +1,5 @@
 import React from 'react';
 import './Notifications.scss';
-import UserProfileLeftPanel from '../UserProfileLeftPanel/UserProfileLeftPanel';
-import { NavBar } from '..';
-
-
 class Notification extends React.Component {
   constructor(props) {
     super(props);
@@ -42,23 +38,19 @@ class Notification extends React.Component {
   handleSetActiveComponent(component) {
     // Implement your logic for setActiveComponent here
     console.log('Setting active component:', component);
-  };
+  }
 
   render() {
-    const { isMobile } = this.state;
-
     return (
       <>
-        {isMobile && <NavBar />}
-        <div className="left-panel-container">
-          <UserProfileLeftPanel setActiveComponent={this.handleSetActiveComponent} />
-        </div>
         <div className='notification-container'>
-          <h1>Messages</h1>
-          <button onClick={this.clearNotifications} className="clear-button">Clear All</button>
-          {this.state.messages.map((message, index) => (
-            <NotificationCard key={index} message={message} />
-          ))}
+          <div className="wrapper">
+            {/* <h1>Messages</h1> */}
+            <button onClick={this.clearNotifications} className="clear-button">Clear All</button>
+            {this.state.messages.map((message, index) => (
+              <NotificationCard key={index} message={message} />
+            ))}
+          </div>
         </div>
       </>
     );

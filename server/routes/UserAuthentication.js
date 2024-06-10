@@ -8,7 +8,7 @@ import {
 } from 'firebase/auth';
 import { firebaseAuth, firebaseDb } from '../database/FirebaseDb.js';
 import { v4 as uuidv4 } from 'uuid';
-import { serviceProviderMaster, customerMaster, vendorMaster } from '../models/index.js';
+import { serviceProviderMaster, customerMaster, vendorTypes } from '../models/index.js';
 import axios from 'axios';
 import {
     getAuth,
@@ -85,12 +85,12 @@ router.post("/loginWithPassword", async (req, res) => {
         const accessToken = jwt.sign(
             { id: user._id },
             process.env.JWT_SECRET_KEY,
-            { expiresIn: "1d"}
+            { expiresIn: "1w"}
         );
 
         const { customerPassword, vendorPassword, ...info } = user._doc;
 
-        res.status(200).json({ ...info, accessToken });
+        res.status(200).json({ accessToken });
     } catch (error) {
         return res.status(500).json({ message: error.message });
     }
@@ -152,11 +152,14 @@ router.post("/registerUser", async (req, res) => {
             _id: response.data._id,
         });
 
+        const accessToken = jwt.sign(
+            { id: response.data._id },
+            process.env.JWT_SECRET_KEY,
+            { expiresIn: "1w"}
+        );
+
         console.log("User Created Successfully!!", user.uid);
-        return res.status(200).json({
-            "UID": user.uid,
-            "Document": response.data,
-        });
+        return res.status(200).json({ accessToken });
     } catch (error) {
         console.log("ERROR", error);
         return res.status(500).json(error.message);
@@ -180,14 +183,14 @@ router.get("/getUserData/:id", async (req, res) => {
             console.log(snapshot.val());
 
             let userRecord;
+            let vendorRecord = null;
             const userType = userData.userType;
-            let vendorType;
 
             if (userType === "CUSTOMER") {
                 userRecord = await customerMaster.findById(userData._id);
             } else if (userType === "VENDOR") {
                 userRecord = await serviceProviderMaster.findById(userData._id);
-                vendorType = await vendorMaster.findById(userRecord.vendorTypeId);
+                vendorRecord = await vendorTypes.findById(userRecord.vendorTypeId);
             }
 
             console.log(userRecord);
@@ -195,7 +198,7 @@ router.get("/getUserData/:id", async (req, res) => {
                 UID: currentUserId,
                 Document: userRecord,
                 userType: userType,
-                vendorType: vendorType
+                vendorType: vendorRecord?.vendorType
             });
         } else {
             return res.status(404).json({message: "User not found!"});

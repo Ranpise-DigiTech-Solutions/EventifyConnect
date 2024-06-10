@@ -3,7 +3,7 @@ import "./NavBar.scss";
 
 import React, { useState, useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
-import { Link } from 'react-router-dom';
+import { Link } from "react-router-dom";
 import PropTypes from "prop-types";
 import { onAuthStateChanged } from "firebase/auth";
 
@@ -12,23 +12,25 @@ import Button from "@mui/material/Button";
 import Tooltip from "@mui/material/Tooltip";
 import Avatar from "@mui/material/Avatar";
 import IconButton from "@mui/material/IconButton";
-import Menu from '@mui/material/Menu';
-import MenuItem from '@mui/material/MenuItem';
-import ListItemIcon from '@mui/material/ListItemIcon';
-import Divider from '@mui/material/Divider';
-import PersonAdd from '@mui/icons-material/PersonAdd';
-import Settings from '@mui/icons-material/Settings';
-import Logout from '@mui/icons-material/Logout';
+import Menu from "@mui/material/Menu";
+import MenuItem from "@mui/material/MenuItem";
+import ListItemButton from "@mui/material/ListItemButton";
+import ListItemIcon from "@mui/material/ListItemIcon";
+import Divider from "@mui/material/Divider";
+import PersonAdd from "@mui/icons-material/PersonAdd";
+import Settings from "@mui/icons-material/Settings";
+import Logout from "@mui/icons-material/Logout";
 import AddBusinessOutlinedIcon from "@mui/icons-material/AddBusinessOutlined";
-import MenuIcon from '@mui/icons-material/Menu';
-import CloseIcon from '@mui/icons-material/Close';
-import Box from '@mui/material/Box';
-import Drawer from '@mui/material/Drawer';
-import List from '@mui/material/List';
-import ListItem from '@mui/material/ListItem';
-import ListItemText from '@mui/material/ListItemText';
-import useMediaQuery from '@mui/material/useMediaQuery';
-import UserProfileLeftPanel from '../../components/UserProfileLeftPanel/UserProfileLeftPanel';
+import MenuIcon from "@mui/icons-material/Menu";
+import CloseIcon from "@mui/icons-material/Close";
+import PersonIcon from "@mui/icons-material/Person";
+import Box from "@mui/material/Box";
+import Drawer from "@mui/material/Drawer";
+import List from "@mui/material/List";
+import ListItem from "@mui/material/ListItem";
+import ListItemText from "@mui/material/ListItemText";
+import useMediaQuery from "@mui/material/useMediaQuery";
+import LogoutIcon from "@mui/icons-material/Logout";
 import { Images } from "../../constants";
 import {
   UserAuthDialog,
@@ -84,20 +86,15 @@ export default function NavBar({ setIsLoading }) {
   const handleRegistrationDialogClose = () => {
     setIsRegistrationDialogOpen(false);
   };
-// Function to toggle the mobile menu
-const toggleMobileMenu = () => {
-  setMobileMenuOpen(!mobileMenuOpen);
-};
-// Function to handle menu item clicks
-const handleMenuItemClick = (componentKey) => {
-  console.log(componentKey);
-  // Add any additional functionality you need
-};
-// Function to handle setting the active component
-const handleSetActiveComponent = (componentKey) => {
-  console.log('Active component:', componentKey);
-  // Add any additional functionality you need
-};
+  // Function to toggle the mobile menu
+  const toggleMobileMenu = () => {
+    setMobileMenuOpen(!mobileMenuOpen);
+  };
+  // Function to handle menu item clicks
+  const handleMenuItemClick = (componentKey) => {
+    console.log(componentKey);
+    // Add any additional functionality you need
+  };
   const handleWalkInCustomerBookingDialogClose = () => {
     setIsWalkInCustomerBookingDialogOpen(false);
   };
@@ -130,7 +127,11 @@ const handleSetActiveComponent = (componentKey) => {
         const getUserData = async () => {
           try {
             const response = await axios.get(
-              `${import.meta.env.VITE_SERVER_URL}/eventify_server/userAuthentication/getUserData/${currentUser.uid}`
+              `${
+                import.meta.env.VITE_SERVER_URL
+              }/eventify_server/userAuthentication/getUserData/${
+                currentUser.uid
+              }`
             );
             dispatch(userInfoActions("userDetails", response.data));
             dispatch(userAuthStateChangeFlag());
@@ -151,25 +152,38 @@ const handleSetActiveComponent = (componentKey) => {
     return () => unsubscribe();
   }, [dispatch, userInfoStore.userAuthStateChangeFlag]); // dependency array => [userAuthStateChangeFlag]
 
+  // get hall data
   useEffect(() => {
+    if (userInfoStore.userDetails.vendorType !== "Banquet Hall") {
+      return;
+    }
+
     try {
       const getServiceProviderData = async (hallData) => {
         const response = await axios.get(
-          `${import.meta.env.VITE_SERVER_URL}/eventify_server/serviceProviderMaster/?serviceProviderId=${hallData.hallUserId}`
+          `${
+            import.meta.env.VITE_SERVER_URL
+          }/eventify_server/serviceProviderMaster/?serviceProviderId=${
+            hallData.hallUserId
+          }`
         );
         setServiceProviderData(response.data[0]);
       };
 
       const getHallData = async () => {
         const response = await axios.get(
-          `${import.meta.env.VITE_SERVER_URL}/eventify_server/hallMaster/getHallByUserId/?userId=${userInfoStore.userDetails.Document._id}`
+          `${
+            import.meta.env.VITE_SERVER_URL
+          }/eventify_server/hallMaster/getHallByUserId/?userId=${
+            userInfoStore.userDetails.Document._id
+          }`
         );
         setHallData(response.data[0]);
         getServiceProviderData(response.data[0]);
         setIsLoading(false);
       };
 
-      if(userInfoStore.userDetails.Document !== undefined) {
+      if (userInfoStore.userDetails.Document !== undefined) {
         getHallData();
       }
     } catch (error) {
@@ -202,7 +216,9 @@ const handleSetActiveComponent = (componentKey) => {
       window.removeEventListener("scroll", handleScroll);
     };
   }, [prevScrollY]);
-  const isMobile = useMediaQuery('(max-width:768px)');
+
+  const isMobile = useMediaQuery("(max-width:768px)");
+
   return (
     <div className="navbar__container">
       <div className={`navbar__wrapper ${scrolled ? "scrolled" : ""}`}>
@@ -215,12 +231,11 @@ const handleSetActiveComponent = (componentKey) => {
         </div>
         {isMobile ? (
           // Mobile view
-          <div >
+          <div>
             <IconButton onClick={toggleMobileMenu} color="inherit">
               {mobileMenuOpen ? <CloseIcon /> : <MenuIcon />}
             </IconButton>
             <Drawer
-             
               anchor="right"
               open={mobileMenuOpen}
               onClose={toggleMobileMenu}
@@ -228,42 +243,216 @@ const handleSetActiveComponent = (componentKey) => {
               <Box
                 sx={{
                   width: 250,
-                  height: '100vh',
-                  bgcolor: 'rgb(17, 24, 39)', // Set the background color to red
-                  color: 'rgb(156, 163, 175)', // Set the text color to white
+                  height: "100vh",
+                  bgcolor: "#1A1A1A", // Set the background color to red
+                  color: "#fff", // Set the text color to white
                 }}
                 role="presentation"
                 onClick={toggleMobileMenu}
                 onKeyDown={toggleMobileMenu}
-                
               >
                 {user ? (
-                  <UserProfileLeftPanel
-                    user={user}
-                    handleLogout={handleLogout}
-                    handleMenuItemClick={handleMenuItemClick}
-                    setActiveComponent={handleSetActiveComponent} // Pass the handleSetActiveComponent function as a prop
-                  />
+                  <Box
+                    className="navbarDrawer__container"
+                    sx={{
+                      height: "100%",
+                      width: "100%",
+                      display: "flex",
+                      flexDirection: "column",
+                      alignItems: "flex-start",
+                      justifyContent: "space-between",
+                    }}
+                  >
+                    <List sx={{ width: "100%" }}>
+                      <ListItem key={"profilePic"} disablePadding>
+                        <ListItemButton>
+                          <ListItemIcon
+                            sx={{
+                              height: "2rem",
+                              width: "2rem",
+                              borderRadius: "999px",
+                            }}
+                          >
+                            <Box
+                              component={"img"}
+                              src={
+                                userInfoStore.userDetails.userType ===
+                                "CUSTOMER"
+                                  ? userInfoStore.userDetails?.Document
+                                      ?.customerProfileImage
+                                  : userInfoStore.userDetails?.Document
+                                      ?.vendorProfileImage
+                              }
+                              alt="profile pic"
+                              sx={{
+                                height: "2.25rem",
+                                width: "2.5rem",
+                                borderRadius: "999px",
+                              }}
+                              className="profilePic"
+                            />
+                          </ListItemIcon>
+                          <p className="logoText">
+                            {userInfoStore.userDetails.userType === "CUSTOMER"
+                              ? userInfoStore.userDetails?.Document
+                                  ?.customerName
+                              : userInfoStore.userDetails?.Document?.vendorName}
+                          </p>
+                        </ListItemButton>
+                      </ListItem>
+                      <Divider
+                        className="divider"
+                        sx={{
+                          width: "100%",
+                          height: "1px",
+                          backgroundColor: "#b3b3b3",
+                          margin: "0.5rem 0",
+                        }}
+                      />
+                      <ListItem key={"Home"} disablePadding>
+                        <ListItemButton>
+                          <ListItemIcon>
+                            <HomeIcon
+                              sx={{ color: "#007bff" }}
+                              className="icon"
+                            />
+                          </ListItemIcon>
+                          <p className="listItemText">Home</p>
+                        </ListItemButton>
+                      </ListItem>
+                      <Link to="/UserProfile" className="profile-link">
+                        <ListItem key={"Account"} disablePadding>
+                          <ListItemButton>
+                            <ListItemIcon>
+                              <PersonIcon
+                                sx={{ color: "#007bff" }}
+                                className="icon"
+                              />
+                            </ListItemIcon>
+                            <p className="listItemText">My Account</p>
+                          </ListItemButton>
+                        </ListItem>
+                      </Link>
+                      {userInfoStore.userDetails?.userType === "VENDOR" &&
+                        userInfoStore.userDetails?.vendorType ===
+                          "Banquet Hall" && (
+                          <ListItem
+                            key={"Account"}
+                            onClick={handleWalkInCustomerBookingDialogOpen}
+                            disablePadding
+                          >
+                            <ListItemButton>
+                              <ListItemIcon>
+                                <AddBusinessOutlinedIcon
+                                  sx={{ color: "#007bff" }}
+                                  className="icon"
+                                />
+                              </ListItemIcon>
+                              <p className="listItemText">Walk-In Booking</p>
+                            </ListItemButton>
+                          </ListItem>
+                        )}
+                    </List>
+                    <List className="list__wrapper" sx={{ width: "100%" }}>
+                      <Divider
+                        className="divider"
+                        sx={{
+                          width: "100%",
+                          height: "1px",
+                          backgroundColor: "#b3b3b3",
+                          margin: "0",
+                        }}
+                      />
+                      <ListItem
+                        key={"Add Account"}
+                        onClick={handleLogout}
+                        disablePadding
+                      >
+                        <ListItemButton>
+                          <ListItemIcon>
+                            <PersonAdd
+                              sx={{ color: "#007bff" }}
+                              className="icon"
+                            />
+                          </ListItemIcon>
+                          <p className="listItemText">Add Account</p>
+                        </ListItemButton>
+                      </ListItem>
+                      <Link
+                        to={{
+                          pathname: "/UserProfile",
+                          search: `?activeComponent=Settings`,
+                        }}
+                      >
+                        <ListItem
+                          key={"Settings"}
+                          onClick={handleLogout}
+                          disablePadding
+                        >
+                          <ListItemButton>
+                            <ListItemIcon>
+                              <Settings
+                                sx={{ color: "#007bff" }}
+                                className="icon"
+                              />
+                            </ListItemIcon>
+                            <p className="listItemText">Settings</p>
+                          </ListItemButton>
+                        </ListItem>
+                      </Link>
+                      <Link to="/">
+                        <ListItem
+                          key={"Logout"}
+                          onClick={handleLogout}
+                          disablePadding
+                        >
+                          <ListItemButton>
+                            <ListItemIcon>
+                              <LogoutIcon
+                                sx={{ color: "#007bff" }}
+                                className="icon"
+                              />
+                            </ListItemIcon>
+                            <p className="listItemText">Logout</p>
+                          </ListItemButton>
+                        </ListItem>
+                      </Link>
+                    </List>
+                  </Box>
                 ) : (
-                  <List >
+                  <List>
                     {/* Add your menu items here */}
-                    <ListItem button onClick={() => handleMenuItemClick('venues')}>
-                      <ListItemText primary="Venues" />
+                    <ListItem onClick={() => handleMenuItemClick("venues")}>
+                      <a href="#destinations" className="tag">
+                        Venues
+                      </a>
                     </ListItem>
-                    <ListItem button onClick={() => handleMenuItemClick('ourValue')}>
-                      <ListItemText primary="Our Value" />
+                    <ListItem onClick={() => handleMenuItemClick("ourValue")}>
+                      <a href="#aboutUs" className="tag">
+                        Our Value
+                      </a>
                     </ListItem>
-                    <ListItem button onClick={() => handleMenuItemClick('contactUs')}>
-                      <ListItemText primary="Contact Us" />
+                    <ListItem onClick={() => handleMenuItemClick("contactUs")}>
+                      <a href="#footer" className="tag">
+                        Contact Us
+                      </a>
                     </ListItem>
-                    <ListItem button onClick={() => handleMenuItemClick('getStarted')}>
-                      <ListItemText primary="Get Started" />
+                    <ListItem onClick={() => handleMenuItemClick("getStarted")}>
+                      <a
+                        href="#searchBar"
+                        className="tag"
+                      >
+                        Get Started
+                      </a>
                     </ListItem>
-                    <ListItem button onClick={handleSignInButtonClick}>
-                    <ListItemIcon style={{ color: 'rgb(156, 163, 175)' }}>
+                    <ListItem 
+                      onClick={handleSignInButtonClick}
+                      sx={{ cursor: "pointer" }}  
+                    >
+                      <ListItemIcon sx={{ color: "#ffffff", }}>
                         <PersonAdd fontSize="small" />
                       </ListItemIcon>
-                      <ListItemText primary="Sign In" />
+                      <p className="listItemText">Sign In</p>
                     </ListItem>
                   </List>
                 )}
@@ -272,19 +461,35 @@ const handleSetActiveComponent = (componentKey) => {
           </div>
         ) : (
           <div className="tags__wrapper">
-          <a href="#destinations" className="tag" onClick={() => handleMenuItemClick('venues')}>
-            Venues
-          </a>
-          <a href="#aboutUs" className="tag" onClick={() => handleMenuItemClick('ourValue')}>
-            Our Value
-          </a>
-          <a href="#footer" className="tag" onClick={() => handleMenuItemClick('contactUs')}>
-            Contact Us
-          </a>
-          <a href="#searchBar" className="tag" onClick={() => handleMenuItemClick('getStarted')}>
-            Get Started
-          </a>
-          {user ? (
+            <a
+              href="#destinations"
+              className="tag"
+              onClick={() => handleMenuItemClick("venues")}
+            >
+              Venues
+            </a>
+            <a
+              href="#aboutUs"
+              className="tag"
+              onClick={() => handleMenuItemClick("ourValue")}
+            >
+              Our Value
+            </a>
+            <a
+              href="#footer"
+              className="tag"
+              onClick={() => handleMenuItemClick("contactUs")}
+            >
+              Contact Us
+            </a>
+            <a
+              href="#searchBar"
+              className="tag"
+              onClick={() => handleMenuItemClick("getStarted")}
+            >
+              Get Started
+            </a>
+            {user ? (
               <React.Fragment>
                 <Tooltip title="Account settings">
                   <IconButton
@@ -334,55 +539,68 @@ const handleSetActiveComponent = (componentKey) => {
                   transformOrigin={{ horizontal: "right", vertical: "top" }}
                   anchorOrigin={{ horizontal: "right", vertical: "bottom" }}
                 >
-                 <MenuItem>
-             <Link to="/">
-              <ListItemIcon>
-                    <HomeIcon fontSize="small" />
-              </ListItemIcon>
-                    Home
+                  <Link to="/">
+                    <MenuItem>
+                      <ListItemIcon>
+                        <HomeIcon fontSize="small" />
+                      </ListItemIcon>
+                      Home
+                    </MenuItem>
                   </Link>
-                </MenuItem>
-                <Divider />
-                <MenuItem>
-                  <Link to="/ProfileForm" className="profile-link">
-                  <ListItemIcon>
-                    <div className="avatar-wrapper">
-                      <Avatar fontSize="small" />
-                    </div>
-                    </ListItemIcon>
-                    Profile
+                  <Divider />
+                  <Link to="/UserProfile" className="profile-link">
+                    <MenuItem>
+                      <ListItemIcon>
+                        <div className="avatar-wrapper">
+                          <Avatar fontSize="small" />
+                        </div>
+                      </ListItemIcon>
+                      My Account
+                    </MenuItem>
                   </Link>
-                </MenuItem>
-                <Divider />
-                
-                {userInfoStore.userDetails.userType === "VENDOR" && (
-                  <MenuItem onClick={handleWalkInCustomerBookingDialogOpen}>
+                  <Divider />
+
+                  {userInfoStore.userDetails.userType === "VENDOR" &&
+                    userInfoStore.userDetails.vendorType === "Banquet Hall" && (
+                      <MenuItem onClick={handleWalkInCustomerBookingDialogOpen}>
+                        <ListItemIcon>
+                          <AddBusinessOutlinedIcon fontSize="small" />
+                        </ListItemIcon>
+                        Walk-In Customer
+                      </MenuItem>
+                    )}
+                  <Divider />
+                  <MenuItem>
                     <ListItemIcon>
-                      <AddBusinessOutlinedIcon fontSize="small" />
+                      <PersonAdd fontSize="small" />
                     </ListItemIcon>
-                    Walk-In Customer
+                    Add another account
                   </MenuItem>
-                )}
-                <Divider />
-                
-                <MenuItem onClick={handleUserProfileClose}>
-                  <ListItemIcon>
-                    <Settings fontSize="small" />
-                  </ListItemIcon>
-                  Settings
-                </MenuItem>
-                <MenuItem
-                  onClick={() => {
-                    handleUserProfileClose();
-                    handleLogout();
-                  }}
-                >
-                  <ListItemIcon>
-                    <Logout fontSize="small" />
-                  </ListItemIcon>
-                  Logout
-                </MenuItem>
-              </Menu>
+                  <Link
+                    to={{
+                      pathname: "/UserProfile",
+                      search: `?activeComponent=Settings`,
+                    }}
+                  >
+                    <MenuItem onClick={handleUserProfileClose}>
+                      <ListItemIcon>
+                        <Settings fontSize="small" />
+                      </ListItemIcon>
+                      Settings
+                    </MenuItem>
+                  </Link>
+                  <MenuItem
+                    onClick={() => {
+                      handleUserProfileClose();
+                      handleLogout();
+                    }}
+                  >
+                    <ListItemIcon>
+                      <Logout fontSize="small" />
+                    </ListItemIcon>
+                    Logout
+                  </MenuItem>
+                </Menu>
               </React.Fragment>
             ) : (
               <Button
