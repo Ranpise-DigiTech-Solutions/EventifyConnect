@@ -5,7 +5,7 @@ import { useLocation } from "react-router-dom";
 import {
   NavBar,
   Footer,
-  AboutPage,
+  AboutHall,
   Testimonials,
   VenueSummary,
   FAQ,
@@ -99,7 +99,7 @@ export default function DescriptionPage() {
               <div className="sub__wrapper">
                 <div className="column1">
                   <HallDescription hallData={hallData} />
-                  <AboutPage />
+                  <AboutHall />
                   <AvailabilityCalendar hallData={hallData} />
                 </div>
                 <div className="column2">
