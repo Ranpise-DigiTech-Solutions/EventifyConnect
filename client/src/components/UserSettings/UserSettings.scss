@@ -5,13 +5,14 @@
     align-items: center;
     justify-content: flex-start;
     background-color: white;
-    width: 45%;
-    height: 60vh;
+    color: #000 !important; 
+    width: 100%;
+    min-height: 100vh;
     border: 1px solid #ccc;
     border-radius: 8px;
     overflow: hidden;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    margin: 20px auto;
+    margin-top: 3rem;
   }
   
   .settings__menu {

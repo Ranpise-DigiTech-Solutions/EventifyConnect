@@ -16,7 +16,7 @@ const ContactForm = ({ setIsSuccess }) => {
     emailjs
       .sendForm(
         import.meta.env.VITE_EMAILJS_SERVICE_ID,
-        import.meta.env.VITE_EMAILJS_TEMPLATE_ID,
+        import.meta.env.VITE_EMAILJS_TEMPLATE_ID1,
         event.target,
         import.meta.env.VITE_EMAILJS_API_PUBLIC_KEY
       )

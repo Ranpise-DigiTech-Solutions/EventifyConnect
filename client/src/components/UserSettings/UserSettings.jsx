@@ -1,16 +1,10 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import './UserSettings.scss';
-import UserProfileLeftPanel from '../UserProfileLeftPanel/UserProfileLeftPanel';
 const SettingsComponent = () => {
   const [theme, setTheme] = useState('light');
   const [emailNotifications, setEmailNotifications] = useState('enabled');
   const [defaultLocation, setDefaultLocation] = useState('defaultLocation');
   const [currentSection, setCurrentSection] = useState('additionalSettings');
-  const [activeComponent, setActiveComponent] = useState(null);
-
-  const handleSetActiveComponent = (component) => {
-      setActiveComponent(component);
-  };
   
   const handleSave = () => {
     alert('Settings saved successfully!');
@@ -19,9 +13,6 @@ const SettingsComponent = () => {
   const renderAdditionalSettings = () => {
     return (
       <>
-      <div className="left-panel-container">
-      <UserProfileLeftPanel setActiveComponent={handleSetActiveComponent} />
-    </div>
       <div className="settings__section">
      
         <div className="settings__option">

@@ -94,7 +94,7 @@ export default function PackagesCard({ card }) {
             autoPlaySpeed={4000}
             keyBoardControl={false}
             slidesToSlide={1}
-            arrows={true}
+            arrows={false}
             containerClass="carousel-container"
           >
             {card.hallImages.map((image, index) => (
