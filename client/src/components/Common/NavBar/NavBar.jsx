@@ -319,7 +319,7 @@ export default function NavBar({ setIsLoading }) {
                           <p className="listItemText">Home</p>
                         </ListItemButton>
                       </ListItem>
-                      <Link to="/UserProfile" className="profile-link">
+                      <Link to="/user-profile" className="profile-link">
                         <ListItem key={"Account"} disablePadding>
                           <ListItemButton>
                             <ListItemIcon>
@@ -379,7 +379,7 @@ export default function NavBar({ setIsLoading }) {
                       </ListItem>
                       <Link
                         to={{
-                          pathname: "/UserProfile",
+                          pathname: "/user-profile",
                           search: `?activeComponent=Settings`,
                         }}
                       >
@@ -547,7 +547,7 @@ export default function NavBar({ setIsLoading }) {
                     </MenuItem>
                   </Link>
                   <Divider />
-                  <Link to="/UserProfile" className="profile-link">
+                  <Link to="/user-profile" className="profile-link">
                     <MenuItem>
                       <ListItemIcon>
                         <div className="avatar-wrapper">
@@ -577,7 +577,7 @@ export default function NavBar({ setIsLoading }) {
                   </MenuItem>
                   <Link
                     to={{
-                      pathname: "/UserProfile",
+                      pathname: "/user-profile",
                       search: `?activeComponent=Settings`,
                     }}
                   >

@@ -39,6 +39,12 @@ export {
     MyCart,
     Favorites
 } from './UserProfilePage';
-
+export {
+    CancellationPolicy,
+    PrivacyPolicy,
+    TermsAndConditions,
+    Careers
+} from './CompanyPoliciesPage';
+export {default as ScrollToTop} from './ScrollToTop';
 
 

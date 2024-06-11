@@ -1,5 +1,11 @@
-import React, { useState } from "react";
 import "./Footer.scss"; // Import your custom styles for the footer
+import React, { useState } from "react";
+import { Link } from 'react-router-dom';
+
+import Dialog from "@mui/material/Dialog";
+
+import { useTheme } from "@mui/material/styles";
+import useMediaQuery from "@mui/material/useMediaQuery";
 import FacebookIcon from "@mui/icons-material/Facebook";
 import InstagramIcon from "@mui/icons-material/Instagram";
 import IconButton from "@mui/material/IconButton";
@@ -11,9 +17,13 @@ import { ContactForm, AlertDialogSlide } from "../../../sub-components";
 import { Images } from "../../../constants";
 
 export default function Footer() {
-  const [isSuccess, setIsSuccess] = useState(false);
+
+  const theme = useTheme();
+  const fullScreen = useMediaQuery(theme.breakpoints.down("md"));
+
   const [openDialog, setOpenDialog] = useState(false);
-  const [showFAQ, setShowFAQ] = useState(false);
+  const [openSendMessageDialog, setOpenSendMessageDialog] = useState(false); 
+  const [isMessageSent, setIsMessageSent] = useState(false); // to toggle snackBar
 
   const constructionMessage =
     "This section is under construction. We will provide details soon.";
@@ -25,12 +35,20 @@ export default function Footer() {
     setOpenDialog(false);
   };
 
+  const handleSendMessageDialogOpen = ()=> {
+    setOpenSendMessageDialog(true);
+  }
+
+  const handleSendMessageDialogClose = ()=> {
+    setOpenSendMessageDialog(false);
+  }
+
   const handleSnackBarClose = (event, reason) => {
     if (reason === "clickaway") {
       return;
     }
 
-    setIsSuccess(false);
+    setIsMessageSent(false);
   };
 
   const snackBarAction = (
@@ -54,6 +72,26 @@ export default function Footer() {
 
   return (
     <div className="footer__container" id="footer">
+      <Snackbar
+        open={isMessageSent}
+        autoHideDuration={6000}
+        onClose={handleSnackBarClose}
+        message="Thank you for connecting! We'll get back to you soon!!"
+        action={snackBarAction}
+      />
+      <Dialog
+        fullScreen={fullScreen}
+        open={openSendMessageDialog}
+        onClose={handleSendMessageDialogClose}
+        aria-labelledby="responsive-dialog-title"
+        aria-describedby="responsive-dialog-description"
+        maxWidth="sm"
+        fullWidth
+      >
+        <div className="sendMessageDialog__wrapper" style={{padding: "2rem", backgroundColor: "#333333"}}>
+          <ContactForm setIsSuccess={setIsMessageSent}/>
+        </div>
+      </Dialog>
       <div className="company__logo">
         <h2>EventifyConnect</h2>
       </div>
@@ -62,18 +100,18 @@ export default function Footer() {
           <div className="links">
             <div className="link__grp_1">
               <p onClick={handleLinkClick}>Our Blog</p>
-              <p onClick={handleLinkClick}>Career</p>
-              <p>
-                <a href="#contact-form">Contact Us</a>
-              </p>
               <p onClick={handleLinkClick}>Our Service</p>
-              <p onClick={() => setShowFAQ(true)}>FAQs</p>
+              <p>FAQs</p>
+              <p>
+                <a href="#contact-form" onClick={handleSendMessageDialogOpen}>Contact Us</a>
+              </p>
             </div>
             <div className="link__grp_2">
-              <p>Privacy Policy</p>
-              <p>Registered Address</p>
-              <p>Cancellation Policy</p>
-              <p>Terms and Conditions</p>
+              <p><a href="#aboutUs">About Us</a></p>
+              <p><Link to="/careers">Careers</Link></p>
+              <p><Link to="/privacy-policy">Privacy Policy</Link></p>
+              <p><Link to="/cancellation-refund-policy">Cancellation Policy</Link></p>
+              <p><Link to="/terms-and-conditions">Terms and Conditions</Link></p>
             </div>
           </div>
           <div className="icons">
@@ -116,16 +154,6 @@ export default function Footer() {
           <div className="operating-hours">
             <p> Open Hour 9.30 AM - 6.30 PM</p>
           </div>
-        </div>
-        <div className="sub__wrapper_2" id="contact-form">
-          <ContactForm setIsSuccess={setIsSuccess} />
-          <Snackbar
-            open={isSuccess}
-            autoHideDuration={6000}
-            onClose={handleSnackBarClose}
-            message="Thank you for connecting! We'll get back to you soon!!"
-            action={snackBarAction}
-          />
         </div>
       </div>
       <div className="wrapper_2">

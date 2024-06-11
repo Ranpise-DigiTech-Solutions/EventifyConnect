@@ -3,32 +3,27 @@ import { useEffect, useState } from "react";
 import { ClerkProvider } from "@clerk/clerk-react";
 import { BrowserRouter, Route, Routes, useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
-import axios from "axios";
 
 import "./App.scss";
-import { HomePage, DescriptionPage, UserProfilePage } from "./pages";
+import {
+  HomePage,
+  DescriptionPage,
+  UserProfilePage,
+  CompanyPoliciesPage,
+} from "./pages";
 import {
   fetchCitiesOfCountryData,
   fetchEventTypesData,
   fetchVendorTypesData,
   fetchCountriesData,
 } from "./states/Data";
-import {
-  ProfileForm,
-  Dashboard,
-  MyCart,
-  Notification,
-  Favorites,
-  SettingsComponent,
-  HallForm,
-  OrderHistory,
-} from "./components";
+import { ScrollToTop } from "./components";
 
 function App() {
   const publishableKey = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
-  const googleMapsApiKey = import.meta.env.GOOGLE_MAPS_API_KEY;
-  const hereAppId = import.meta.env.GOOGLE_MAPS_APP_ID;
-  const hereApiKey = import.meta.env.GOOGLE_MAPS_API_KEY;
+  // const googleMapsApiKey = import.meta.env.GOOGLE_MAPS_API_KEY;
+  // const hereAppId = import.meta.env.GOOGLE_MAPS_APP_ID;
+  // const hereApiKey = import.meta.env.GOOGLE_MAPS_API_KEY;
 
   const dispatch = useDispatch();
 
@@ -113,8 +108,28 @@ function App() {
       >
         <Routes>
           <Route path="/" element={<HomePage />} />
-          <Route path="/DescriptionPage" element={<DescriptionPage />} />
-          <Route path="/UserProfile" element={<UserProfilePage />} />
+          <Route path="/hall-description" element={<DescriptionPage />} />
+          <Route path="/user-profile" element={<UserProfilePage />} />
+          <Route
+            path="/terms-and-conditions"
+            element={
+              <CompanyPoliciesPage activeComponent="TERMS-AND-CONDITIONS" />
+            }
+          />
+          <Route
+            path="/privacy-policy"
+            element={<CompanyPoliciesPage activeComponent="PRIVACY-POLICY" />}
+          />
+          <Route
+            path="/cancellation-refund-policy"
+            element={
+              <CompanyPoliciesPage activeComponent="CANCELLATION-POLICY" />
+            }
+          />
+          <Route
+            path="/careers"
+            element={<CompanyPoliciesPage activeComponent="CAREERS" />}
+          />
         </Routes>
       </ClerkProvider>
     );
@@ -123,6 +138,7 @@ function App() {
   return (
     <>
       <BrowserRouter>
+        <ScrollToTop />
         <ClerkProviderWithRoutes />
       </BrowserRouter>
     </>

@@ -170,7 +170,7 @@ export default function Packages() {
       <div className="card" key={index}>
         <Link
           to={{
-            pathname: "/DescriptionPage",
+            pathname: "/hall-description",
             search: `?hallId=${card.hallId}`,
           }}
           target="_blank"
