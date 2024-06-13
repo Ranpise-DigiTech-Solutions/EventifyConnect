@@ -40,6 +40,8 @@ import AppStoreIcon from '../assets/App_store_icon.png';
 import DefaultImage from "../assets/upload-photo-here.jpg";
 import UploadingAnimation from '../assets/uploading.gif.mp4';
 import avatar from '../assets/avatar.jpg';
+import birthday01 from '../assets/birthday01.png';
+import anniversary01 from '../assets/aniversary01.png';
 
 export default {
     logo,
@@ -83,5 +85,7 @@ export default {
     AppStoreIcon,
     DefaultImage,
     UploadingAnimation,
-    avatar
+    avatar,
+    birthday01,
+    anniversary01,
 };

@@ -1,5 +1,4 @@
 import "./Stories.scss";
-
 import { Images } from "../../../constants";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 
@@ -33,7 +32,7 @@ export default function Stories() {
             </div>
           </a>
           <a href="#" className="gallery_item gallery_item_3">
-            <img src={Images.wedding2} alt="Story3" />
+            <img src={Images.birthday01} alt="Story3" />
             <div className="content">
               <h4 className="story_title">Rahul</h4>
               <p className="story_desc">
@@ -45,7 +44,19 @@ export default function Stories() {
             </div>
           </a>
           <a href="#" className="gallery_item gallery_item_4">
-            <img src={Images.wedding3} alt="Story4" />
+            <img src={Images.wedding4} alt="Story4" />
+            <div className="content">
+              <h4 className="story_title">Ajith and Neha</h4>
+              <p className="story_desc">
+                We recently celebrated our wedding at Parivar hall Ullal, We
+                couldn&apos;t have asked for a better venue or team to celebrate
+                such an important milestone in our lives.
+              </p>
+              <VisibilityIcon className="icon" />
+            </div>
+          </a>
+          <a href="#" className="gallery_item gallery_item_5">
+            <img src={Images.anniversary01} alt="Story5" />
             <div className="content">
               <h4 className="story_title">Adithya</h4>
               <p className="story_desc">
@@ -56,19 +67,7 @@ export default function Stories() {
               <VisibilityIcon className="icon" />
             </div>
           </a>
-          <a href="#" className="gallery_item gallery_item_5">
-            <img src={Images.wedding4} alt="Story5" />
-            <div className="content">
-              <h4 className="story_title">Ajit and Neha</h4>
-              <p className="story_desc">
-                We recently celebrated our wedding at Parivar hall Ullal, We
-                couldn&apos;t have asked for a better venue or team to celebrate
-                such an important milestone in our lives.
-              </p>
-              <VisibilityIcon className="icon" />
-            </div>
-          </a>
-          <a href="#" className="gallery_item gallery_item_6">
+          {/* <a href="#" className="gallery_item gallery_item_6">
             <img src={Images.wedding2} alt="Story6" />
             <div className="content">
               <h4 className="story_title">Akshath and Diksha</h4>
@@ -78,7 +77,7 @@ export default function Stories() {
               </p>
               <VisibilityIcon className="icon" />
             </div>
-          </a>
+          </a> */}
         </div>
       </div>
     </div>
