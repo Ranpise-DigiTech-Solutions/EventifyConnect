@@ -105,7 +105,6 @@ export default function NavBar({ setIsLoading }) {
   const handleLogout = async () => {
     try {
       await firebaseAuth.signOut(); // Sign out the current user
-      dispatch(userAuthStateChangeFlag());
       dispatch(userInfoActions("userDetails", {}));
       setUser(null);
       console.log("User logged out successfully");
@@ -133,7 +132,6 @@ export default function NavBar({ setIsLoading }) {
               }`
             );
             dispatch(userInfoActions("userDetails", response.data));
-            dispatch(userAuthStateChangeFlag());
           } catch (error) {
             console.error("Error fetching user data:", error.message);
           } finally {

@@ -5,7 +5,7 @@ import VisibilityIcon from "@mui/icons-material/Visibility";
 
 export default function Stories() {
   return (
-    <div className="stories__container">
+    <div className="storiesComponent__container">
       <div className="stories__wrapper">
         <h4 className="sub_title">stories</h4>
         <h2 className="title">real wedding stories</h2>

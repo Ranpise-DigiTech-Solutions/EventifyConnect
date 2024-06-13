@@ -39,6 +39,7 @@ import PlayStoreIcon from '../assets/Playstore_icon.png';
 import AppStoreIcon from '../assets/App_store_icon.png';
 import DefaultImage from "../assets/upload-photo-here.jpg";
 import UploadingAnimation from '../assets/uploading.gif.mp4';
+import avatar from '../assets/avatar.jpg';
 
 export default {
     logo,
@@ -82,4 +83,5 @@ export default {
     AppStoreIcon,
     DefaultImage,
     UploadingAnimation,
+    avatar
 };

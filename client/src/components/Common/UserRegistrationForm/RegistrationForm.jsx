@@ -40,6 +40,8 @@ import {
 } from "../../../states/Data";
 import { firebaseAuth, firebaseStorage } from "../../../firebaseConfig.js";
 
+//@TODO: prevent some of the useEffect from initial-render
+
 export default function RegistrationForm({
   open,
   handleClose,
@@ -753,7 +755,6 @@ export default function RegistrationForm({
           return downloadUrl;
         });
 
-        
         const businessImagesUrl = await Promise.all(uploadBusinessImages);
         handleCommonData("imagesUrl", businessImagesUrl);
         console.log("businessImagesUrl", businessImagesUrl);
@@ -1510,7 +1511,7 @@ export default function RegistrationForm({
                                 ? { border: "2px solid red" }
                                 : {}
                             }
-                            placeholder="Enter the landmark"
+                            placeholder="Enter the taluk"
                             className="input"
                             spellCheck={false}
                           />

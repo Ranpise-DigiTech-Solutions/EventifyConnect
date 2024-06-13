@@ -4,11 +4,11 @@
     box-sizing: border-box;
   }
   
-  .stories__container {
+  .storiesComponent__container {
     min-height: 200vh;
     width: 100%;
     background-color: var(--secondary-color);
-    background-image: url('../../assets/gallery-bg.jpg');
+    background-image: url('../../../assets/gallery-bg.jpg');
     background-position: center;
     background-repeat: no-repeat;
     background-size: cover;

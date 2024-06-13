@@ -1,640 +1,1704 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable no-unused-vars */
-import React, { useState, useRef, useEffect } from "react";
 import "./ProfileForm.scss";
-
-import { useMediaQuery } from "react-responsive";
-import { useSelector } from "react-redux";
-
+import "react-phone-input-2/lib/style.css";
+import React, { useState, useRef, useEffect } from "react";
+import { useSelector, useDispatch } from "react-redux";
+import Select from "react-select";
+import PhoneInput from "react-phone-input-2";
 import axios from "axios";
+import Snackbar from "@mui/material/Snackbar";
 
-import { firebaseApp } from "../../../firebaseConfig";
+import Button from "@mui/material/Button";
+import IconButton from "@mui/material/IconButton";
+import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
+import UploadFileIcon from "@mui/icons-material/UploadFile";
+import AddIcon from "@mui/icons-material/Add";
+import DoneIcon from "@mui/icons-material/Done";
+import CloseIcon from "@mui/icons-material/Close";
+import ErrorIcon from "@mui/icons-material/Error";
+import PersonIcon from "@mui/icons-material/Person";
+import VerifiedIcon from "@mui/icons-material/Verified";
+import { FaEdit } from "react-icons/fa";
+import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
+
+import { firebaseApp, firebaseStorage } from "../../../firebaseConfig";
 import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { Images } from "../../../constants";
-const ProfileForm = () => {
-  const isMobile = useMediaQuery({ maxWidth: 767 });
-  const [activeComponent, setActiveComponent] = useState(null);
+import { LoadingScreen } from "../../../sub-components";
+import {
+  fetchCitiesOfStateData,
+  fetchStatesOfCountryData,
+} from "../../../states/Data";
+import { userDataUpdateFlag } from "../../../states/UserInfo";
 
-  const handleSetActiveComponent = (component) => {
-    setActiveComponent(component);
+const customerDataTemplate = {
+  _id: "",
+  customerFirstName: "",
+  customerLastName: "",
+  customerCurrentLocation: "",
+  customerContact: "+91",
+  customerEmail: "",
+  customerPassword: "",
+  customerUid: "", // firebase id
+  customerAddress: "",
+  customerCity: "",
+  customerPincode: "",
+  customerState: "",
+  customerTaluk: "",
+  customerCountry: "India",
+  customerLandmark: "",
+  customerDesignation: "",
+  customerMainOfficeNo: "+91",
+  customerMainMobileNo: "+91",
+  customerMainEmail: "",
+  customerAlternateMobileNo: "+91",
+  customerAlternateEmail: "",
+  customerDocumentType: "",
+  customerDocumentId: "",
+  customerGender: "",
+  customerProfileImage: "",
+  customerProfileImageURL: "",
+  programId: "",
+};
+
+const serviceProviderDataTemplate = {
+  _id: "",
+  vendorFirstName: "",
+  vendorLastName: "",
+  vendorTypeId: "",
+  vendorCurrentLocation: "",
+  vendorContact: "+91",
+  vendorEmail: "",
+  vendorPassword: "",
+  vendorUid: "", // firebase id
+  vendorCompanyName: "",
+  vendorLocation: "",
+  eventTypes: [],
+  vendorGender: "",
+  vendorAlternateMobileNo: "+91",
+  vendorAlternateEmail: "",
+  vendorAddress: "",
+  vendorLandmark: "",
+  vendorCity: "",
+  vendorTaluk: "",
+  vendorState: "",
+  vendorCountry: "India",
+  vendorPincode: "",
+  vendorProfileImage: "",
+  vendorProfileImageURL: "",
+  programId: "",
+};
+
+const genderOptions = ["Male", "Female", "Other"];
+
+const customSelectStyles = {
+  control: (provided, state) => ({
+    ...provided,
+    border: "none",
+    padding: 0,
+    margin: 0,
+    cursor: "pointer",
+    backgroundColor: state.isDisabled
+      ? "var(--secondary-text-color-whiteBg)"
+      : "var(--secondary-color)",
+    color: state.isDisabled ? "#ffffff" : "#000000",
+    boxShadow: state.isFocused ? "none" : provided.boxShadow,
+  }),
+  indicatorSeparator: () => ({
+    display: "none",
+  }),
+  dropdownIndicator: (provided) => ({
+    ...provided,
+    "& svg": {
+      display: "none", // Hide the default arrow icon
+    },
+    padding: 0,
+  }),
+  placeholder: (provided) => ({
+    ...provided,
+    color: "#999999", // Change the placeholder color here
+  }),
+};
+
+const ProfileForm = () => {
+  const profilePicInputRef = useRef(); // btn used to trigger the hidden input that allows the selection of profile pic image
+  const dispatch = useDispatch();
+  const data = useSelector((state) => state.data); // COUNTRIES, STATES & CITIES
+  const userInfoStore = useSelector((state) => state.userInfo); // details of registered user.
+
+  const [isLoading, setIsLoading] = useState(false);
+  const [customerData, setCustomerData] = useState({ ...customerDataTemplate });
+  const [serviceProviderData, setServiceProviderData] = useState({
+    ...serviceProviderDataTemplate,
+  });
+
+  const userType = userInfoStore.userDetails.userType;
+  const vendorType = userInfoStore.userDetails.vendorType || "";
+  // Refs to keep track of the initial render for each useEffect
+  const isInitialRender1 = useRef(true);
+  const isInitialRender2 = useRef(true);
+
+  const [personalInfoFormEnabled, setPersonalInfoFormEnabled] = useState(false);
+  const [contactInfoFormEnabled, setContactInfoFormEnabled] = useState(false);
+  const [addressInfoFormEnabled, setAddressInfoFormEnabled] = useState(false);
+  const [isDataUpdated, setIsDataUpdated] = useState(false);
+
+  const handleCustomerData = (key, value) => {
+    setCustomerData((previousData) => ({
+      ...previousData,
+      [key]: value,
+    }));
   };
 
-  const [avatarURL, setAvatarURL] = useState(Images.DefaultImage);
-  const fileUploadRef = useRef();
-  const [userName, setUserName] = useState("xxx");
+  const handleServiceProviderData = (key, value) => {
+    setServiceProviderData((previousData) => ({
+      ...previousData,
+      [key]: value,
+    }));
+  };
 
-  const [personalFormData, setPersonalFormData] = useState({
-    firstName: "",
-    lastName: "",
-    gender: null,
-    CurrentPassword: "",
-    NewPassword: "",
-  });
-  const [contactFormData, setContactFormData] = useState({
-    mobileNumber: "",
-    email: "",
-    altMobileNumber: "",
-    altEmail: "",
-  });
-  const [addressFormData, setAddressFormData] = useState({
-    address: "",
-    landmark: "",
-    city: "",
-    taluk: "",
-    state: "",
-    country: "",
-    pincode: "",
-  });
-  const [addressFormDisabled, setAddressFormDisabled] = useState(true);
-  const [personalFormDisabled, setPersonalFormDisabled] = useState(true);
-  const [personalSaveButtonText, setPersonalSaveButtonText] = useState("Save");
-  const [contactFormDisabled, setContactFormDisabled] = useState(true);
-  const [contactSaveButtonText, setContactSaveButtonText] = useState("Save");
-  const [showSaveImageButton, setShowSaveImageButton] = useState(false);
-  const [profilePictureURL, setProfilePictureURL] = useState("");
-  const userInfoStore = useSelector((state) => state.userInfo);
-  const userId = userInfoStore.userDetails?.Document?._id;
-  const userType = userInfoStore.userDetails.userType;
+  const handleSnackBarClose = (event, reason) => {
+    if (reason === "clickaway") {
+      return;
+    }
+
+    setIsDataUpdated(false);
+  };
+
+  const snackBarAction = (
+    <React.Fragment>
+      <Button color="primary" size="small" onClick={handleSnackBarClose}>
+        Undo
+      </Button>
+      <IconButton
+        size="small"
+        aria-label="close"
+        color="inherit"
+        onClick={handleSnackBarClose}
+      >
+        <CloseIcon fontSize="small" />
+      </IconButton>
+    </React.Fragment>
+  );
 
   useEffect(() => {
-    const fetchUserProfile = async () => {
-      try {
-        // Fetch user profile based on user type
-        const response = await axios.get(
-          `${import.meta.env.VITE_SERVER_URL}/eventify_server/${
-            userType === "CUSTOMER" ? "customerMaster" : "serviceProviderMaster"
-          }/${userId}`
+    if (
+      userInfoStore.userDetails.length === 0 ||
+      !userInfoStore.userDetails.Document
+    ) {
+      setIsLoading(true);
+      return;
+    }
+    setIsLoading(false);
+
+    const { customerName, vendorName, ...info } =
+      userInfoStore.userDetails.Document;
+
+    if (userType === "CUSTOMER") {
+      setCustomerData({
+        ...info,
+        customerFirstName: customerName.split(" ")[0],
+        customerLastName: customerName.split(" ")[1],
+      });
+    } else if (userType === "VENDOR") {
+      setServiceProviderData({
+        ...info,
+        vendorFirstName: vendorName.split(" ")[0],
+        vendorLastName: vendorName.split(" ")[1],
+      });
+    }
+  }, [userInfoStore.userDetails]);
+
+  //fetch states data when a country is selected
+  useEffect(() => {
+    if (isInitialRender1.current) {
+      // Skip the first execution
+      isInitialRender1.current = false;
+      return;
+    }
+    try {
+      setIsLoading(true);
+      dispatch(
+        fetchStatesOfCountryData(
+          userType === "CUSTOMER"
+            ? customerData.customerCountry
+            : serviceProviderData.vendorCountry
+        )
+      );
+      setIsLoading(false);
+    } catch (error) {
+      setIsLoading(false);
+      console.error(error.message);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [
+    userType,
+    customerData.customerCountry,
+    serviceProviderData.vendorCountry,
+  ]);
+
+  //fetch cities data when a state is selected
+  useEffect(() => {
+    if (!customerData.customerState && !serviceProviderData.vendorState) {
+      return;
+    }
+    try {
+      setIsLoading(true);
+      if (userType === "CUSTOMER") {
+        dispatch(
+          fetchCitiesOfStateData(
+            customerData.customerCountry,
+            customerData.customerState
+          )
         );
-        const userData = response.data;
-        // user maybe vendor or customer so fileds follows the suffix either vendor or customer
-        let prefix = userType.toLowerCase(); // Lowercase userType for consistency
-        const fullName = userData[`${prefix}Name`];
-        setUserName(fullName);
-        const nameParts = fullName.split(" ");
-        // Extract first name
-        const firstName = nameParts.shift(); // Remove and get the first part
-
-        // Remaining parts are last name
-        const lastName = nameParts.join(" ");
-        const profilePictureField = `${prefix}ProfileImage`;
-        setProfilePictureURL(userData[profilePictureField] || Images.DefaultImage);
-        setPersonalFormData({
-          firstName: firstName,
-          lastName: lastName,
-          gender: userData[`${prefix}Gender`],
-          CurrentPassword: "",
-          NewPassword: "",
-        });
-        setContactFormData({
-          mobileNumber: userData[`${prefix}Contact`],
-          email: userData[`${prefix}Email`],
-          altMobileNumber: userData[`${prefix}AlternateMobileNo`],
-          altEmail: userData[`${prefix}AlternateEmail`],
-        });
-        setAddressFormData({
-          address: userData[`${prefix}Address`],
-          landmark: userData[`${prefix}Landmark`],
-          city: userData[`${prefix}City`],
-          taluk: userData[`${prefix}Taluk`],
-          state: userData[`${prefix}State`],
-          country: userData[`${prefix}Country`],
-          pincode: userData[`${prefix}Pincode`],
-        });
-      } catch (error) {
-        console.error("Error fetching user profile:", error);
-      }
-    };
-
-    fetchUserProfile();
-  }, [userType]);
-
-  // updating edited fields to database
-  const handleFormSubmit = async (formType) => {
-    try {
-      let updatedData = {};
-      const prefix = userType.toLowerCase(); // Lowercase userType for consistency
-
-      // Include only the modified personal information properties
-      if (!personalFormDisabled) {
-        updatedData = {
-          ...updatedData,
-          [`${prefix}Name`]: `${personalFormData.firstName} ${personalFormData.lastName}`,
-          [`${prefix}Gender`]: personalFormData.gender,
-          // Add other personal information properties as needed
-        };
-      }
-
-      // Include only the modified contact information properties
-      if (!contactFormDisabled) {
-        updatedData = {
-          ...updatedData,
-          [`${prefix}Contact`]: contactFormData.mobileNumber,
-          [`${prefix}Email`]: contactFormData.email,
-          [`${prefix}AlternateMobileNo`]: contactFormData.altMobileNumber,
-          [`${prefix}AlternateEmail`]: contactFormData.altEmail,
-        };
-      }
-
-      // Include only the modified address information properties
-      if (!addressFormDisabled) {
-        updatedData = {
-          ...updatedData,
-          [`${prefix}Address`]: addressFormData.address,
-          [`${prefix}Landmark`]: addressFormData.landmark,
-          [`${prefix}City`]: addressFormData.city,
-          [`${prefix}Taluk`]: addressFormData.taluk,
-          [`${prefix}State`]: addressFormData.state,
-          [`${prefix}Country`]: addressFormData.country,
-          [`${prefix}Pincode`]: addressFormData.pincode,
-        };
-      }
-
-      // Send PATCH request to update user data
-      await axios.patch(
-        `${import.meta.env.VITE_SERVER_URL}/eventify_server/${
-          userType === "CUSTOMER" ? "customerMaster" : "serviceProviderMaster"
-        }/${userId}`,
-        updatedData
-      );
-
-      // If the request is successful, update UI or show a success message
-      console.log("User data updated successfully!");
-
-      // Disable the corresponding form after successful submission
-      switch (formType) {
-        case "personal":
-          setPersonalFormDisabled(true);
-          setPersonalSaveButtonText("Edit");
-          break;
-        case "contact":
-          setContactFormDisabled(true);
-          setContactSaveButtonText("Edit");
-          break;
-        case "address":
-          setAddressFormDisabled(true);
-          break;
-        default:
-          break;
+      } else {
+        dispatch(
+          fetchCitiesOfStateData(
+            serviceProviderData.vendorCountry,
+            serviceProviderData.vendorState
+          )
+        );
       }
     } catch (error) {
-      console.error("Error updating user data:", error);
-      // Handle error - show error message or revert changes in the UI
+      setIsLoading(false);
+      console.error(error.message);
+    } finally {
+      setIsLoading(false);
     }
-  };
+  }, [userType, customerData.customerState, serviceProviderData.vendorState]);
 
-  const handleImageUpload = (event) => {
-    event.preventDefault();
-    fileUploadRef.current.click();
-  };
+  // call uploadFiles() method whenever user uploads a new profle pic
+  useEffect(() => {
+    if (
+      (userType === "CUSTOMER" &&
+        (typeof customerData.customerProfileImage === "string" ||
+          customerData.customerProfileImage === "")) ||
+      (userType === "VENDOR" &&
+        (typeof serviceProviderData.vendorProfileImage === "string" ||
+          serviceProviderData.vendorProfileImage === ""))
+    ) {
+      return;
+    }
+    uploadFiles();
+  }, [
+    customerData.customerProfileImage,
+    serviceProviderData.vendorProfileImage,
+  ]);
 
-  // Function to upload image to Firebase Storage with user type-based folder structure
-  const uploadImageToFirebase = async (file, userType) => {
+  // code to upload files to firebase
+  const uploadFiles = async () => {
+    setIsLoading(true);
     try {
-      // Determine the folder based on the user type
-      const folder = userType === "CUSTOMER" ? "CUSTOMER" : "VENDOR";
+      if (userType === "VENDOR") {
+        const vendorProfileImageRef = ref(
+          firebaseStorage,
+          `VENDOR/${vendorType}/${userInfoStore.userDetails.UID}/ProfileImage/${serviceProviderData.vendorProfileImage.name}`
+        );
+        const snapshot = await uploadBytes(
+          vendorProfileImageRef,
+          serviceProviderData.vendorProfileImage
+        );
+        const vendorProfileImageUrl = await getDownloadURL(snapshot.ref);
+        handleServiceProviderData(
+          "vendorProfileImageURL",
+          vendorProfileImageUrl
+        );
 
-      // Create a storage reference with the folder structure
-      const storage = getStorage(firebaseApp);
-      const storageRef = ref(storage, `${folder}/userProfile/${file.name}`);
+        // update the file in mongodb
+        const response = await axios.patch(
+          `${
+            import.meta.env.VITE_SERVER_URL
+          }/eventify_server/serviceProviderMaster/${serviceProviderData._id}`,
+          {
+            vendorProfileImage: vendorProfileImageUrl,
+          }
+        );
+      } else if (userType === "CUSTOMER") {
+        const customerProfileImageRef = ref(
+          firebaseStorage,
+          `CUSTOMER/${userInfoStore.userDetails.UID}/ProfileImage/${customerData.customerProfileImage.name}`
+        );
+        const snapshot = await uploadBytes(
+          customerProfileImageRef,
+          customerData.customerProfileImage
+        );
+        const customerProfileImageUrl = await getDownloadURL(snapshot.ref);
+        handleCustomerData("customerProfileImageURL", customerProfileImageUrl);
 
-      // Upload file to the storage reference
-      await uploadBytes(storageRef, file);
-
-      // Get the download URL of the uploaded file
-      const downloadURL = await getDownloadURL(storageRef);
-
-      // Return the download URL
-      return downloadURL;
+        //update the file in mongodb
+        const response = await axios.patch(
+          `${import.meta.env.VITE_SERVER_URL}/eventify_server/customerMaster/${
+            customerData._id
+          }`,
+          {
+            customerProfileImage: customerProfileImageUrl,
+          }
+        );
+      }
+      setIsLoading(false);
+      setIsDataUpdated(true);
     } catch (error) {
-      console.error("Error uploading image to Firebase Storage:", error);
-      throw error;
+      setIsLoading(false);
+      console.error(error.message);
     }
   };
 
-  // Update the uploadImageDisplay function to use uploadImageToFirebase with user type
-  const uploadImageDisplay = async () => {
+  const handleSavePersonalInfo = async (e) => {
+    e.preventDefault();
     try {
-      setAvatarURL(Images.UploadingAnimation);
-      const uploadedFile = fileUploadRef.current.files[0];
-
-      // Upload the file to Firebase Storage based on user type
-      const downloadURL = await uploadImageToFirebase(uploadedFile, userType);
-
-      // Update avatarURL with the uploaded image URL
-      setAvatarURL(downloadURL);
-      setShowSaveImageButton(true);
+      if (userType === "CUSTOMER") {
+        const response = await axios.patch(
+          `${import.meta.env.VITE_SERVER_URL}/eventify_server/customerMaster/${
+            customerData._id
+          }`,
+          {
+            customerName:
+              customerData.customerFirstName +
+              " " +
+              customerData.customerLastName,
+            customerGender: customerData.customerGender,
+          }
+        );
+        console.log("CUSTOMER PERSONAL INFO UPDATE ", response.data);
+      } else if (userType === "VENDOR") {
+        const response = await axios.patch(
+          `${
+            import.meta.env.VITE_SERVER_URL
+          }/eventify_server/serviceProviderMaster/${serviceProviderData._id}`,
+          {
+            vendorName:
+              serviceProviderData.vendorFirstName +
+              " " +
+              serviceProviderData.vendorLastName,
+            vendorGender: serviceProviderData.vendorGender,
+          }
+        );
+        console.log("VENDOR PERSONAL INFO UPDATE ", response.data);
+      }
+      dispatch(userDataUpdateFlag());
+      setIsDataUpdated(true);
     } catch (error) {
-      console.error("Error uploading image to Firebase:", error);
-      setAvatarURL(Images.DefaultImage);
+      console.error(error.message);
+    } finally {
+      setPersonalInfoFormEnabled(!personalInfoFormEnabled);
     }
   };
 
-  const handleSaveImage = async () => {
+  const handleSaveContactInfo = async (e) => {
+    e.preventDefault();
     try {
-      // Send PATCH request to update user data with the image URL
-      const updatedData = {
-        [`${userType.toLowerCase()}ProfileImage`]: avatarURL,
-      };
-      await axios.patch(
-        `${import.meta.env.VITE_SERVER_URL}/eventify_server/${
-          userType === "CUSTOMER" ? "customerMaster" : "serviceProviderMaster"
-        }/${userId}`,
-        updatedData
-      );
-
-      console.log("User profile picture updated successfully!");
-      setShowSaveImageButton(false); // Hide "Save" button after saving
+      if (userType === "CUSTOMER") {
+        const response = await axios.patch(
+          `${import.meta.env.VITE_SERVER_URL}/eventify_server/customerMaster/${
+            customerData._id
+          }`,
+          {
+            customerMainMobileNo: customerData.customerMainMobileNo,
+            customerMainEmail: customerData.customerMainEmail,
+            customerAlternateMobileNo: customerData.customerAlternateMobileNo,
+            customerAlternateEmail: customerData.customerAlternateEmail,
+          }
+        );
+        console.log("CUSTOMER PERSONAL INFO UPDATE ", response.data);
+      } else if (userType === "VENDOR") {
+        const response = await axios.patch(
+          `${
+            import.meta.env.VITE_SERVER_URL
+          }/eventify_server/serviceProviderMaster/${serviceProviderData._id}`,
+          {
+            vendorMainMobileNo: serviceProviderData.vendorContact,
+            vendorMainEmail: serviceProviderData.vendorEmail,
+            vendorAlternateMobileNo:
+              serviceProviderData.vendorAlternateMobileNo,
+            vendorAlternateEmail: serviceProviderData.vendorAlternateEmail,
+          }
+        );
+        console.log("VENDOR PERSONAL INFO UPDATE ", response.data);
+      }
+      dispatch(userDataUpdateFlag());
+      setIsDataUpdated(true);
     } catch (error) {
-      console.error("Error updating user profile picture:", error);
+      console.error(error.message);
+    } finally {
+      setContactInfoFormEnabled(!personalInfoFormEnabled);
     }
   };
 
-  const handlePersonalInputChange = (event) => {
-    const { name, value } = event.target;
-    setPersonalFormData({
-      ...personalFormData,
-      [name]: value,
-    });
-  };
-
-  const handlePersonalEditClick = () => {
-    if (personalFormDisabled) {
-      setPersonalSaveButtonText("Save");
-    } else {
-      // Handle personal information form submission
-      console.log(personalFormData);
-      setPersonalSaveButtonText("Edit");
+  const handleSaveAddressInfo = async (e) => {
+    e.preventDefault();
+    try {
+      if (userType === "CUSTOMER") {
+        const response = await axios.patch(
+          `${import.meta.env.VITE_SERVER_URL}/eventify_server/customerMaster/${
+            customerData._id
+          }`,
+          {
+            customerAddress: customerData.customerAddress,
+            customerLandmark: customerData.customerLandmark,
+            customerCountry: customerData.customerCountry,
+            customerState: customerData.customerState,
+            customerCity: customerData.customerCity,
+            customerTaluk: customerData.customerTaluk,
+            customerPincode: customerData.customerPincode,
+          }
+        );
+        console.log("CUSTOMER PERSONAL INFO UPDATE ", response.data);
+      } else if (userType === "VENDOR") {
+        const response = await axios.patch(
+          `${
+            import.meta.env.VITE_SERVER_URL
+          }/eventify_server/serviceProviderMaster/${serviceProviderData._id}`,
+          {
+            vendorAddress: serviceProviderData.vendorAddress,
+            vendorLandmark: serviceProviderData.vendorLandmark,
+            vendorCountry: serviceProviderData.vendorCountry,
+            vendorState: serviceProviderData.vendorState,
+            vendorCity: serviceProviderData.vendorCity,
+            vendorTaluk: serviceProviderData.vendorTaluk,
+            vendorPincode: serviceProviderData.vendorPincode,
+          }
+        );
+        console.log("VENDOR PERSONAL INFO UPDATE ", response.data);
+      }
+      dispatch(userDataUpdateFlag());
+      setIsDataUpdated(true);
+    } catch (error) {
+      console.error(error.message);
+    } finally {
+      setAddressInfoFormEnabled(!personalInfoFormEnabled);
     }
-    setPersonalFormDisabled(!personalFormDisabled);
-  };
-
-  const handlePersonalSave = (event) => {
-    event.preventDefault();
-    // Handle saving personal information here
-    console.log("Saving personal information:", personalFormData);
-    handleFormSubmit("personal");
-  };
-
-  const handleContactSave = (event) => {
-    event.preventDefault();
-    // Handle saving contact information here
-    console.log("Saving contact information:", contactFormData);
-    handleFormSubmit("contact");
-  };
-
-  const handleAddressSubmit = (event) => {
-    event.preventDefault();
-    // Handle address information form submission
-    console.log("Saving address information:", addressFormData);
-    handleFormSubmit("address");
-  };
-
-  const handleContactInputChange = (event) => {
-    const { name, value } = event.target;
-    setContactFormData({
-      ...contactFormData,
-      [name]: value,
-    });
-  };
-
-  const handleContactEditClick = () => {
-    if (contactFormDisabled) {
-      setContactSaveButtonText("Save");
-    } else {
-      // Handle contact information form submission
-      console.log(contactFormData);
-      setContactSaveButtonText("Edit");
-    }
-    setContactFormDisabled(!contactFormDisabled);
-  };
-
-  const handleAddressInputChange = (event) => {
-    const { name, value } = event.target;
-    setAddressFormData({
-      ...addressFormData,
-      [name]: value,
-    });
-  };
-
-  const handleAddressEditClick = () => {
-    setAddressFormDisabled(!addressFormDisabled);
   };
 
   return (
     <>
-      <div className="UserProfile__container">
-        <div className="coverpage"></div>
-        <div className="image-upload-container">
-          <img src={profilePictureURL} alt="Avatar" className="avatar-image" />
-          <div className="user-name sideheading">
-            <strong>{userName}</strong>
-          </div>
-          <div className="button-container">
-            <button
-              type="button"
-              onClick={handleImageUpload}
-              className="upload-button"
-            >
-              Edit Image
-            </button>
-            {showSaveImageButton && (
-              <button
-                type="button"
-                onClick={handleSaveImage}
-                className="save-button"
-              >
-                Save
-              </button>
-            )}
-          </div>
-          <form encType="multipart/form-data">
-            <input
-              type="file"
-              ref={fileUploadRef}
-              onChange={uploadImageDisplay}
-              hidden
-            />
-          </form>
-        </div>
-        <div className="personal-information">
-          <button className="edittext" onClick={handlePersonalEditClick}>
-            {personalFormDisabled ? "Edit Personal Info" : "Cancel"}
-          </button>
-          <strong>
-            <h2 className="sideheading">Personal Information</h2>
-          </strong>
-          <p>Update your information about you and details here</p>
-          <div className="customForm">
-            <div className="input-row">
-              <div className="input-group">
-                <label htmlFor="firstName">First Name:</label>
-                <input
-                  type="text"
-                  id="firstName"
-                  name="firstName"
-                  value={personalFormData.firstName}
-                  onChange={handlePersonalInputChange}
-                  disabled={personalFormDisabled}
-                />
-              </div>
-              <div className="input-group">
-                <label htmlFor="lastName">Last Name:</label>
-                <input
-                  type="text"
-                  id="lastName"
-                  name="lastName"
-                  value={personalFormData.lastName}
-                  onChange={handlePersonalInputChange}
-                  disabled={personalFormDisabled}
-                />
-              </div>
+      {isLoading && <LoadingScreen />}
+      <Snackbar
+        open={isDataUpdated}
+        autoHideDuration={6000}
+        onClose={handleSnackBarClose}
+        message="User profile updated successfully!!"
+        action={snackBarAction}
+      />
+      <div className="UserProfileForm__container">
+        {userType === "CUSTOMER" ? (
+          <div className="wrapper">
+            <div className="coverPage">
+              <EditOutlinedIcon className="icon" />
             </div>
-            <div className="input-row">
-              <div className="input-group">
-                <label htmlFor="gender">Gender:</label>
-                {personalFormDisabled ? (
-                  <input
-                    type="text"
-                    id="gender"
-                    name="gender"
-                    value={
-                      personalFormData.gender
-                        ? personalFormData.gender
-                        : "Not selected"
-                    }
-                    readOnly // Make it read-only when not editing
-                    disabled={personalFormDisabled}
+            <div className="image-upload-container">
+              <div className="profile-image">
+                <img
+                  src={
+                    typeof customerData.customerProfileImage === "string"
+                      ? customerData.customerProfileImage
+                      : URL.createObjectURL(
+                          customerData.customerProfileImage
+                        ) || ""
+                  }
+                  alt="Avatar"
+                  className="img"
+                />
+                <button className="addIcon">
+                  <AddIcon
+                    className="icon"
+                    onClick={(e) => profilePicInputRef.current.click()}
                   />
-                ) : (
-                  <select
-                    id="gender"
-                    name="gender"
-                    value={
-                      personalFormData.gender ? personalFormData.gender : ""
-                    }
-                    onChange={handlePersonalInputChange}
-                    disabled={personalFormDisabled}
+                </button>
+                <div
+                  className="overlay"
+                  onClick={(e) => profilePicInputRef.current.click()}
+                >
+                  <FaEdit className="editIcon" />
+                  <span>Edit</span>
+                </div>
+              </div>
+              <div className="user-name">
+                <strong>
+                  {customerData.customerFirstName +
+                    " " +
+                    customerData.customerLastName}
+                </strong>
+                <br />
+                <small className="user-type">( customer )</small>
+              </div>
+              <input
+                ref={profilePicInputRef}
+                type="file"
+                onChange={(e) => {
+                  handleCustomerData("customerProfileImage", e.target.files[0]);
+                }}
+                className="profilePicInput"
+                style={{ display: "none" }}
+                accept="image/*"
+              />
+            </div>
+            <div className="personal-information">
+              <button
+                className="editText"
+                onClick={() =>
+                  setPersonalInfoFormEnabled(!personalInfoFormEnabled)
+                }
+              >
+                {personalInfoFormEnabled ? "Cancel" : "Edit Personal Info"}
+              </button>
+              <button
+                className="editTextIcon"
+                onClick={() =>
+                  setPersonalInfoFormEnabled(!personalInfoFormEnabled)
+                }
+              >
+                <FaEdit className="icon" />
+              </button>
+              <strong>
+                <h2 className="sideHeading">Personal Information</h2>
+              </strong>
+              <p>Update your personal details here</p>
+              <div
+                className={`customForm ${
+                  personalInfoFormEnabled && "input-enabled"
+                }`}
+              >
+                <div className="input-row">
+                  <div className="input-group">
+                    <label htmlFor="firstName">First Name:</label>
+                    <div className="wrapper">
+                      <PersonIcon className="icon" />
+                      <div className="vertical-divider"></div>
+                      <input
+                        type="text"
+                        name="firstName"
+                        value={customerData.customerFirstName || ""}
+                        onChange={(e) =>
+                          handleCustomerData(
+                            "customerFirstName",
+                            e.target.value
+                          )
+                        }
+                        className="input"
+                        disabled={!personalInfoFormEnabled}
+                        placeholder="Logan"
+                      />
+                    </div>
+                  </div>
+                  <div className="input-group">
+                    <label htmlFor="lastName">Last Name:</label>
+                    <div className="wrapper">
+                      <PersonIcon className="icon" />
+                      <div className="vertical-divider"></div>
+                      <input
+                        type="text"
+                        name="lastName"
+                        value={customerData.customerLastName || ""}
+                        onChange={(e) =>
+                          handleCustomerData("customerLastName", e.target.value)
+                        }
+                        className="input"
+                        disabled={!personalInfoFormEnabled}
+                        placeholder="Sanders"
+                      />
+                    </div>
+                  </div>
+                </div>
+                <div className="input-row">
+                  <div className="input-group">
+                    <label htmlFor="gender">Gender:</label>
+                    <div className="wrapper selectInput-wrapper">
+                      <PersonIcon className="icon" />
+                      <div className="vertical-divider"></div>
+                      <Select
+                        styles={customSelectStyles}
+                        options={genderOptions.map((gender) => ({
+                          value: gender,
+                          label: gender,
+                        }))}
+                        value={
+                          customerData.customerGender
+                            ? {
+                                value: customerData.customerGender,
+                                label: customerData.customerGender,
+                              }
+                            : null
+                        }
+                        onChange={(selectedOption) =>
+                          handleCustomerData(
+                            "customerGender",
+                            selectedOption.value
+                          )
+                        }
+                        placeholder="select your gender"
+                        className="selectInput"
+                        components={{
+                          DropdownIndicator: () => (
+                            <KeyboardArrowDownIcon
+                              style={{ color: "#007bff" }}
+                            />
+                          ),
+                        }}
+                        menuShouldScrollIntoView={false}
+                        hideSelectedOptions={false}
+                        closeMenuOnSelect
+                        isClearable={false}
+                        isSearchable
+                        isDisabled={!personalInfoFormEnabled}
+                      />
+                    </div>
+                  </div>
+                </div>
+                {personalInfoFormEnabled && (
+                  <button
+                    type="submit"
+                    className="save-button"
+                    onClick={handleSavePersonalInfo}
                   >
-                    <option value="">Not selected</option>
-                    <option value="male">Male</option>
-                    <option value="female">Female</option>
-                    <option value="other">Other</option>
-                  </select>
+                    Save
+                  </button>
                 )}
               </div>
             </div>
-            <div className="input-row">
-              <div className="input-group">
-                <label htmlFor="CurrentPassword">Current Password:</label>
-                <input
-                  type="password"
-                  id="CurrentPassword"
-                  name="CurrentPassword"
-                  value={personalFormData.CurrentPassword}
-                  onChange={handlePersonalInputChange}
-                  disabled={personalFormDisabled}
-                />
-              </div>
-              <div className="input-group">
-                <label htmlFor="NewPassword">New Password:</label>
-                <input
-                  type="password"
-                  id="NewPassword"
-                  name="NewPassword"
-                  value={personalFormData.NewPassword}
-                  onChange={handlePersonalInputChange}
-                  disabled={personalFormDisabled}
-                />
-              </div>
-            </div>
-            {!personalFormDisabled && (
+            <hr />
+            <div className="contact-information">
               <button
-                type="submit"
-                className="save-button"
-                onClick={handlePersonalSave}
+                className="editText"
+                onClick={() =>
+                  setContactInfoFormEnabled(!contactInfoFormEnabled)
+                }
               >
-                {personalSaveButtonText}
+                {contactInfoFormEnabled ? "Cancel" : "Edit Contact Info"}
               </button>
-            )}
-          </div>
-        </div>
-        <hr />
-        <div className="contact-information">
-          <button className="edittext" onClick={handleContactEditClick}>
-            {contactFormDisabled ? "Edit Contact Info" : "Cancel"}
-          </button>
-          <strong>
-            <h2 className="sideheading">Contact Information</h2>
-          </strong>
-          <p>Update your contact details here</p>
-          <div className="customForm">
-            <div className="input-row">
-              <div className="input-group">
-                <label htmlFor="mobileNumber">Mobile Number:</label>
-                <input
-                  type="text"
-                  id="mobileNumber"
-                  name="mobileNumber"
-                  value={contactFormData.mobileNumber}
-                  onChange={handleContactInputChange}
-                  disabled={contactFormDisabled}
-                />
-              </div>
-              <div className="input-group">
-                <label htmlFor="email">Email:</label>
-                <input
-                  type="email"
-                  id="email"
-                  name="email"
-                  value={contactFormData.email}
-                  onChange={handleContactInputChange}
-                  disabled={contactFormDisabled}
-                />
-              </div>
-            </div>
-            <div className="input-row">
-              <div className="input-group">
-                <label htmlFor="altMobileNumber">Alt Mobile Number:</label>
-                <input
-                  type="text"
-                  id="altMobileNumber"
-                  name="altMobileNumber"
-                  value={contactFormData.altMobileNumber}
-                  onChange={handleContactInputChange}
-                  disabled={contactFormDisabled}
-                />
-              </div>
-              <div className="input-group">
-                <label htmlFor="altEmail">Alt Email:</label>
-                <input
-                  type="email"
-                  id="altEmail"
-                  name="altEmail"
-                  value={contactFormData.altEmail}
-                  onChange={handleContactInputChange}
-                  disabled={contactFormDisabled}
-                />
-              </div>
-            </div>
-            {!contactFormDisabled && (
               <button
-                type="submit"
-                className="save-button"
-                onClick={handleContactSave}
+                className="editTextIcon"
+                onClick={() =>
+                  setContactInfoFormEnabled(!contactInfoFormEnabled)
+                }
               >
-                {contactSaveButtonText}
+                <FaEdit className="icon" />
               </button>
-            )}
+              <strong>
+                <h2 className="sideHeading">Contact Information</h2>
+              </strong>
+              <p>Update your contact details here</p>
+              <div
+                className={`customForm ${
+                  contactInfoFormEnabled && "input-enabled"
+                }`}
+              >
+                <div className="input-row">
+                  <div className="input-group">
+                    <label htmlFor="mobileNumber">Mobile Number:</label>
+                    <div className="wrapper phoneInput-wrapper">
+                      <PhoneInput
+                        country={"us"}
+                        id="mobileNumber"
+                        value={customerData.customerMainMobileNo}
+                        // eslint-disable-next-line no-unused-vars
+                        onChange={(value, country) =>
+                          handleCustomerData(
+                            "customerMainMobileNo",
+                            "+" + value
+                          )
+                        }
+                        disabled={!contactInfoFormEnabled}
+                        inputProps={{
+                          name: "phone",
+                          required: true,
+                          autoFocus: true,
+                          placeholder: "Enter phone number",
+                        }}
+                        inputClass="input"
+                        containerClass="phoneInput"
+                        placeholder="+91"
+                      />
+                    </div>
+                  </div>
+                  <div className="input-group">
+                    <label htmlFor="email">Email:</label>
+                    <div className="wrapper">
+                      <PersonIcon className="icon" />
+                      <div className="vertical-divider"></div>
+                      <input
+                        type="email"
+                        name="email"
+                        value={customerData.customerMainEmail}
+                        onChange={(e) =>
+                          handleCustomerData(
+                            "customerMainEmail",
+                            e.target.value
+                          )
+                        }
+                        className="input"
+                        disabled={!contactInfoFormEnabled}
+                        placeholder="info@gmail.com"
+                      />
+                    </div>
+                  </div>
+                </div>
+                <div className="input-row">
+                  <div className="input-group">
+                    <label htmlFor="altMobileNumber">Alt Mobile Number:</label>
+                    <div className="wrapper phoneInput-wrapper">
+                      <PhoneInput
+                        country={"us"}
+                        name="altMobileNumber"
+                        value={customerData.customerAlternateMobileNo}
+                        // eslint-disable-next-line no-unused-vars
+                        onChange={(value, country) =>
+                          handleCustomerData(
+                            "customerAlternateMobileNo",
+                            "+" + value
+                          )
+                        }
+                        disabled={!contactInfoFormEnabled}
+                        inputProps={{
+                          name: "phone",
+                          required: true,
+                          autoFocus: true,
+                          placeholder: "Enter phone number",
+                        }}
+                        inputClass="input"
+                        containerClass="phoneInput"
+                        placeholder="+91"
+                      />
+                    </div>
+                  </div>
+                  <div className="input-group">
+                    <label htmlFor="altEmail">Alt Email:</label>
+                    <div className="wrapper">
+                      <PersonIcon className="icon" />
+                      <div className="vertical-divider"></div>
+                      <input
+                        type="email"
+                        name="altEmail"
+                        value={customerData.customerAlternateEmail}
+                        onChange={(e) =>
+                          handleCustomerData(
+                            "customerAlternateEmail",
+                            e.target.value
+                          )
+                        }
+                        className="input"
+                        disabled={!contactInfoFormEnabled}
+                        placeholder="info@gmail.com"
+                      />
+                    </div>
+                  </div>
+                </div>
+                {contactInfoFormEnabled && (
+                  <button
+                    type="submit"
+                    className="save-button"
+                    onClick={handleSaveContactInfo}
+                  >
+                    Save
+                  </button>
+                )}
+              </div>
+            </div>
+            <hr />
+            <div className="address-information">
+              <button
+                className="editText"
+                onClick={() =>
+                  setAddressInfoFormEnabled(!addressInfoFormEnabled)
+                }
+              >
+                {addressInfoFormEnabled ? "Cancel" : "Edit Address Info"}
+              </button>
+              <button
+                className="editTextIcon"
+                onClick={() =>
+                  setAddressInfoFormEnabled(!addressInfoFormEnabled)
+                }
+              >
+                <FaEdit className="icon" />
+              </button>
+              <strong>
+                <h2 className="sideHeading">Address Information</h2>
+              </strong>
+              <p>Update your address details here</p>
+              <div
+                className={`customForm ${
+                  addressInfoFormEnabled && "input-enabled"
+                }`}
+              >
+                <div className="input-row">
+                  <div className="input-group">
+                    <label htmlFor="address">Address:</label>
+                    <div className="wrapper">
+                      <PersonIcon className="icon" />
+                      <div className="vertical-divider"></div>
+                      <input
+                        type="text"
+                        className="input"
+                        name="address"
+                        value={customerData.customerAddress}
+                        onChange={(e) =>
+                          handleCustomerData("customerAddress", e.target.value)
+                        }
+                        disabled={!addressInfoFormEnabled}
+                        placeholder="enter address"
+                      />
+                    </div>
+                  </div>
+                  <div className="input-group">
+                    <label htmlFor="landmark">Landmark:</label>
+                    <div className="wrapper">
+                      <PersonIcon className="icon" />
+                      <div className="vertical-divider"></div>
+                      <input
+                        type="text"
+                        name="landmark"
+                        className="input"
+                        value={customerData.customerLandmark}
+                        onChange={(e) =>
+                          handleCustomerData("customerLandmark", e.target.value)
+                        }
+                        disabled={!addressInfoFormEnabled}
+                        placeholder="enter landmark"
+                      />
+                    </div>
+                  </div>
+                </div>
+                <div className="input-row">
+                  <div className="input-group">
+                    <label htmlFor="city">Country:</label>
+                    <div className="wrapper selectInput-wrapper">
+                      <PersonIcon className="icon" />
+                      <div className="vertical-divider"></div>
+                      <Select
+                        styles={customSelectStyles}
+                        options={
+                          Array.isArray(data.countries.data)
+                            ? data.countries.data?.map((country) => ({
+                                value: country,
+                                label: country,
+                              }))
+                            : null
+                        }
+                        value={
+                          customerData.customerCountry
+                            ? {
+                                value: customerData.customerCountry,
+                                label: customerData.customerCountry,
+                              }
+                            : null
+                        }
+                        onChange={(selectedOption) =>
+                          handleCustomerData(
+                            "customerCountry",
+                            selectedOption.value
+                          )
+                        }
+                        placeholder="Select your country"
+                        components={{
+                          DropdownIndicator: () => (
+                            <KeyboardArrowDownIcon
+                              style={{ color: "#007bff" }}
+                            />
+                          ),
+                        }}
+                        className="selectInput"
+                        menuShouldScrollIntoView={false}
+                        hideSelectedOptions={false}
+                        closeMenuOnSelect
+                        isClearable={false}
+                        isSearchable
+                        isDisabled={!addressInfoFormEnabled}
+                      />
+                    </div>
+                  </div>
+                  <div className="input-group">
+                    <label htmlFor="taluk">State:</label>
+                    <div className="wrapper selectInput-wrapper">
+                      <PersonIcon className="icon" />
+                      <div className="vertical-divider"></div>
+                      <Select
+                        styles={customSelectStyles}
+                        options={
+                          data.states.data && Array.isArray(data.states.data)
+                            ? data.states.data?.map((state) => ({
+                                value: state,
+                                label: state,
+                              }))
+                            : null
+                        }
+                        value={
+                          customerData.customerState
+                            ? {
+                                value: customerData.customerState,
+                                label: customerData.customerState,
+                              }
+                            : null
+                        }
+                        onChange={(selectedOption) =>
+                          handleCustomerData(
+                            "customerState",
+                            selectedOption.value
+                          )
+                        }
+                        placeholder="Select your state"
+                        className="selectInput"
+                        components={{
+                          DropdownIndicator: () => (
+                            <KeyboardArrowDownIcon
+                              style={{ color: "#007bff" }}
+                            />
+                          ),
+                        }}
+                        menuShouldScrollIntoView={false}
+                        hideSelectedOptions={false}
+                        closeMenuOnSelect
+                        isClearable={false}
+                        isSearchable
+                        isDisabled={!addressInfoFormEnabled}
+                      />
+                    </div>
+                  </div>
+                </div>
+                <div className="input-row">
+                  <div className="input-group">
+                    <label htmlFor="state">City:</label>
+                    <div className="wrapper selectInput-wrapper">
+                      <PersonIcon className="icon" />
+                      <div className="vertical-divider"></div>
+                      <Select
+                        styles={customSelectStyles}
+                        options={
+                          data.citiesOfState.data &&
+                          Array.isArray(data.citiesOfState.data)
+                            ? data.citiesOfState.data?.map((city) => ({
+                                value: city,
+                                label: city,
+                              }))
+                            : null
+                        }
+                        value={
+                          customerData.customerCity
+                            ? {
+                                value: customerData.customerCity,
+                                label: customerData.customerCity,
+                              }
+                            : null
+                        }
+                        onChange={(selectedOption) =>
+                          handleCustomerData(
+                            "customerCity",
+                            selectedOption.value
+                          )
+                        }
+                        placeholder="Select your city"
+                        className="selectInput"
+                        components={{
+                          DropdownIndicator: () => (
+                            <KeyboardArrowDownIcon
+                              style={{ color: "#007bff" }}
+                            />
+                          ),
+                        }}
+                        menuShouldScrollIntoView={false}
+                        hideSelectedOptions={false}
+                        closeMenuOnSelect
+                        isClearable={false}
+                        isSearchable
+                        isDisabled={!addressInfoFormEnabled}
+                      />
+                    </div>
+                  </div>
+                  <div className="input-group">
+                    <label htmlFor="country">Taluk:</label>
+                    <div className="wrapper">
+                      <PersonIcon className="icon" />
+                      <div className="vertical-divider"></div>
+                      <input
+                        type="text"
+                        name="taluk"
+                        className="input"
+                        value={customerData.customerTaluk}
+                        onChange={(e) =>
+                          handleCustomerData("customerTaluk", e.target.value)
+                        }
+                        disabled={!addressInfoFormEnabled}
+                        placeholder="Enter the taluk"
+                        spellCheck={false}
+                      />
+                    </div>
+                  </div>
+                </div>
+                <div className="input-row">
+                  <div className="input-group">
+                    <label htmlFor="pincode">Pincode:</label>
+                    <div className="wrapper">
+                      <PersonIcon className="icon" />
+                      <div className="vertical-divider"></div>
+                      <input
+                        type="text"
+                        name="pincode"
+                        className="input"
+                        pattern="[0-9]*"
+                        inputMode="numeric"
+                        onKeyDown={(e) => {
+                          // Allow: backspace, delete, tab, escape, enter, and .
+                          if (
+                            [46, 8, 9, 27, 13, 110].indexOf(e.keyCode) !== -1 ||
+                            // Allow: Ctrl+A/Ctrl+C/Ctrl+V/Ctrl+X
+                            (e.keyCode === 65 && e.ctrlKey === true) || // Ctrl+A
+                            (e.keyCode === 67 && e.ctrlKey === true) || // Ctrl+C
+                            (e.keyCode === 86 && e.ctrlKey === true) || // Ctrl+V
+                            (e.keyCode === 88 && e.ctrlKey === true) // Ctrl+X
+                          ) {
+                            // let it happen, don't do anything
+                            return;
+                          }
+                          // Ensure that it is a number and stop the keypress
+                          if (
+                            (e.shiftKey || e.keyCode < 48 || e.keyCode > 57) &&
+                            (e.keyCode < 96 || e.keyCode > 105)
+                          ) {
+                            e.preventDefault();
+                          }
+                        }}
+                        value={customerData.customerPincode}
+                        onChange={(e) =>
+                          handleCustomerData("customerPincode", e.target.value)
+                        }
+                        disabled={!addressInfoFormEnabled}
+                        placeholder="Enter the pincode"
+                        spellCheck={false}
+                      />
+                    </div>
+                  </div>
+                </div>
+                {addressInfoFormEnabled && (
+                  <button
+                    type="submit"
+                    className="save-button"
+                    onClick={handleSaveAddressInfo}
+                  >
+                    Save
+                  </button>
+                )}
+              </div>
+            </div>
           </div>
-        </div>
-        <hr />
-        <div className="address-information">
-          <p className="edittext" onClick={handleAddressEditClick}>
-            {addressFormDisabled ? "Edit Address Info" : "Cancel"}
-          </p>
-          <strong>
-            <h2 className="sideheading">Address Information</h2>
-          </strong>
-          <p>Update your address details here</p>
-          <form onSubmit={handleAddressSubmit}>
-            <div className="customForm">
-              <div className="input-row">
-                <div className="input-group">
-                  <label htmlFor="address">Address:</label>
-                  <input
-                    type="text"
-                    id="address"
-                    name="address"
-                    value={addressFormData.address}
-                    onChange={handleAddressInputChange}
-                    disabled={addressFormDisabled}
+        ) : (
+          <div className="wrapper">
+            <div className="coverPage">
+              <EditOutlinedIcon className="icon" />
+            </div>
+            <div className="image-upload-container">
+              <div className="profile-image">
+                <img
+                  src={
+                    typeof serviceProviderData.vendorProfileImage === "string"
+                      ? serviceProviderData.vendorProfileImage
+                      : URL.createObjectURL(
+                          serviceProviderData.vendorProfileImage
+                        ) || ""
+                  }
+                  alt="Avatar"
+                  className="img"
+                />
+                <button className="addIcon">
+                  <AddIcon
+                    className="icon"
+                    onClick={(e) => profilePicInputRef.current.click()}
                   />
-                </div>
-                <div className="input-group">
-                  <label htmlFor="landmark">Landmark:</label>
-                  <input
-                    type="text"
-                    id="landmark"
-                    name="landmark"
-                    value={addressFormData.landmark}
-                    onChange={handleAddressInputChange}
-                    disabled={addressFormDisabled}
-                  />
-                </div>
-              </div>
-              <div className="input-row">
-                <div className="input-group">
-                  <label htmlFor="city">City:</label>
-                  <input
-                    type="text"
-                    id="city"
-                    name="city"
-                    value={addressFormData.city}
-                    onChange={handleAddressInputChange}
-                    disabled={addressFormDisabled}
-                  />
-                </div>
-                <div className="input-group">
-                  <label htmlFor="taluk">Taluk:</label>
-                  <input
-                    type="text"
-                    id="taluk"
-                    name="taluk"
-                    value={addressFormData.taluk}
-                    onChange={handleAddressInputChange}
-                    disabled={addressFormDisabled}
-                  />
-                </div>
-              </div>
-              <div className="input-row">
-                <div className="input-group">
-                  <label htmlFor="state">State:</label>
-                  <input
-                    type="text"
-                    id="state"
-                    name="state"
-                    value={addressFormData.state}
-                    onChange={handleAddressInputChange}
-                    disabled={addressFormDisabled}
-                  />
-                </div>
-                <div className="input-group">
-                  <label htmlFor="country">Country:</label>
-                  <input
-                    type="text"
-                    id="country"
-                    name="country"
-                    value={addressFormData.country}
-                    onChange={handleAddressInputChange}
-                    disabled={addressFormDisabled}
-                  />
-                </div>
-              </div>
-              <div className="input-row">
-                <div className="input-group">
-                  <label htmlFor="pincode">Pincode:</label>
-                  <input
-                    type="text"
-                    id="pincode"
-                    name="pincode"
-                    value={addressFormData.pincode}
-                    onChange={handleAddressInputChange}
-                    disabled={addressFormDisabled}
-                  />
-                </div>
-              </div>
-              {!addressFormDisabled && (
-                <button
-                  type="submit"
-                  className="save-button"
-                  onClick={handleAddressSubmit}
-                >
-                  Save
                 </button>
-              )}
+                <div
+                  className="overlay"
+                  onClick={(e) => profilePicInputRef.current.click()}
+                >
+                  <FaEdit className="editIcon" />
+                  <span>Edit</span>
+                </div>
+              </div>
+              <div className="user-name">
+                <strong>
+                  {serviceProviderData.vendorFirstName +
+                    " " +
+                    serviceProviderData.vendorLastName}
+                </strong>
+                <br />
+                <small className="user-type">( vendor )</small>
+              </div>
+              <input
+                ref={profilePicInputRef}
+                type="file"
+                onChange={(e) => {
+                  handleServiceProviderData(
+                    "vendorProfileImage",
+                    e.target.files[0]
+                  );
+                }}
+                className="profilePicInput"
+                style={{ display: "none" }}
+                accept="image/*"
+              />
             </div>
-          </form>
-        </div>
-        <hr />
+            <div className="personal-information">
+              <button
+                className="editText"
+                onClick={() =>
+                  setPersonalInfoFormEnabled(!personalInfoFormEnabled)
+                }
+              >
+                {personalInfoFormEnabled ? "Cancel" : "Edit Personal Info"}
+              </button>
+              <button
+                className="editTextIcon"
+                onClick={() =>
+                  setPersonalInfoFormEnabled(!personalInfoFormEnabled)
+                }
+              >
+                <FaEdit className="icon" />
+              </button>
+              <strong>
+                <h2 className="sideHeading">Personal Information</h2>
+              </strong>
+              <p>Update your information about you and details here</p>
+              <div
+                className={`customForm ${
+                  personalInfoFormEnabled && "input-enabled"
+                }`}
+              >
+                <div className="input-row">
+                  <div className="input-group">
+                    <label htmlFor="firstName">First Name:</label>
+                    <div className="wrapper">
+                      <PersonIcon className="icon" />
+                      <div className="vertical-divider"></div>
+                      <input
+                        type="text"
+                        name="firstName"
+                        value={serviceProviderData.vendorFirstName || ""}
+                        onChange={(e) =>
+                          handleServiceProviderData(
+                            "vendorFirstName",
+                            e.target.value
+                          )
+                        }
+                        className="input"
+                        disabled={!personalInfoFormEnabled}
+                        placeholder="Logan"
+                      />
+                    </div>
+                  </div>
+                  <div className="input-group">
+                    <label htmlFor="lastName">Last Name:</label>
+                    <div className="wrapper">
+                      <PersonIcon className="icon" />
+                      <div className="vertical-divider"></div>
+                      <input
+                        type="text"
+                        name="lastName"
+                        value={serviceProviderData.vendorLastName || ""}
+                        onChange={(e) =>
+                          handleServiceProviderData(
+                            "vendorLastName",
+                            e.target.value
+                          )
+                        }
+                        className="input"
+                        disabled={!personalInfoFormEnabled}
+                        placeholder="Sanders"
+                      />
+                    </div>
+                  </div>
+                </div>
+                <div className="input-row">
+                  <div className="input-group">
+                    <label htmlFor="gender">Gender:</label>
+                    <div className="wrapper selectInput-wrapper">
+                      <PersonIcon className="icon" />
+                      <div className="vertical-divider"></div>
+                      <Select
+                        styles={customSelectStyles}
+                        options={genderOptions.map((gender) => ({
+                          value: gender,
+                          label: gender,
+                        }))}
+                        value={
+                          serviceProviderData.vendorGender
+                            ? {
+                                value: serviceProviderData.vendorGender,
+                                label: serviceProviderData.vendorGender,
+                              }
+                            : null
+                        }
+                        onChange={(selectedOption) =>
+                          handleServiceProviderData(
+                            "vendorGender",
+                            selectedOption.value
+                          )
+                        }
+                        placeholder="select your gender"
+                        className="selectInput"
+                        components={{
+                          DropdownIndicator: () => (
+                            <KeyboardArrowDownIcon
+                              style={{ color: "#007bff" }}
+                            />
+                          ),
+                        }}
+                        menuShouldScrollIntoView={false}
+                        hideSelectedOptions={false}
+                        closeMenuOnSelect
+                        isClearable={false}
+                        isSearchable
+                        isDisabled={!personalInfoFormEnabled}
+                      />
+                    </div>
+                  </div>
+                </div>
+                {personalInfoFormEnabled && (
+                  <button
+                    type="submit"
+                    className="save-button"
+                    onClick={handleSavePersonalInfo}
+                  >
+                    Save
+                  </button>
+                )}
+              </div>
+            </div>
+            <hr />
+            <div className="contact-information">
+              <button
+                className="editText"
+                onClick={() =>
+                  setContactInfoFormEnabled(!contactInfoFormEnabled)
+                }
+              >
+                {contactInfoFormEnabled ? "Cancel" : "Edit Contact Info"}
+              </button>
+              <button
+                className="editTextIcon"
+                onClick={() =>
+                  setContactInfoFormEnabled(!contactInfoFormEnabled)
+                }
+              >
+                <FaEdit className="icon" />
+              </button>
+              <strong>
+                <h2 className="sideHeading">Contact Information</h2>
+              </strong>
+              <p>Update your contact details here</p>
+              <div
+                className={`customForm ${
+                  contactInfoFormEnabled && "input-enabled"
+                }`}
+              >
+                <div className="input-row">
+                  <div className="input-group">
+                    <label htmlFor="mobileNumber">Mobile Number:</label>
+                    <div className="wrapper phoneInput-wrapper">
+                      <PhoneInput
+                        country={"us"}
+                        id="mobileNumber"
+                        value={serviceProviderData.vendorContact}
+                        // eslint-disable-next-line no-unused-vars
+                        onChange={(value, country) =>
+                          handleServiceProviderData(
+                            "vendorContact",
+                            "+" + value
+                          )
+                        }
+                        disabled={!contactInfoFormEnabled}
+                        inputProps={{
+                          name: "phone",
+                          required: true,
+                          autoFocus: true,
+                          placeholder: "Enter phone number",
+                        }}
+                        inputClass="input"
+                        containerClass="phoneInput"
+                        placeholder="+91"
+                      />
+                    </div>
+                  </div>
+                  <div className="input-group">
+                    <label htmlFor="email">Email:</label>
+                    <div className="wrapper">
+                      <PersonIcon className="icon" />
+                      <div className="vertical-divider"></div>
+                      <input
+                        type="email"
+                        name="email"
+                        value={serviceProviderData.vendorEmail}
+                        onChange={(e) =>
+                          handleServiceProviderData(
+                            "vendorEmail",
+                            e.target.value
+                          )
+                        }
+                        className="input"
+                        disabled={!contactInfoFormEnabled}
+                        placeholder="info@gmail.com"
+                      />
+                    </div>
+                  </div>
+                </div>
+                <div className="input-row">
+                  <div className="input-group">
+                    <label htmlFor="altMobileNumber">Alt Mobile Number:</label>
+                    <div className="wrapper phoneInput-wrapper">
+                      <PhoneInput
+                        country={"us"}
+                        name="altMobileNumber"
+                        value={serviceProviderData.vendorAlternateMobileNo}
+                        // eslint-disable-next-line no-unused-vars
+                        onChange={(value, country) =>
+                          handleServiceProviderData(
+                            "vendorAlternateMobileNo",
+                            "+" + value
+                          )
+                        }
+                        disabled={!contactInfoFormEnabled}
+                        inputProps={{
+                          name: "phone",
+                          required: true,
+                          autoFocus: true,
+                          placeholder: "Enter phone number",
+                        }}
+                        inputClass="input"
+                        containerClass="phoneInput"
+                        placeholder="+91"
+                      />
+                    </div>
+                  </div>
+                  <div className="input-group">
+                    <label htmlFor="altEmail">Alt Email:</label>
+                    <div className="wrapper">
+                      <PersonIcon className="icon" />
+                      <div className="vertical-divider"></div>
+                      <input
+                        type="email"
+                        name="altEmail"
+                        value={serviceProviderData.vendorAlternateEmail}
+                        onChange={(e) =>
+                          handleServiceProviderData(
+                            "vendorAlternateEmail",
+                            e.target.value
+                          )
+                        }
+                        className="input"
+                        disabled={!contactInfoFormEnabled}
+                        placeholder="info@gmail.com"
+                      />
+                    </div>
+                  </div>
+                </div>
+                {contactInfoFormEnabled && (
+                  <button
+                    type="submit"
+                    className="save-button"
+                    onClick={handleSaveContactInfo}
+                  >
+                    Save
+                  </button>
+                )}
+              </div>
+            </div>
+            <hr />
+            <div className="address-information">
+              <button
+                className="editText"
+                onClick={() =>
+                  setAddressInfoFormEnabled(!addressInfoFormEnabled)
+                }
+              >
+                {addressInfoFormEnabled ? "Cancel" : "Edit Address Info"}
+              </button>
+              <button
+                className="editTextIcon"
+                onClick={() =>
+                  setAddressInfoFormEnabled(!addressInfoFormEnabled)
+                }
+              >
+                <FaEdit className="icon" />
+              </button>
+              <strong>
+                <h2 className="sideHeading">Address Information</h2>
+              </strong>
+              <p>Update your address details here</p>
+              <div
+                className={`customForm ${
+                  addressInfoFormEnabled && "input-enabled"
+                }`}
+              >
+                <div className="input-row">
+                  <div className="input-group">
+                    <label htmlFor="address">Address:</label>
+                    <div className="wrapper">
+                      <PersonIcon className="icon" />
+                      <div className="vertical-divider"></div>
+                      <input
+                        type="text"
+                        className="input"
+                        name="address"
+                        value={serviceProviderData.vendorAddress}
+                        onChange={(e) =>
+                          handleServiceProviderData(
+                            "vendorAddress",
+                            e.target.value
+                          )
+                        }
+                        disabled={!addressInfoFormEnabled}
+                        placeholder="enter address"
+                      />
+                    </div>
+                  </div>
+                  <div className="input-group">
+                    <label htmlFor="landmark">Landmark:</label>
+                    <div className="wrapper">
+                      <PersonIcon className="icon" />
+                      <div className="vertical-divider"></div>
+                      <input
+                        type="text"
+                        name="landmark"
+                        className="input"
+                        value={serviceProviderData.vendorLandmark}
+                        onChange={(e) =>
+                          handleServiceProviderData(
+                            "vendorLandmark",
+                            e.target.value
+                          )
+                        }
+                        disabled={!addressInfoFormEnabled}
+                        placeholder="enter landmark"
+                      />
+                    </div>
+                  </div>
+                </div>
+                <div className="input-row">
+                  <div className="input-group">
+                    <label htmlFor="city">Country:</label>
+                    <div className="wrapper selectInput-wrapper">
+                      <PersonIcon className="icon" />
+                      <div className="vertical-divider"></div>
+                      <Select
+                        styles={customSelectStyles}
+                        options={
+                          Array.isArray(data.countries.data)
+                            ? data.countries.data?.map((country) => ({
+                                value: country,
+                                label: country,
+                              }))
+                            : null
+                        }
+                        value={
+                          serviceProviderData.vendorCountry
+                            ? {
+                                value: serviceProviderData.vendorCountry,
+                                label: serviceProviderData.vendorCountry,
+                              }
+                            : null
+                        }
+                        onChange={(selectedOption) =>
+                          handleServiceProviderData(
+                            "vendorCountry",
+                            selectedOption.value
+                          )
+                        }
+                        placeholder="Select your country"
+                        components={{
+                          DropdownIndicator: () => (
+                            <KeyboardArrowDownIcon
+                              style={{ color: "#007bff" }}
+                            />
+                          ),
+                        }}
+                        className="selectInput"
+                        menuShouldScrollIntoView={false}
+                        hideSelectedOptions={false}
+                        closeMenuOnSelect
+                        isClearable={false}
+                        isSearchable
+                        isDisabled={!addressInfoFormEnabled}
+                      />
+                    </div>
+                  </div>
+                  <div className="input-group">
+                    <label htmlFor="taluk">State:</label>
+                    <div className="wrapper selectInput-wrapper">
+                      <PersonIcon className="icon" />
+                      <div className="vertical-divider"></div>
+                      <Select
+                        styles={customSelectStyles}
+                        options={
+                          data.states.data && Array.isArray(data.states.data)
+                            ? data.states.data?.map((state) => ({
+                                value: state,
+                                label: state,
+                              }))
+                            : null
+                        }
+                        value={
+                          serviceProviderData.vendorState
+                            ? {
+                                value: serviceProviderData.vendorState,
+                                label: serviceProviderData.vendorState,
+                              }
+                            : null
+                        }
+                        onChange={(selectedOption) =>
+                          handleServiceProviderData(
+                            "vendorState",
+                            selectedOption.value
+                          )
+                        }
+                        placeholder="Select your state"
+                        className="selectInput"
+                        components={{
+                          DropdownIndicator: () => (
+                            <KeyboardArrowDownIcon
+                              style={{ color: "#007bff" }}
+                            />
+                          ),
+                        }}
+                        menuShouldScrollIntoView={false}
+                        hideSelectedOptions={false}
+                        closeMenuOnSelect
+                        isClearable={false}
+                        isSearchable
+                        isDisabled={!addressInfoFormEnabled}
+                      />
+                    </div>
+                  </div>
+                </div>
+                <div className="input-row">
+                  <div className="input-group">
+                    <label htmlFor="state">City:</label>
+                    <div className="wrapper selectInput-wrapper">
+                      <PersonIcon className="icon" />
+                      <div className="vertical-divider"></div>
+                      <Select
+                        styles={customSelectStyles}
+                        options={
+                          data.citiesOfState.data &&
+                          Array.isArray(data.citiesOfState.data)
+                            ? data.citiesOfState.data?.map((city) => ({
+                                value: city,
+                                label: city,
+                              }))
+                            : null
+                        }
+                        value={
+                          serviceProviderData.vendorCity
+                            ? {
+                                value: serviceProviderData.vendorCity,
+                                label: serviceProviderData.vendorCity,
+                              }
+                            : null
+                        }
+                        onChange={(selectedOption) =>
+                          handleServiceProviderData(
+                            "vendorCity",
+                            selectedOption.value
+                          )
+                        }
+                        placeholder="Select your city"
+                        className="selectInput"
+                        components={{
+                          DropdownIndicator: () => (
+                            <KeyboardArrowDownIcon
+                              style={{ color: "#007bff" }}
+                            />
+                          ),
+                        }}
+                        menuShouldScrollIntoView={false}
+                        hideSelectedOptions={false}
+                        closeMenuOnSelect
+                        isClearable={false}
+                        isSearchable
+                        isDisabled={!addressInfoFormEnabled}
+                      />
+                    </div>
+                  </div>
+                  <div className="input-group">
+                    <label htmlFor="country">Taluk:</label>
+                    <div className="wrapper">
+                      <PersonIcon className="icon" />
+                      <div className="vertical-divider"></div>
+                      <input
+                        type="text"
+                        name="taluk"
+                        className="input"
+                        value={serviceProviderData.vendorTaluk}
+                        onChange={(e) =>
+                          handleServiceProviderData(
+                            "vendorTaluk",
+                            e.target.value
+                          )
+                        }
+                        disabled={!addressInfoFormEnabled}
+                        placeholder="Enter the taluk"
+                        spellCheck={false}
+                      />
+                    </div>
+                  </div>
+                </div>
+                <div className="input-row">
+                  <div className="input-group">
+                    <label htmlFor="pincode">Pincode:</label>
+                    <div className="wrapper">
+                      <PersonIcon className="icon" />
+                      <div className="vertical-divider"></div>
+                      <input
+                        type="text"
+                        name="pincode"
+                        className="input"
+                        pattern="[0-9]*"
+                        inputMode="numeric"
+                        onKeyDown={(e) => {
+                          // Allow: backspace, delete, tab, escape, enter, and .
+                          if (
+                            [46, 8, 9, 27, 13, 110].indexOf(e.keyCode) !== -1 ||
+                            // Allow: Ctrl+A/Ctrl+C/Ctrl+V/Ctrl+X
+                            (e.keyCode === 65 && e.ctrlKey === true) || // Ctrl+A
+                            (e.keyCode === 67 && e.ctrlKey === true) || // Ctrl+C
+                            (e.keyCode === 86 && e.ctrlKey === true) || // Ctrl+V
+                            (e.keyCode === 88 && e.ctrlKey === true) // Ctrl+X
+                          ) {
+                            // let it happen, don't do anything
+                            return;
+                          }
+                          // Ensure that it is a number and stop the keypress
+                          if (
+                            (e.shiftKey || e.keyCode < 48 || e.keyCode > 57) &&
+                            (e.keyCode < 96 || e.keyCode > 105)
+                          ) {
+                            e.preventDefault();
+                          }
+                        }}
+                        value={serviceProviderData.vendorPincode}
+                        onChange={(e) =>
+                          handleServiceProviderData(
+                            "vendorPincode",
+                            e.target.value
+                          )
+                        }
+                        disabled={!addressInfoFormEnabled}
+                        placeholder="Enter the pincode"
+                        spellCheck={false}
+                      />
+                    </div>
+                  </div>
+                </div>
+                {addressInfoFormEnabled && (
+                  <button
+                    type="submit"
+                    className="save-button"
+                    onClick={handleSaveAddressInfo}
+                  >
+                    Save
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </>
   );
