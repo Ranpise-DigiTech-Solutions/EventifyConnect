@@ -171,7 +171,6 @@ router.post('/updateCustomerData', async (req, res) => {
         
         return res.status(200).json(updatedDocument);
     } catch(error) {
-        console.log(error.message);
         return res.status(500).json(error.message);
     }
 });

@@ -5,6 +5,7 @@ import PropTypes from "prop-types";
 import { onAuthStateChanged } from "firebase/auth";
 import axios from "axios";
 
+import useMediaQuery from "@mui/material/useMediaQuery";
 import AppBar from "@mui/material/AppBar";
 import Box from "@mui/material/Box";
 import CssBaseline from "@mui/material/CssBaseline";
@@ -53,19 +54,22 @@ import { Link } from "react-router-dom";
 const ProfilePage = (props) => {
   const drawerWidth = 240;
   const { window } = props;
+  const isBelow900px = useMediaQuery("(max-width:900px)");
   const [mobileOpen, setMobileOpen] = React.useState(false);
   const [isClosing, setIsClosing] = React.useState(false);
 
   const dispatch = useDispatch();
   const userInfoStore = useSelector((state) => state.userInfo);
   const searchParams = new URLSearchParams(location.search);
-  
+
   const [user, setUser] = useState(null);
   const [hallData, setHallData] = useState(null);
   const [serviceProviderData, setServiceProviderData] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
 
-  const [activeComponent, setActiveComponent] = useState(searchParams.get("activeComponent") || "User Profile");
+  const [activeComponent, setActiveComponent] = useState(
+    searchParams.get("activeComponent") || "User Profile"
+  );
   // Component List : 1. User Profile  2. Dashboard  3. Business  4. Walk-In Booking  5. Booking History  6. Cart  7. Favorites  8. Notifications  9. Settings
 
   const handleDrawerClose = () => {
@@ -86,7 +90,6 @@ const ProfilePage = (props) => {
   const handleUserLogout = async () => {
     try {
       await firebaseAuth.signOut(); // Sign out the current user
-      dispatch(userAuthStateChangeFlag());
       dispatch(userInfoActions("userDetails", {}));
       setUser(null);
       console.log("User logged out successfully");
@@ -114,7 +117,6 @@ const ProfilePage = (props) => {
               }`
             );
             dispatch(userInfoActions("userDetails", response.data));
-            dispatch(userAuthStateChangeFlag());
           } catch (error) {
             console.error("Error fetching user data:", error.message);
           } finally {
@@ -130,7 +132,11 @@ const ProfilePage = (props) => {
     });
 
     return () => unsubscribe();
-  }, [dispatch, userInfoStore.userAuthStateChangeFlag]); // dependency array => [userAuthStateChangeFlag]
+  }, [
+    dispatch,
+    userInfoStore.userAuthStateChangeFlag,
+    userInfoStore.userDataUpdateFlag,
+  ]); // dependency array => [userAuthStateChangeFlag]
 
   // get hall data
   useEffect(() => {
@@ -184,7 +190,18 @@ const ProfilePage = (props) => {
         justifyContent: "space-between",
       }}
     >
-      <List className="list__wrapper" sx={{ width: "100%" }}>
+      <List
+        className="list__wrapper"
+        sx={{
+          width: "100%",
+          display: "flex",
+          flexDirection: "column",
+          justifyContent: "center",
+          alignItems: "flex-start",
+          overflow: "hidden",
+          gap: "0.5rem",
+        }}
+      >
         <Link to="/">
           <ListItem key={"Logo"} disablePadding>
             <ListItemButton>
@@ -405,34 +422,33 @@ const ProfilePage = (props) => {
             <AppBar
               position="fixed"
               sx={{
-                width: { sm: `calc(100% - ${drawerWidth}px)` },
-                ml: { sm: `${drawerWidth}px` },
+                width: { md: `calc(100% - ${drawerWidth}px)` },
+                ml: { md: `${drawerWidth}px` },
+                // height:`3rem`,
                 backgroundColor: "#1A1A1A",
               }}
             >
               <Toolbar>
-                <IconButton
-                  color="inherit"
-                  aria-label="open drawer"
-                  edge="start"
-                  onClick={handleDrawerToggle}
-                  sx={{ mr: 2, display: { sm: "none" } }}
-                >
-                  <MenuIcon />
-                </IconButton>
-                <Typography
-                  variant="h6"
-                  noWrap
-                  component="div"
-                  className="drawerTitle"
-                >
+                {isBelow900px && (
+                  <IconButton
+                    color="inherit"
+                    aria-label="open drawer"
+                    edge="start"
+                    onClick={handleDrawerToggle}
+                    sx={{ mr: 2, display: { md: "none" }, 
+                    color: "#007bff" }}
+                  >
+                    <MenuIcon />
+                  </IconButton>
+                )}
+                <Typography variant="h6" noWrap component="div" sx={{fontWeight: 600, fontSize: "22px", color: "#ffffff"}}>
                   {activeComponent}
                 </Typography>
               </Toolbar>
             </AppBar>
             <Box
               component="nav"
-              sx={{ width: { sm: drawerWidth }, flexShrink: { sm: 0 } }}
+              sx={{ width: { md: drawerWidth }, flexShrink: { md: 0 } }}
               aria-label="mailbox folders"
             >
               <Drawer
@@ -445,7 +461,7 @@ const ProfilePage = (props) => {
                   keepMounted: true, // Better open performance on mobile.
                 }}
                 sx={{
-                  display: { xs: "block", sm: "none" },
+                  display: { xs: "block", md: "none" },
                   "& .MuiDrawer-paper": {
                     boxSizing: "border-box",
                     width: drawerWidth,
@@ -459,7 +475,7 @@ const ProfilePage = (props) => {
               <Drawer
                 variant="permanent"
                 sx={{
-                  display: { xs: "none", sm: "block" },
+                  display: { xs: "none", md: "block" },
                   "& .MuiDrawer-paper": {
                     boxSizing: "border-box",
                     width: drawerWidth,
@@ -477,7 +493,7 @@ const ProfilePage = (props) => {
               sx={{
                 flexGrow: 1,
                 p: 3,
-                width: { sm: `calc(100% - ${drawerWidth}px)` },
+                width: { md: `calc(100% - ${drawerWidth}px)` },
                 padding: 0,
                 backgroundColor: "#404040", // #2e2e2e
               }}

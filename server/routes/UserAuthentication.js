@@ -40,7 +40,6 @@ function decrypt(text) {
 
 router.post("/passwordlessSignIn/", async (req, res) => {
     const { inputValue, inputType, userType } = req.query;
-    console.log("ENTERED")
 
     try {
         if (inputType === "EMAIL") {
@@ -117,7 +116,6 @@ router.post("/registerUser", async (req, res) => {
         });
 
         if (existingCustomers.length > 0 || existingVendors.length > 0) {
-            console.log('User already exists with this email. Operation canceled!!');
             return res.status(401).json({ message: 'User already exists!!' });
         }
 
@@ -161,15 +159,12 @@ router.post("/registerUser", async (req, res) => {
         console.log("User Created Successfully!!", user.uid);
         return res.status(200).json({ accessToken });
     } catch (error) {
-        console.log("ERROR", error);
         return res.status(500).json(error.message);
     }
 });
 
 router.get("/getUserData/:id", async (req, res) => {
     const currentUserId = req.params.id;
-
-    console.log(currentUserId);
 
     if (!currentUserId) {
         return res.status(404).json({message: "Data not found!"});
@@ -180,7 +175,6 @@ router.get("/getUserData/:id", async (req, res) => {
         const snapshot = await get(userRef);
         if (snapshot.exists()) {
             const userData = snapshot.val();
-            console.log(snapshot.val());
 
             let userRecord;
             let vendorRecord = null;

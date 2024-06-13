@@ -21,6 +21,7 @@
   --lightGray-color: #e4e4e4;
   /* --gray-color: #6b7688; */
   --gray-color: #999999 ;
+  --medium-gray-color: #404040;
   --gray-border-color: #cccccc;
   --brown-color: #46364a;
   --white-color: #ffffff;
@@ -32,6 +33,9 @@
   --link-color: #0000EE;
   --light-blue-color: rgba(#007bff, 0.5);
   --red-color: #ff0000;
+
+  --primary-text-color-whiteBg: #d3d3d3;
+  --secondary-text-color-whiteBg: #a9a9a9;
 
   --orange-gradient: linear-gradient(270deg, #ffb978 0%, #ff922d 100%);
   --orange-hover-color: rgb(214, 107, 0);
