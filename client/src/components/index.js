@@ -37,7 +37,8 @@ export {
     Notification,
     UserProfileUpdate,
     MyCart,
-    Favorites
+    Favorites,
+    BookingHistory,
 } from './UserProfilePage';
 export {
     CancellationPolicy,

@@ -8,6 +8,9 @@ import { useTheme } from "@mui/material/styles";
 import useMediaQuery from "@mui/material/useMediaQuery";
 import FacebookIcon from "@mui/icons-material/Facebook";
 import InstagramIcon from "@mui/icons-material/Instagram";
+import XIcon from '@mui/icons-material/X';
+import LinkedInIcon from '@mui/icons-material/LinkedIn';
+import PinterestIcon from '@mui/icons-material/Pinterest';
 import IconButton from "@mui/material/IconButton";
 import CloseIcon from "@mui/icons-material/Close";
 import Button from "@mui/material/Button";
@@ -117,6 +120,9 @@ export default function Footer() {
           <div className="icons">
             <FacebookIcon className="icon" />
             <InstagramIcon className="icon" />
+            <XIcon className="icon" />
+            <LinkedInIcon className="icon" />
+            <PinterestIcon className="icon" />
           </div>
           <div className="app_icon_description">
             {" "}

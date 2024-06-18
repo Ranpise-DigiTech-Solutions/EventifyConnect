@@ -42,6 +42,7 @@ import UploadingAnimation from '../assets/uploading.gif.mp4';
 import avatar from '../assets/avatar.jpg';
 import birthday01 from '../assets/birthday01.png';
 import anniversary01 from '../assets/aniversary01.png';
+import noBookingsFound from '../assets/noBookingsFound.jpg';
 
 export default {
     logo,
@@ -88,4 +89,5 @@ export default {
     avatar,
     birthday01,
     anniversary01,
+    noBookingsFound
 };

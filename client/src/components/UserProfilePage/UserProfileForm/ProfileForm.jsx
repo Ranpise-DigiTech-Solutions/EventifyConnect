@@ -1,5 +1,4 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-/* eslint-disable no-unused-vars */
 import "./ProfileForm.scss";
 import "react-phone-input-2/lib/style.css";
 import React, { useState, useRef, useEffect } from "react";
@@ -8,23 +7,27 @@ import Select from "react-select";
 import PhoneInput from "react-phone-input-2";
 import axios from "axios";
 import Snackbar from "@mui/material/Snackbar";
+import { Avatar } from "antd";
 
 import Button from "@mui/material/Button";
 import IconButton from "@mui/material/IconButton";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
-import UploadFileIcon from "@mui/icons-material/UploadFile";
 import AddIcon from "@mui/icons-material/Add";
-import DoneIcon from "@mui/icons-material/Done";
 import CloseIcon from "@mui/icons-material/Close";
+import EmailIcon from '@mui/icons-material/Email';
+import HomeIcon from '@mui/icons-material/Home';
+import PlaceIcon from '@mui/icons-material/Place';
+import PublicIcon from '@mui/icons-material/Public';
+import LocationCityIcon from '@mui/icons-material/LocationCity';
 import ErrorIcon from "@mui/icons-material/Error";
+import StreetviewIcon from '@mui/icons-material/Streetview';
+import GpsFixedIcon from '@mui/icons-material/GpsFixed';
 import PersonIcon from "@mui/icons-material/Person";
-import VerifiedIcon from "@mui/icons-material/Verified";
 import { FaEdit } from "react-icons/fa";
 import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
 
-import { firebaseApp, firebaseStorage } from "../../../firebaseConfig";
-import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
-import { Images } from "../../../constants";
+import { firebaseStorage } from "../../../firebaseConfig";
+import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { LoadingScreen } from "../../../sub-components";
 import {
   fetchCitiesOfStateData,
@@ -137,7 +140,6 @@ const ProfileForm = () => {
   const vendorType = userInfoStore.userDetails.vendorType || "";
   // Refs to keep track of the initial render for each useEffect
   const isInitialRender1 = useRef(true);
-  const isInitialRender2 = useRef(true);
 
   const [personalInfoFormEnabled, setPersonalInfoFormEnabled] = useState(false);
   const [contactInfoFormEnabled, setContactInfoFormEnabled] = useState(false);
@@ -307,7 +309,7 @@ const ProfileForm = () => {
         );
 
         // update the file in mongodb
-        const response = await axios.patch(
+        await axios.patch(
           `${
             import.meta.env.VITE_SERVER_URL
           }/eventify_server/serviceProviderMaster/${serviceProviderData._id}`,
@@ -328,7 +330,7 @@ const ProfileForm = () => {
         handleCustomerData("customerProfileImageURL", customerProfileImageUrl);
 
         //update the file in mongodb
-        const response = await axios.patch(
+        await axios.patch(
           `${import.meta.env.VITE_SERVER_URL}/eventify_server/customerMaster/${
             customerData._id
           }`,
@@ -489,26 +491,34 @@ const ProfileForm = () => {
             </div>
             <div className="image-upload-container">
               <div className="profile-image">
-                <img
-                  src={
-                    typeof customerData.customerProfileImage === "string"
-                      ? customerData.customerProfileImage
-                      : URL.createObjectURL(
-                          customerData.customerProfileImage
-                        ) || ""
-                  }
-                  alt="Avatar"
-                  className="img"
-                />
+                {!customerData.customerProfileImage ? (
+                  <Avatar
+                    size="large"
+                    className="img"
+                    src="https://api.dicebear.com/7.x/miniavs/svg?seed=1"
+                  />
+                ) : (
+                  <img
+                    src={
+                      typeof customerData.customerProfileImage === "string"
+                        ? customerData.customerProfileImage
+                        : URL.createObjectURL(
+                            customerData.customerProfileImage
+                          ) || ""
+                    }
+                    alt=""
+                    className="img"
+                  />
+                )}
                 <button className="addIcon">
                   <AddIcon
                     className="icon"
-                    onClick={(e) => profilePicInputRef.current.click()}
+                    onClick={() => profilePicInputRef.current.click()}
                   />
                 </button>
                 <div
                   className="overlay"
-                  onClick={(e) => profilePicInputRef.current.click()}
+                  onClick={() => profilePicInputRef.current.click()}
                 >
                   <FaEdit className="editIcon" />
                   <span>Edit</span>
@@ -715,7 +725,7 @@ const ProfileForm = () => {
                   <div className="input-group">
                     <label htmlFor="email">Email:</label>
                     <div className="wrapper">
-                      <PersonIcon className="icon" />
+                      <EmailIcon className="icon" />
                       <div className="vertical-divider"></div>
                       <input
                         type="email"
@@ -765,7 +775,7 @@ const ProfileForm = () => {
                   <div className="input-group">
                     <label htmlFor="altEmail">Alt Email:</label>
                     <div className="wrapper">
-                      <PersonIcon className="icon" />
+                      <EmailIcon className="icon" />
                       <div className="vertical-divider"></div>
                       <input
                         type="email"
@@ -826,7 +836,7 @@ const ProfileForm = () => {
                   <div className="input-group">
                     <label htmlFor="address">Address:</label>
                     <div className="wrapper">
-                      <PersonIcon className="icon" />
+                      <HomeIcon className="icon" />
                       <div className="vertical-divider"></div>
                       <input
                         type="text"
@@ -844,7 +854,7 @@ const ProfileForm = () => {
                   <div className="input-group">
                     <label htmlFor="landmark">Landmark:</label>
                     <div className="wrapper">
-                      <PersonIcon className="icon" />
+                      <PlaceIcon className="icon" />
                       <div className="vertical-divider"></div>
                       <input
                         type="text"
@@ -864,7 +874,7 @@ const ProfileForm = () => {
                   <div className="input-group">
                     <label htmlFor="city">Country:</label>
                     <div className="wrapper selectInput-wrapper">
-                      <PersonIcon className="icon" />
+                      <PublicIcon className="icon" />
                       <div className="vertical-divider"></div>
                       <Select
                         styles={customSelectStyles}
@@ -911,7 +921,7 @@ const ProfileForm = () => {
                   <div className="input-group">
                     <label htmlFor="taluk">State:</label>
                     <div className="wrapper selectInput-wrapper">
-                      <PersonIcon className="icon" />
+                      <LocationCityIcon className="icon" />
                       <div className="vertical-divider"></div>
                       <Select
                         styles={customSelectStyles}
@@ -960,7 +970,7 @@ const ProfileForm = () => {
                   <div className="input-group">
                     <label htmlFor="state">City:</label>
                     <div className="wrapper selectInput-wrapper">
-                      <PersonIcon className="icon" />
+                      <LocationCityIcon className="icon" />
                       <div className="vertical-divider"></div>
                       <Select
                         styles={customSelectStyles}
@@ -1008,7 +1018,7 @@ const ProfileForm = () => {
                   <div className="input-group">
                     <label htmlFor="country">Taluk:</label>
                     <div className="wrapper">
-                      <PersonIcon className="icon" />
+                      <StreetviewIcon className="icon" />
                       <div className="vertical-divider"></div>
                       <input
                         type="text"
@@ -1029,7 +1039,7 @@ const ProfileForm = () => {
                   <div className="input-group">
                     <label htmlFor="pincode">Pincode:</label>
                     <div className="wrapper">
-                      <PersonIcon className="icon" />
+                      <GpsFixedIcon className="icon" />
                       <div className="vertical-divider"></div>
                       <input
                         type="text"
@@ -1102,12 +1112,12 @@ const ProfileForm = () => {
                 <button className="addIcon">
                   <AddIcon
                     className="icon"
-                    onClick={(e) => profilePicInputRef.current.click()}
+                    onClick={() => profilePicInputRef.current.click()}
                   />
                 </button>
                 <div
                   className="overlay"
-                  onClick={(e) => profilePicInputRef.current.click()}
+                  onClick={() => profilePicInputRef.current.click()}
                 >
                   <FaEdit className="editIcon" />
                   <span>Edit</span>
@@ -1320,7 +1330,7 @@ const ProfileForm = () => {
                   <div className="input-group">
                     <label htmlFor="email">Email:</label>
                     <div className="wrapper">
-                      <PersonIcon className="icon" />
+                      <EmailIcon className="icon" />
                       <div className="vertical-divider"></div>
                       <input
                         type="email"
@@ -1370,7 +1380,7 @@ const ProfileForm = () => {
                   <div className="input-group">
                     <label htmlFor="altEmail">Alt Email:</label>
                     <div className="wrapper">
-                      <PersonIcon className="icon" />
+                      <EmailIcon className="icon" />
                       <div className="vertical-divider"></div>
                       <input
                         type="email"
@@ -1431,7 +1441,7 @@ const ProfileForm = () => {
                   <div className="input-group">
                     <label htmlFor="address">Address:</label>
                     <div className="wrapper">
-                      <PersonIcon className="icon" />
+                      <HomeIcon className="icon" />
                       <div className="vertical-divider"></div>
                       <input
                         type="text"
@@ -1452,7 +1462,7 @@ const ProfileForm = () => {
                   <div className="input-group">
                     <label htmlFor="landmark">Landmark:</label>
                     <div className="wrapper">
-                      <PersonIcon className="icon" />
+                      <PlaceIcon className="icon" />
                       <div className="vertical-divider"></div>
                       <input
                         type="text"
@@ -1475,7 +1485,7 @@ const ProfileForm = () => {
                   <div className="input-group">
                     <label htmlFor="city">Country:</label>
                     <div className="wrapper selectInput-wrapper">
-                      <PersonIcon className="icon" />
+                      <PublicIcon className="icon" />
                       <div className="vertical-divider"></div>
                       <Select
                         styles={customSelectStyles}
@@ -1522,7 +1532,7 @@ const ProfileForm = () => {
                   <div className="input-group">
                     <label htmlFor="taluk">State:</label>
                     <div className="wrapper selectInput-wrapper">
-                      <PersonIcon className="icon" />
+                      <LocationCityIcon className="icon" />
                       <div className="vertical-divider"></div>
                       <Select
                         styles={customSelectStyles}
@@ -1571,7 +1581,7 @@ const ProfileForm = () => {
                   <div className="input-group">
                     <label htmlFor="state">City:</label>
                     <div className="wrapper selectInput-wrapper">
-                      <PersonIcon className="icon" />
+                      <LocationCityIcon className="icon" />
                       <div className="vertical-divider"></div>
                       <Select
                         styles={customSelectStyles}
@@ -1619,7 +1629,7 @@ const ProfileForm = () => {
                   <div className="input-group">
                     <label htmlFor="country">Taluk:</label>
                     <div className="wrapper">
-                      <PersonIcon className="icon" />
+                      <StreetviewIcon className="icon" />
                       <div className="vertical-divider"></div>
                       <input
                         type="text"
@@ -1643,7 +1653,7 @@ const ProfileForm = () => {
                   <div className="input-group">
                     <label htmlFor="pincode">Pincode:</label>
                     <div className="wrapper">
-                      <PersonIcon className="icon" />
+                      <GpsFixedIcon className="icon" />
                       <div className="vertical-divider"></div>
                       <input
                         type="text"

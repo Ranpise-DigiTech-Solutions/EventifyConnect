@@ -148,8 +148,6 @@ router.get("/getHallsAvailabilityStatus", async (req, res) => {
       },
     ]);
 
-    console.log("BOOKINGS", bookings);
-
     // Group bookings by hall
     const bookingsByHall = {};
     bookings.forEach((booking) => {
@@ -162,7 +160,6 @@ router.get("/getHallsAvailabilityStatus", async (req, res) => {
       const isHallAvailable = !bookingsByHall[hall._id]; //check if the hall is booked atleast once
       const checkAvailability = () => {
         const hallBookingDetails = bookingsByHall[hall._id];
-        console.log(hallBookingDetails);
         return hallBookingDetails.totalDuration > 18
           ? "UNAVAILABLE"
           : "LIMITED AVAILABILITY";
@@ -203,7 +200,6 @@ router.get("/getHallAvailability", async (req, res) => {
   // Subtract 5 hours and 30 minutes (5*60 + 30 = 330 minutes)
   const startDateUTC = new Date(startDateOfWeek.getTime() + (startDateOfWeek.getTimezoneOffset() * 60000)).toISOString();
   const endDateUTC = new Date(endDateOfWeek.getTime() + (endDateOfWeek.getTimezoneOffset() * 60000)).toISOString();
-  console.log(startDateUTC, endDateUTC);
 
   try {
     const hallBookings = await hallBookingMaster.aggregate([
@@ -324,7 +320,6 @@ router.post("/", async (req, res) => {
 
 router.post("/bookWalkInCustomer", async (req, res) => {
   const postData = req.body;
-  console.log(postData);
   if (!postData) {
     return res.status(404).json({ message: "Request Body attachment not found!!" });
   }
@@ -346,8 +341,6 @@ router.post("/bookWalkInCustomer", async (req, res) => {
   const prevId = data.currentId;
   const newId = prevId + 1;
 
-  console.log("New Booking Id: " + newId);
-
   const updatedData = {
     documentId: parseInt(newId),
     ...postData,
@@ -358,18 +351,13 @@ router.post("/bookWalkInCustomer", async (req, res) => {
   };
 
   const newDocument = new hallBookingMaster(updatedData);
-  console.log("ENTERED 1")
-  console.log(hallUserObjectId);
-
   if (!newDocument) {
     return res.status(404).json({ message: "Operation Failed!!" });
   }
-  console.log("ENTERED 2")
 
   try {
     const savedDocument = await newDocument.save();
 
-    console.log("ENTERED 2")
     // Update the Firestore document with the new ID
     await updateDoc(docRef, { currentId: newId });
 

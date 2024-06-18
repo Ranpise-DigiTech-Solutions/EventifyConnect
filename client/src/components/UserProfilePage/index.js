@@ -9,3 +9,5 @@ export {default as Notification} from './Notifications/Notifications';
 export {default as MyCart} from './MyCart/MyCart';
 export {default as Favorites} from './Favorites/Favorites';
 export {default as BookingConfirmation} from './BookingConfirmationPage/BookingConfirmation'
+export {default as BookingHistory} from './BookingHistory/BookingHistory';
+export {default as BookingDetailsDialog} from './BookingDetailsDialog/BookingDetailsDialog';
