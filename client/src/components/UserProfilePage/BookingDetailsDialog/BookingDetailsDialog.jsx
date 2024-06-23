@@ -1,15 +1,26 @@
 import "./BookingDetailsDialog.scss";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useSelector } from "react-redux";
 import PropTypes from "prop-types";
-import { Tag, Card, Row, Col, Typography } from "antd";
+import {
+  Tag,
+  Card,
+  Row,
+  Col,
+  Typography,
+  Button,
+  message,
+  Space,
+  DatePicker,
+} from "antd";
 
 import Box from "@mui/material/Box";
 import Tabs from "@mui/material/Tabs";
 import Tab from "@mui/material/Tab";
 import Dialog from "@mui/material/Dialog";
 import Select from "react-select";
+import Alert from "@mui/material/Alert";
 
 import ShareIcon from "@mui/icons-material/Share";
 import PeopleAltIcon from "@mui/icons-material/PeopleAlt";
@@ -25,6 +36,7 @@ import CalendarMonthIcon from "@mui/icons-material/CalendarMonth";
 import AccessAlarmIcon from "@mui/icons-material/AccessAlarm";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import ErrorIcon from "@mui/icons-material/Error";
+import SearchIcon from "@mui/icons-material/Search";
 import { FaLandmark, FaCar } from "react-icons/fa";
 import { GiSandsOfTime } from "react-icons/gi";
 import {
@@ -33,7 +45,7 @@ import {
   SyncOutlined,
 } from "@ant-design/icons";
 
-import { Images } from "../../../constants";
+import { LoadingScreen } from "../../../sub-components";
 import axios from "axios";
 
 const customStyles = {
@@ -47,6 +59,8 @@ const customStyles = {
     border: "none",
     outline: "none",
     boxShadow: state.isFocused ? "none" : provided.boxShadow,
+    background: state.isDisabled ? "rgba(0, 0, 0, 0.01)" : "#ffffff", // Set background color here
+    color: state.isDisabled ? "#d9d9d9" : "#000000", // Set color here
   }),
   indicatorSeparator: () => ({
     display: "none",
@@ -62,9 +76,20 @@ const customStyles = {
     ...provided,
     color: "#999999", // Change the placeholder color here
   }),
+  input: (provided, state) => ({
+    ...provided,
+    color: state.isDisabled ? "#d9d9d9" : "#000000",
+    margin: 0,
+    padding: 0,
+  }),
+  singleValue: (provided, state) => ({
+    ...provided,
+    color: state.isDisabled ? "#d9d9d9" : "#000000", // Adjust the text color if necessary
+  }),
 };
 
 const bookingDetailsTemplate = {
+  _id: null,
   documentId: null,
   bookingStartDate: null,
   bookingEndDate: null,
@@ -76,13 +101,13 @@ const bookingDetailsTemplate = {
     label: null,
     value: null,
   },
-  guestsCount: null,
-  roomsCount: null,
+  guestsCount: 0,
+  roomsCount: 0,
   parkingRequirement: {
     label: null,
     value: null,
   },
-  vehiclesCount: null,
+  vehiclesCount: 0,
   customerVegRate: null,
   customerNonVegRate: null,
   customerVegItemsList: null,
@@ -96,6 +121,7 @@ const bookingDetailsTemplate = {
   },
   //fields from hallMaster collection
   hallData: {
+    _id: null,
     hallName: null,
     hallLocation: null,
     hallLandmark: null,
@@ -115,6 +141,18 @@ const BookingDetailsDialog = ({ open, handleClose, currentBooking }) => {
   const [isFormThreeDisabled, setIsFormThreeDisabled] = useState(true);
 
   const { Title, Text } = Typography;
+  const { RangePicker } = DatePicker;
+  const [messageApi, contextHolder] = message.useMessage(); // Message API to display Alert Messages - from Ant Design
+  const [isScreenLoading, setIsScreenLoading] = useState(false); // toggle loading screen
+  const [triggerSlotAvailabilityCheck, setTriggerSlotAvailabilityCheck] =
+    useState(false); // trigger the slot availability check - trigger useEffect
+  const [
+    bookingSlotAvailabilityConfirmationMsg,
+    setBokingSlotAvailabilityConfirmationMsg,
+  ] = useState(false); //
+
+  // Refs to keep track of the initial render for each useEffect
+  const isInitialRender1 = useRef(true);
 
   const handleCurrentActiveTabChange = (event, newValue) => {
     setCurrentActiveTab(newValue);
@@ -135,6 +173,15 @@ const BookingDetailsDialog = ({ open, handleClose, currentBooking }) => {
     vehiclesCount: "",
   });
 
+  // used to display the current status of the booking slot
+  const [bookingStatusMsg, setBookingStatusMsg] = useState({
+    success: "",
+    info: "",
+    warning:
+      "By changing the booking date and time, you understand that you will lose your current slot.",
+    error: "",
+  });
+
   const handleBookingDetailsInfo = (key, value) => {
     setBookingDetails((previousInfo) => ({
       ...previousInfo,
@@ -149,6 +196,14 @@ const BookingDetailsDialog = ({ open, handleClose, currentBooking }) => {
     }));
   };
 
+  const handleBookingStatusMsg = (key, value) => {
+    setBookingStatusMsg((previousInfo) => ({
+      ...previousInfo,
+      [key]: value,
+    }));
+  };
+
+  // returns date in yyyy-mm-dd format
   const extractDate = (timeStamp) => {
     if (!timeStamp) {
       return null;
@@ -165,6 +220,7 @@ const BookingDetailsDialog = ({ open, handleClose, currentBooking }) => {
     return `${year}-${formattedMonth}-${formattedDay}`;
   };
 
+  // returns time in HH:MM format
   const extractTime = (timeStamp) => {
     if (!timeStamp) {
       return null;
@@ -173,11 +229,23 @@ const BookingDetailsDialog = ({ open, handleClose, currentBooking }) => {
     const hours = date.getHours(); // Get the hour (0-23)
     const minutes = date.getMinutes(); // Get the minute (0-59)
 
-    return `${hours}:${minutes.toString().padStart(2, "0")}`; // Output: HH:MM
+    return `${hours.toString().padStart(2, "0")}:${minutes
+      .toString()
+      .padStart(2, "0")}`; // Output: HH:MM
+  };
+
+  // returns date and time in GMT format
+  const getGMTFormattedDateTime = (date, time) => {
+    if (!date || !time) return null;
+
+    const dateObj = new Date(date);
+    const [hours, minutes] = time.split(":").map(Number);
+    dateObj.setHours(hours, minutes, 0, 0); // Set hours, minutes, seconds, and milliseconds
+    return dateObj;
   };
 
   useEffect(() => {
-    const fetchBookingData = async () => {
+    const fetchBookingDetails = async () => {
       try {
         const URL = `${import.meta.env.VITE_SERVER_URL}/eventify_server/${
           currentBooking.bookingStatus === "CONFIRMED"
@@ -203,9 +271,139 @@ const BookingDetailsDialog = ({ open, handleClose, currentBooking }) => {
     };
 
     if (currentBooking._id) {
-      fetchBookingData();
+      fetchBookingDetails();
     }
   }, [currentBooking]);
+
+  const handleUpdateFormTwo = async () => {
+    setIsScreenLoading(true);
+
+    if (!bookingDetails._id) {
+      // @TODO: handle error condition
+    }
+
+    const response = await axios.patch(
+      `${
+        import.meta.env.VITE_SERVER_URL
+      }/eventify_server/bookingMaster/updateBookingDetails/${
+        bookingDetails._id
+      }`,
+      {
+        eventId: bookingDetails.eventTypeInfo.value,
+        catererRequirement: bookingDetails.catererRequirement.value,
+        guestsCount: bookingDetails.guestsCount,
+        roomsCount: bookingDetails.roomsCount,
+        vehiclesCount: bookingDetails.vehiclesCount,
+        parkingRequirement: bookingDetails.parkingRequirement.value,
+        vehiclesCount: bookingDetails.vehiclesCount,
+        customerVegRate: bookingDetails.customerVegRate || "",
+        customerNonVegRate: bookingDetails.customerNonVegRate || "",
+        customerVegItemsList: bookingDetails.customerVegItemsList || "",
+        customerNonVegItemsList: bookingDetails.customerNonVegItemsList || "",
+      }
+    );
+
+    if (response.status === 200) {
+      setTimeout(() => {
+        setIsFormTwoDisabled(true);
+        messageApi.open({
+          type: "success",
+          content: "Booking details updated successfully!",
+        });
+        setIsScreenLoading(false);
+      }, 1000);
+    } else {
+      // @TODO: Handle error condition here
+      setIsScreenLoading(false);
+    }
+  };
+
+  const handleUpdateFormThree = () => {
+    setIsScreenLoading(true);
+    setTimeout(() => {
+      setIsFormThreeDisabled(true);
+      messageApi.open({
+        type: "success",
+        content: "Booking details updated successfully!",
+      });
+      setIsScreenLoading(false);
+    }, 1000);
+  };
+
+  useEffect(() => {
+    if (!bookingDetails.hallData._id) {
+      return;
+    }
+
+    const checkBookingSlotAvailability = async () => {
+      console.log("ENTERED", bookingDetails);
+      const bookingStartDateObject = getGMTFormattedDateTime(
+        bookingDetails.bookingStartDate,
+        bookingDetails.bookingStartTime
+      );
+      const bookingEndDateObject = getGMTFormattedDateTime(
+        bookingDetails.bookingEndDate,
+        bookingDetails.bookingEndTime
+      );
+
+      setBookingStatusMsg(() => ({
+        info: "",
+        error: "",
+        success: "",
+        warning: "",
+      }));
+
+      console.log(bookingStartDateObject, bookingEndDateObject);
+      try {
+        const response = await axios.get(
+          `${
+            import.meta.env.VITE_SERVER_URL
+          }/eventify_server/hallBookingMaster/getHallAvailability/?hallId=${
+            bookingDetails.hallData._id
+          }&startDate=${bookingStartDateObject}&endDate=${bookingEndDateObject}`
+        );
+        if (response.data.length > 0) {
+          handleBookingStatusMsg(
+            "error",
+            `The chosen booking slot is unavailable. There are already ${response.data.length} confirmed bookings for this slot.`
+          );
+        } else {
+          handleBookingStatusMsg(
+            "success",
+            "The chosen booking slot is available!"
+          );
+        }
+      } catch (error) {
+        console.error(error);
+      }
+    };
+
+    checkBookingSlotAvailability();
+  }, [triggerSlotAvailabilityCheck]);
+
+  const handleBookingStartDateChange = (event) => {
+    const bookingStartDate = new Date(event.target.value);
+    const bookingEndDate = new Date(bookingDetails.bookingEndDate);
+
+    handleBookingDetailsInfo("bookingStartDate", extractDate(bookingStartDate));
+
+    if (bookingStartDate > bookingEndDate) {
+      handleBookingStatusMsg(
+        "error",
+        "Invalid Time Frame! Start date cannot be greater than end date."
+      );
+      return;
+    }
+
+    handleBookingDetailsErrorInfo("bookingStartDate", "");
+    setTriggerSlotAvailabilityCheck(!triggerSlotAvailabilityCheck);
+  };
+
+  const handleBookingStartTimeChange = (event) => {};
+
+  const handleBookingEndDateChange = (event) => {};
+
+  const handleBookingEndTimeChange = (event) => {};
 
   const handlePrevBtnClick = () => {
     switch (currentActiveTab) {
@@ -245,7 +443,7 @@ const BookingDetailsDialog = ({ open, handleClose, currentBooking }) => {
         setIsFormTwoDisabled(false);
         break;
       case 2:
-        setIsFormTwoDisabled(false);
+        setIsFormThreeDisabled(false);
         break;
       default:
         break;
@@ -257,10 +455,10 @@ const BookingDetailsDialog = ({ open, handleClose, currentBooking }) => {
       case 0:
         break;
       case 1:
-        setIsFormTwoDisabled(true);
+        handleUpdateFormTwo();
         break;
       case 2:
-        setIsFormTwoDisabled(true);
+        handleUpdateFormThree();
         break;
       default:
         break;
@@ -283,6 +481,8 @@ const BookingDetailsDialog = ({ open, handleClose, currentBooking }) => {
       maxWidth="md"
       fullWidth
     >
+      {contextHolder}
+      {isScreenLoading && <LoadingScreen />}
       <div className="bookingDetailsDialog__mainContainer">
         <div className="wrapper header__wrapper">
           <div className="image">
@@ -364,7 +564,9 @@ const BookingDetailsDialog = ({ open, handleClose, currentBooking }) => {
           </Box>
           <div className="form__wrapper">
             {currentActiveTab === 0 && (
-              <div className={`container hallDetails__container disabledInput__wrapper`}>
+              <div
+                className={`container hallDetails__container disabledInput__wrapper`}
+              >
                 <div className="inputField__wrapper">
                   <div className="title">hall name</div>
                   <div className="input__wrapper disabledInput__wrapper">
@@ -486,7 +688,11 @@ const BookingDetailsDialog = ({ open, handleClose, currentBooking }) => {
               </div>
             )}
             {currentActiveTab === 1 && (
-              <div className={`container preferences__container ${isFormTwoDisabled && "disabledInput__wrapper"}`}>
+              <div
+                className={`container preferences__container ${
+                  isFormTwoDisabled && "disabledInput__wrapper"
+                }`}
+              >
                 <div className="inputFields__wrapper">
                   <div className="wrapper">
                     <div className="title">
@@ -587,6 +793,7 @@ const BookingDetailsDialog = ({ open, handleClose, currentBooking }) => {
                         menuShouldScrollIntoView={false}
                         closeMenuOnSelect
                         isSearchable={false}
+                        isDisabled={isFormTwoDisabled}
                       />
                     </div>
                   </div>
@@ -618,6 +825,8 @@ const BookingDetailsDialog = ({ open, handleClose, currentBooking }) => {
                             event.target.value
                           )
                         }
+                        readOnly={isFormTwoDisabled}
+                        disabled={isFormTwoDisabled}
                       />
                     </div>
                     {bookingDetailsErrorInfo.guestsCount && (
@@ -653,6 +862,8 @@ const BookingDetailsDialog = ({ open, handleClose, currentBooking }) => {
                             event.target.value
                           )
                         }
+                        readOnly={isFormTwoDisabled}
+                        disabled={isFormTwoDisabled}
                       />
                     </div>
                     {bookingDetailsErrorInfo.roomsCount && (
@@ -706,6 +917,7 @@ const BookingDetailsDialog = ({ open, handleClose, currentBooking }) => {
                         menuShouldScrollIntoView={false}
                         closeMenuOnSelect
                         isSearchable={false}
+                        isDisabled={isFormTwoDisabled}
                       />
                     </div>
                   </div>
@@ -735,6 +947,8 @@ const BookingDetailsDialog = ({ open, handleClose, currentBooking }) => {
                             event.target.value
                           )
                         }
+                        readOnly={isFormTwoDisabled}
+                        disabled={isFormTwoDisabled}
                       />
                     </div>
                     {bookingDetailsErrorInfo.vehiclesCount && (
@@ -765,6 +979,8 @@ const BookingDetailsDialog = ({ open, handleClose, currentBooking }) => {
                                 event.target.value
                               )
                             }
+                            readOnly={isFormTwoDisabled}
+                            disabled={isFormTwoDisabled}
                           />
                         </div>
                       </div>
@@ -785,6 +1001,8 @@ const BookingDetailsDialog = ({ open, handleClose, currentBooking }) => {
                                 event.target.value
                               )
                             }
+                            readOnly={isFormTwoDisabled}
+                            disabled={isFormTwoDisabled}
                           />
                         </div>
                       </div>
@@ -807,6 +1025,8 @@ const BookingDetailsDialog = ({ open, handleClose, currentBooking }) => {
                                 event.target.value
                               )
                             }
+                            readOnly={isFormTwoDisabled}
+                            disabled={isFormTwoDisabled}
                           />
                         </div>
                       </div>
@@ -827,6 +1047,8 @@ const BookingDetailsDialog = ({ open, handleClose, currentBooking }) => {
                                 event.target.value
                               )
                             }
+                            readOnly={isFormTwoDisabled}
+                            disabled={isFormTwoDisabled}
                           />
                         </div>
                       </div>
@@ -837,68 +1059,112 @@ const BookingDetailsDialog = ({ open, handleClose, currentBooking }) => {
             )}
             {currentActiveTab === 2 && (
               <div
-                className="container dateTime__container"
-                style={{ width: "50%" }}
+                className={`container dateTime__container ${
+                  isFormThreeDisabled
+                    ? "disabledInput__wrapper"
+                    : "container-column-center"
+                }`}
+                style={isFormThreeDisabled ? { width: "50%" } : {}}
               >
-                <div className="inputField__wrapper">
-                  <div className="title">Booking Start Date</div>
-                  <div className="input__wrapper disabledInput__wrapper">
-                    <CalendarMonthIcon className="icon" />
-                    <div className="divider"></div>
-                    <input
-                      type="text"
-                      name="bookingDate"
-                      value={bookingDetails?.bookingStartDate}
-                      className="input"
-                      disabled
-                      readOnly
-                    />
+                {!isFormThreeDisabled && (
+                  <div className="dateTimePicker">
+                    <RangePicker showTime />
+                    <SearchIcon className="icon" />
+                  </div>
+                )}
+                <div
+                  className={`${
+                    !isFormThreeDisabled && "inputFields__wrapper"
+                  }`}
+                >
+                  <div
+                    className={`${
+                      isFormThreeDisabled ? "inputField__wrapper" : "wrapper"
+                    }`}
+                  >
+                    <div className="title">Booking Start Date</div>
+                    <div className="input__wrapper disabledInput__wrapper">
+                      <CalendarMonthIcon className="icon" />
+                      <div className="divider"></div>
+                      <input
+                        type="date"
+                        name="bookingDate"
+                        value={bookingDetails?.bookingStartDate}
+                        className="input"
+                        onChange={handleBookingStartDateChange}
+                        readOnly={isFormThreeDisabled}
+                        disabled={isFormThreeDisabled}
+                      />
+                    </div>
+                  </div>
+                  <div
+                    className={`${
+                      isFormThreeDisabled ? "inputField__wrapper" : "wrapper"
+                    }`}
+                  >
+                    <div className="title">Start Time</div>
+                    <div className="input__wrapper disabledInput__wrapper">
+                      <AccessAlarmIcon className="icon" />
+                      <div className="divider"></div>
+                      <input
+                        type="time"
+                        name="startTime"
+                        value={bookingDetails?.bookingStartTime}
+                        className="input"
+                        readOnly={isFormThreeDisabled}
+                        disabled={isFormThreeDisabled}
+                      />
+                    </div>
                   </div>
                 </div>
-                <div className="inputField__wrapper">
-                  <div className="title">Start Time</div>
-                  <div className="input__wrapper disabledInput__wrapper">
-                    <AccessAlarmIcon className="icon" />
-                    <div className="divider"></div>
-                    <input
-                      type="text"
-                      name="startTime"
-                      value={bookingDetails?.bookingStartTime}
-                      className="input"
-                      disabled
-                    />
+                <div
+                  className={`${
+                    !isFormThreeDisabled && "inputFields__wrapper"
+                  }`}
+                >
+                  <div
+                    className={`${
+                      isFormThreeDisabled ? "inputField__wrapper" : "wrapper"
+                    }`}
+                  >
+                    <div className="title">Booking End Date</div>
+                    <div className="input__wrapper disabledInput__wrapper">
+                      <CalendarMonthIcon className="icon" />
+                      <div className="divider"></div>
+                      <input
+                        type="date"
+                        name="bookingDate"
+                        value={bookingDetails?.bookingEndDate}
+                        className="input"
+                        readOnly={isFormThreeDisabled}
+                        disabled={isFormThreeDisabled}
+                      />
+                    </div>
+                  </div>
+                  <div
+                    className={`${
+                      isFormThreeDisabled ? "inputField__wrapper" : "wrapper"
+                    }`}
+                  >
+                    <div className="title">End Time</div>
+                    <div className="input__wrapper disabledInput__wrapper">
+                      <AccessAlarmIcon className="icon" />
+                      <div className="divider"></div>
+                      <input
+                        type="time"
+                        name="endTime"
+                        value={bookingDetails?.bookingEndTime}
+                        className="input"
+                        readOnly={isFormThreeDisabled}
+                        disabled={isFormThreeDisabled}
+                      />
+                    </div>
                   </div>
                 </div>
-                <div className="inputField__wrapper">
-                  <div className="title">Booking End Date</div>
-                  <div className="input__wrapper disabledInput__wrapper">
-                    <CalendarMonthIcon className="icon" />
-                    <div className="divider"></div>
-                    <input
-                      type="text"
-                      name="bookingDate"
-                      value={bookingDetails?.bookingEndDate}
-                      className="input"
-                      disabled
-                      readOnly
-                    />
-                  </div>
-                </div>
-                <div className="inputField__wrapper">
-                  <div className="title">End Time</div>
-                  <div className="input__wrapper disabledInput__wrapper">
-                    <AccessAlarmIcon className="icon" />
-                    <div className="divider"></div>
-                    <input
-                      type="text"
-                      name="endTime"
-                      value={bookingDetails?.bookingEndTime}
-                      className="input"
-                      disabled
-                    />
-                  </div>
-                </div>
-                <div className="inputField__wrapper">
+                <div
+                  className="inputField__wrapper"
+                  style={!isFormThreeDisabled ? { width: "47%" } : {}}
+                >
                   <div className="title">Total Duration</div>
                   <div className="input__wrapper disabledInput__wrapper">
                     <GiSandsOfTime className="icon" />
@@ -908,28 +1174,54 @@ const BookingDetailsDialog = ({ open, handleClose, currentBooking }) => {
                       type="text"
                       value={`${bookingDetails?.bookingDuration} hour`}
                       className="input"
-                      disabled
                       readOnly
+                      disabled
                     />
                   </div>
                 </div>
+                {!isFormThreeDisabled && (
+                  <div className="bookingStatusMsg">
+                    {bookingStatusMsg.success ? (
+                      <Alert severity="success" className="alert">
+                        {bookingStatusMsg.success}
+                      </Alert>
+                    ) : bookingStatusMsg.warning ? (
+                      <Alert severity="warning" className="alert">
+                        {bookingStatusMsg.warning}
+                      </Alert>
+                    ) : bookingStatusMsg.error ? (
+                      <Alert severity="error" className="alert">
+                        {bookingStatusMsg.error}
+                      </Alert>
+                    ) : bookingStatusMsg.info ? (
+                      <Alert severity="info" className="alert">
+                        {bookingStatusMsg.info}
+                      </Alert>
+                    ) : null}
+                  </div>
+                )}
               </div>
             )}
             <div className="lineSeparator"></div>
             <div className="footer__wrapper">
               <div className="btns__wrapper">
                 <div className="caption">* Mandatory Fields</div>
-                {currentActiveTab !== 0 && (
-                isFormTwoDisabled &&
-                isFormThreeDisabled ? (
-                  <button className="btn editBtn" onClick={handleEditBtnClick}>
-                    Edit
-                  </button>
-                ) : (
-                  <button className="btn saveBtn" onClick={handleSaveBtnClick}>
-                    Save
-                  </button>
-                ))}
+                {currentActiveTab !== 0 &&
+                  (isFormTwoDisabled && isFormThreeDisabled ? (
+                    <button
+                      className="btn editBtn"
+                      onClick={handleEditBtnClick}
+                    >
+                      Edit
+                    </button>
+                  ) : (
+                    <button
+                      className="btn saveBtn"
+                      onClick={handleSaveBtnClick}
+                    >
+                      Save
+                    </button>
+                  ))}
                 <button className="btn prevBtn" onClick={handlePrevBtnClick}>
                   prev
                 </button>

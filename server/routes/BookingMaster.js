@@ -405,6 +405,7 @@ router.get('/getBookingDetailsById', async (req, res) => {
             {
                 $project: {
                     // fields from bookingMaster collection
+                    _id: 1,
                     documentId: 1,
                     bookingStartDateTimestamp: 1,
                     bookingEndDateTimestamp: 1,
@@ -431,6 +432,7 @@ router.get('/getBookingDetailsById', async (req, res) => {
                     eventTypeInfo: { value: '$eventType._id', label: '$eventType.eventName' },
                     //fields from hallMaster collection
                     hallData: {
+                        _id: "$hallMaster._id",
                         hallName: "$hallMaster.hallName",
                         hallLocation: {
                             $concat: [
@@ -543,4 +545,32 @@ router.post("/", async (req, res) => {
         return res.status(500).json(error);
     }
 });
+
+router.patch("/updateBookingDetails/:id", async (req, res) => {
+    const resourceId = req.params.id;
+    const updatedFields = req.body;
+
+    if(!resourceId || !updatedFields) {
+        return res.status(404).json({ message: "Required fields not found!!" });
+    }
+
+    try {
+
+        const updatedResource = await bookingMaster.findOneAndUpdate(
+            { _id: resourceId },
+            { $set: updatedFields },
+            { new: true }
+        );
+
+        if(!updatedResource) {
+            return res.status(404).json({ message: "Resource not found!!" });
+        }
+
+        return res.status(200).json(updatedResource);
+
+    } catch (error) {
+        return res.status(500).json({ message: "Operation Failed!!" });
+    }
+})
+
 export default router;

@@ -60,7 +60,7 @@ const BookingHistory = () => {
   const handleBookingDetailsDialogClose = () => {
     setIsBookingDetailsDialogOpen(false);
     setSelectedBooking({}); // Reset the selected booking
-  }
+  };
 
   const handleChangeRowsPerPage = (event) => {
     setRowsPerPage(parseInt(event.target.value, 10));
@@ -241,11 +241,13 @@ const BookingHistory = () => {
 
   return (
     <div className="bookingHistory__container">
-      <BookingDetailsDialog
-        open={isBookingDetailsDialogOpen}
-        handleClose={handleBookingDetailsDialogClose}
-        currentBooking={selectedBooking}
-      />
+      {isBookingDetailsDialogOpen && (
+        <BookingDetailsDialog
+          open={isBookingDetailsDialogOpen}
+          handleClose={handleBookingDetailsDialogClose}
+          currentBooking={selectedBooking}
+        />
+      )}
       <div className="wrapper">
         <div className="secondaryNavbar">
           <div className="items-list">
@@ -364,7 +366,9 @@ const BookingHistory = () => {
                       aria-controls={anchorEl ? "basic-menu" : undefined}
                       aria-haspopup="true"
                       aria-expanded={Boolean(anchorEl) ? "true" : undefined}
-                      onClick={(event) => handleMoreVertIconClick(event, booking)}
+                      onClick={(event) =>
+                        handleMoreVertIconClick(event, booking)
+                      }
                     >
                       <MoreVertIcon className="menuIcon" />
                     </Button>
