@@ -299,6 +299,134 @@ router.get("/getHallBookings", async (req, res) => {
   }
 });
 
+// fetch a specific booking details by bookingId
+router.get('/getBookingDetailsById', async (req, res) => {
+  
+  const { bookingId } = req.query;
+
+  // Helper function to check if a string is a valid ObjectId
+  function isObjectIdFormat(str) {
+      return /^[0-9a-fA-F]{24}$/.test(str);
+  }
+
+  // Validate customerId
+  if (!bookingId || !isObjectIdFormat(bookingId)) {
+      return res.status(422).json({ message: 'The server was unable to process the request due to invalid booking Id.' });
+  }
+
+  const bookingObjectId = new ObjectId(bookingId);
+
+  try {
+
+      const bookingData = await hallBookingMaster.aggregate([
+          {
+              $match: {
+                  _id: bookingObjectId,
+              },
+          },
+          {
+              $lookup: {
+                  from: 'hallmasters',
+                  localField: 'hallId',
+                  foreignField: '_id',
+                  as: 'hallMaster',
+              },
+          },
+          {
+              $lookup: {
+                  from: 'eventtypes',
+                  localField: 'eventId',
+                  foreignField: '_id',
+                  as: 'eventType'
+              }
+          },
+          {
+              $lookup: {
+                  from: 'vendortypes',
+                  localField: 'vendorTypeId',
+                  foreignField: '_id',
+                  as: 'vendorType'
+              }
+          },
+          {
+              $unwind: '$hallMaster',
+          },
+          {
+              $unwind: '$eventType'
+          },
+          {
+              $unwind: '$vendorType'
+          },
+          // {
+          //     $addFields: {
+          //         hallMaster: '$hallMaster', // Preserve hallMaster as a nested object
+          //     },
+          // },
+          {
+              $project: {
+                  // fields from bookingMaster collection
+                  _id: 1,
+                  documentId: 1,
+                  bookingStartDateTimestamp: 1,
+                  bookingEndDateTimestamp: 1,
+                  bookingDuration: 1,
+                  bookingStatus: 1,
+                  catererRequirement: {
+                      label: { $cond: { if: "$bookCaterer", then: "Yes", else: "No" } },
+                      value: "$bookCaterer"
+                  },
+                  guestsCount: "$finalGuestCount",
+                  roomsCount: "$finalRoomCount",
+                  parkingRequirement: {
+                      label: { $cond: { if: "$finalHallParkingRequirement", then: "Yes", else: "No" } },
+                      value: '$finalHallParkingRequirement'
+                  },
+                  vehiclesCount: "$finalVehicleCount",
+                  customerVegRate: "$finalVegRate",
+                  customerNonVegRate: "$finalNonVegRate",
+                  customerVegItemsList: "$finalVegItemsList",
+                  customerNonVegItemsList: "$finalNonVegItemsList",
+                  // fields from vendorType collection
+                  vendorType: '$vendorType.vendorType',
+                  //fields from eventType collection
+                  eventTypeInfo: { value: '$eventType._id', label: '$eventType.eventName' },
+                  //fields from hallMaster collection
+                  hallData: {
+                      _id: "$hallMaster._id",
+                      hallName: "$hallMaster.hallName",
+                      hallLocation: {
+                          $concat: [
+                              '$hallMaster.hallCity',
+                              ', ',
+                              '$hallMaster.hallState',
+                              ', ',
+                              '$hallMaster.hallCountry'
+                          ]
+                      },
+                      hallLandmark: "$hallMaster.hallLandmark",
+                      hallCapacity: "$hallMaster.hallCapacity",
+                      hallRooms: "$hallMaster.hallRooms",
+                      hallVegRate: "$hallMaster.hallVegRate",
+                      hallNonVegRate: "$hallMaster.hallNonVegRate",
+                      hallParking: { $cond: { if: "$hallMaster.hallParking", then: "Available", else: "UnAvailable" } },
+                      hallImage: { $arrayElemAt: ["$hallMaster.hallImages", 0] },
+                  },
+              },
+          },
+      ]);
+
+      if (!bookingData) {
+          return res.status(404).json({ message: "No booking found!" });
+      }
+
+      return res.status(200).json(bookingData);
+
+  } catch (error) {
+      return res.status(500).json({ message: error.message });
+  }
+
+});
+
 router.post("/", async (req, res) => {
 
   const newDocument = new hallBookingMaster(req.body);

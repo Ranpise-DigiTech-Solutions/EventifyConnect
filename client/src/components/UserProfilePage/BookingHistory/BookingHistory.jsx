@@ -1,5 +1,4 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-/* eslint-disable no-unused-vars */
 import "./BookingHistory.scss";
 import React, { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
@@ -7,6 +6,12 @@ import { DatePicker, Tag, Modal, Skeleton, Empty } from "antd";
 import TablePagination from "@mui/material/TablePagination";
 import axios from "axios";
 
+import TextField from "@mui/material/TextField";
+import Dialog from "@mui/material/Dialog";
+import DialogActions from "@mui/material/DialogActions";
+import DialogContent from "@mui/material/DialogContent";
+import DialogContentText from "@mui/material/DialogContentText";
+import DialogTitle from "@mui/material/DialogTitle";
 import SearchIcon from "@mui/icons-material/Search";
 import Button from "@mui/material/Button";
 import Menu from "@mui/material/Menu";
@@ -27,7 +32,7 @@ const BookingHistory = () => {
   const vendorType = userInfoStore.userDetails.vendorType || "";
 
   const { RangePicker } = DatePicker;
-  const [anchorEl, setAnchorEl] = useState(null);
+  const [anchorElMap, setAnchorElMap] = useState({});
 
   const [startDate, setStartDate] = useState(new Date()); // represents current date
   const [startDateOfMonth, setStartDateOfMonth] = useState(null); // represents start date of current month
@@ -40,18 +45,25 @@ const BookingHistory = () => {
   const [isBookingDetailsDialogOpen, setIsBookingDetailsDialogOpen] =
     useState(false); // trigger the booking details dialog
   const [selectedBooking, setSelectedBooking] = useState({}); // current booking selection
+  const [
+    openBookingCancelConfirmationDialog,
+    setOpenBookingCancelConfirmationDialog,
+  ] = useState(false); // toggle booking cancellation screen
 
   const [pageNo, setPageNo] = useState(0); // current page no.
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [totalPages, setTotalPages] = useState(0); // set it according to data fetched from database
 
   const handleMoreVertIconClick = (event, booking) => {
-    setAnchorEl(event.currentTarget);
+    setAnchorElMap({
+      ...anchorElMap,
+      [booking._id]: event.currentTarget,
+    });
     setSelectedBooking(booking); // Set the selected booking
   };
 
   const handleMoreVertIconClose = () => {
-    setAnchorEl(null);
+    setAnchorElMap({});
   };
   const handleChangePage = (event, newPage) => {
     setPageNo(newPage);
@@ -65,6 +77,15 @@ const BookingHistory = () => {
   const handleChangeRowsPerPage = (event) => {
     setRowsPerPage(parseInt(event.target.value, 10));
     setPageNo(0);
+  };
+
+  const handleBookingCancelConfirmationDialogClose = () => {
+    setOpenBookingCancelConfirmationDialog(false);
+    handleMoreVertIconClose();
+  };
+
+  const handleBookingCancelConfirmationDialogOpen = () => {
+    setOpenBookingCancelConfirmationDialog(true);
   };
 
   const startOfMonth = (date) => {
@@ -122,12 +143,12 @@ const BookingHistory = () => {
             }/eventify_server/bookingMaster/getUserBookings/?customerId=${
               userInfoStore.userDetails.Document._id
             }&startDateOfMonth=${startDateOfMonth}&endDateOfMonth=${endDateOfMonth}&page=${pageNo}&limit=${rowsPerPage}&sortCriteria=${dataSortCriteria}&bookingCategory=${currentTab}`;
-          // :
-          // vendorType === "Banquet Hall" && `${
-          //   import.meta.env.VITE_SERVER_URL
-          // }/eventify_server/bookingMaster/getHallBookings/?serviceProviderId=${
-          //   userInfoStore.userDetails.Document._id
-          // }&startDateOfMonth=${startDateOfMonth}&endDateOfMonth=${endDateOfMonth}&page=${pageNo}&limit=${rowsPerPage}&sortCriteria=${dataSortCriteria}&bookingCategory=${currentTab}`
+          // : vendorType === "Banquet Hall" &&
+          //   `${
+          //     import.meta.env.VITE_SERVER_URL
+          //   }/eventify_server/bookingMaster/getHallBookings/?serviceProviderId=${
+          //     userInfoStore.userDetails.Document._id
+          //   }&startDateOfMonth=${startDateOfMonth}&endDateOfMonth=${endDateOfMonth}&page=${pageNo}&limit=${rowsPerPage}&sortCriteria=${dataSortCriteria}&bookingCategory=${currentTab}`;
           const response = await axios.get(URL);
 
           console.log(response.data);
@@ -184,7 +205,39 @@ const BookingHistory = () => {
     console.log("SELECTED_BOOKING", selectedBooking);
     // setSelectedBooking(selectedBooking);
     setIsBookingDetailsDialogOpen(true);
-    // handleMoreVertIconClose();
+    handleMoreVertIconClose();
+  };
+
+  const handleCancelBooking = async (event) => {
+    // Handle cancel booking logic
+    event.preventDefault();
+
+    if(!selectedBooking) {
+      return;
+    }
+
+    setIsPageLoading(true);
+
+    const formData = new FormData(event.currentTarget);
+    const formJson = Object.fromEntries(formData.entries());
+    const message = formJson.message;
+    
+    const response = await axios.patch(
+      `${
+        import.meta.env.VITE_SERVER_URL
+      }/eventify_server/bookingMaster/updateBookingDetails/${
+        selectedBooking._id
+      }`,
+      {
+        bookingStatus: "CANCELLED",
+        bookingStatusRemark: message,
+      }
+    );
+
+    setIsPageLoading(false);
+    handleBookingCancelConfirmationDialogClose();
+    handleMoreVertIconClose(); // Close menu after action
+    setReloadData(!reloadData);
   };
 
   const BookingItemSkeleton = () => (
@@ -248,6 +301,39 @@ const BookingHistory = () => {
           currentBooking={selectedBooking}
         />
       )}
+      <Dialog
+        open={openBookingCancelConfirmationDialog}
+        onClose={handleBookingCancelConfirmationDialogClose}
+        PaperProps={{
+          component: "form",
+          onSubmit: handleCancelBooking,
+        }}
+      >
+        <DialogTitle>Cancel Booking</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            Are you sure, you want to cancel your booking? Please note that this
+            action is irreversible.
+          </DialogContentText>
+          <TextField
+            autoFocus
+            required
+            margin="dense"
+            id="message"
+            name="message"
+            label="Your Message"
+            type="text"
+            fullWidth
+            variant="standard"
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleBookingCancelConfirmationDialogClose}>
+            Cancel
+          </Button>
+          <Button type="submit">Proceed</Button>
+        </DialogActions>
+      </Dialog>
       <div className="wrapper">
         <div className="secondaryNavbar">
           <div className="items-list">
@@ -362,10 +448,10 @@ const BookingHistory = () => {
                   </div>
                   <div className="item">
                     <Button
-                      id="basic-button"
-                      aria-controls={anchorEl ? "basic-menu" : undefined}
+                      id={`basic-button-${index}`} // Ensure unique ID
+                      aria-controls={`basic-menu-${index}`} // Ensure unique ID
                       aria-haspopup="true"
-                      aria-expanded={Boolean(anchorEl) ? "true" : undefined}
+                      aria-expanded={Boolean(anchorElMap[booking._id])}
                       onClick={(event) =>
                         handleMoreVertIconClick(event, booking)
                       }
@@ -373,25 +459,24 @@ const BookingHistory = () => {
                       <MoreVertIcon className="menuIcon" />
                     </Button>
                     <Menu
-                      id="basic-menu"
-                      anchorEl={anchorEl}
-                      open={Boolean(anchorEl)}
+                      id={`basic-menu-${index}`} // Ensure unique ID
+                      anchorEl={anchorElMap[booking._id]}
+                      open={Boolean(anchorElMap[booking._id])}
                       onClose={handleMoreVertIconClose}
                       MenuListProps={{
-                        "aria-labelledby": "basic-button",
+                        "aria-labelledby": `basic-button-${index}`, // Ensure unique ID
                       }}
                     >
                       <MenuItem onClick={handleViewDetailsClick}>
                         View Details
                       </MenuItem>
-                      {/* {booking.bookingStatus === "PENDING" && ( */}
                       <MenuItem
                         style={{ color: "red" }}
-                        onClick={handleMoreVertIconClose}
+                        onClick={handleBookingCancelConfirmationDialogOpen}
+                        disabled={booking.bookingStatus !== "PENDING"}
                       >
                         Cancel Booking
                       </MenuItem>
-                      {/* )} */}
                     </Menu>
                   </div>
                 </div>

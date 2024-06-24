@@ -91,6 +91,8 @@ const customStyles = {
 const bookingDetailsTemplate = {
   _id: null,
   documentId: null,
+  bookingStartDateObject: null,
+  bookingEndDateObject: null,
   bookingStartDate: null,
   bookingEndDate: null,
   bookingStartTime: null,
@@ -146,10 +148,6 @@ const BookingDetailsDialog = ({ open, handleClose, currentBooking }) => {
   const [isScreenLoading, setIsScreenLoading] = useState(false); // toggle loading screen
   const [triggerSlotAvailabilityCheck, setTriggerSlotAvailabilityCheck] =
     useState(false); // trigger the slot availability check - trigger useEffect
-  const [
-    bookingSlotAvailabilityConfirmationMsg,
-    setBokingSlotAvailabilityConfirmationMsg,
-  ] = useState(false); //
 
   // Refs to keep track of the initial render for each useEffect
   const isInitialRender1 = useRef(true);
@@ -252,7 +250,9 @@ const BookingDetailsDialog = ({ open, handleClose, currentBooking }) => {
             ? "hallBookingMaster"
             : "bookingMaster"
         }/getBookingDetailsById/?bookingId=${currentBooking._id}`;
+        console.log(URL);
         const response = await axios.get(URL);
+        console.log(response.data[0]);
         const { bookingStartDateTimestamp, bookingEndDateTimestamp, ...info } =
           response.data[0];
 
@@ -280,6 +280,7 @@ const BookingDetailsDialog = ({ open, handleClose, currentBooking }) => {
 
     if (!bookingDetails._id) {
       // @TODO: handle error condition
+      return;
     }
 
     const response = await axios.patch(
@@ -318,20 +319,53 @@ const BookingDetailsDialog = ({ open, handleClose, currentBooking }) => {
     }
   };
 
-  const handleUpdateFormThree = () => {
+  const handleUpdateFormThree = async () => {
     setIsScreenLoading(true);
-    setTimeout(() => {
+
+    if (!bookingDetails._id) {
+      // @TODO: handle error condition
+      console.log(bookingDetails._id);
+      return;
+    }
+    if (
+      !bookingDetails.bookingStartDateObject ||
+      !bookingDetails.bookingEndDateObject
+    ) {
+      // @TODO: Handle Error condition here
       setIsFormThreeDisabled(true);
-      messageApi.open({
-        type: "success",
-        content: "Booking details updated successfully!",
-      });
+      return;
+    }
+
+    const response = await axios.patch(
+      `${
+        import.meta.env.VITE_SERVER_URL
+      }/eventify_server/bookingMaster/updateBookingDetails/${
+        bookingDetails._id
+      }`,
+      {
+        bookingStartDateTimestamp: bookingDetails.bookingStartDateObject,
+        bookingEndDateTimestamp: bookingDetails.bookingEndDateObject,
+        bookingDuration: bookingDetails.bookingDuration,
+      }
+    );
+
+    if (response.status === 200) {
+      setTimeout(() => {
+        setIsFormThreeDisabled(true);
+        messageApi.open({
+          type: "success",
+          content: "Booking details updated successfully!",
+        });
+        setIsScreenLoading(false);
+      }, 1000);
+    } else {
+      // @TODO: Handle error condition here
       setIsScreenLoading(false);
-    }, 1000);
+    }
   };
 
   useEffect(() => {
-    if (!bookingDetails.hallData._id) {
+    if (!bookingDetails.hallData._id || bookingStatusMsg.error) {
       return;
     }
 
@@ -346,14 +380,19 @@ const BookingDetailsDialog = ({ open, handleClose, currentBooking }) => {
         bookingDetails.bookingEndTime
       );
 
-      setBookingStatusMsg(() => ({
-        info: "",
-        error: "",
-        success: "",
-        warning: "",
+      console.log(bookingStartDateObject, bookingEndDateObject);
+      // Calculate the difference in milliseconds
+      const diffInMs = bookingEndDateObject - bookingStartDateObject;
+      // Convert milliseconds to hours
+      const diffInHours = diffInMs / (1000 * 60 * 60);
+
+      setBookingDetails((previousInfo) => ({
+        ...previousInfo,
+        bookingDuration: diffInHours,
+        bookingStartDateObject: bookingStartDateObject,
+        bookingEndDateObject: bookingEndDateObject,
       }));
 
-      console.log(bookingStartDateObject, bookingEndDateObject);
       try {
         const response = await axios.get(
           `${
@@ -382,6 +421,13 @@ const BookingDetailsDialog = ({ open, handleClose, currentBooking }) => {
   }, [triggerSlotAvailabilityCheck]);
 
   const handleBookingStartDateChange = (event) => {
+    setBookingStatusMsg(() => ({
+      info: "",
+      error: "",
+      success: "",
+      warning: "",
+    }));
+
     const bookingStartDate = new Date(event.target.value);
     const bookingEndDate = new Date(bookingDetails.bookingEndDate);
 
@@ -390,29 +436,118 @@ const BookingDetailsDialog = ({ open, handleClose, currentBooking }) => {
     if (bookingStartDate > bookingEndDate) {
       handleBookingStatusMsg(
         "error",
-        "Invalid Time Frame! Start date cannot be greater than end date."
+        "Invalid Time Frame! Start date cannot be greater than End date."
       );
       return;
     }
 
-    handleBookingDetailsErrorInfo("bookingStartDate", "");
     setTriggerSlotAvailabilityCheck(!triggerSlotAvailabilityCheck);
   };
 
-  const handleBookingStartTimeChange = (event) => {};
+  const handleBookingStartTimeChange = (event) => {
+    const bookingStartDate = new Date(bookingDetails.bookingStartDate);
+    const bookingEndDate = new Date(bookingDetails.bookingEndDate);
 
-  const handleBookingEndDateChange = (event) => {};
+    setBookingStatusMsg(() => ({
+      info: "",
+      error: "",
+      success: "",
+      warning: "",
+    }));
 
-  const handleBookingEndTimeChange = (event) => {};
+    // Get the hours from the event (start time) and bookingEndTime
+    const startHour = Number(event.target.value.split(":")[0]);
+    const endHour = Number(bookingDetails.bookingEndTime.split(":")[0]);
+
+    // Update the booking start date with the selected hour
+    bookingStartDate.setHours(startHour, 0, 0, 0);
+    // Update the booking end date with the end hour
+    bookingEndDate.setHours(endHour, 0, 0, 0);
+
+    handleBookingDetailsInfo("bookingStartTime", startHour + ":00");
+
+    if (bookingStartDate >= bookingEndDate) {
+      handleBookingStatusMsg(
+        "error",
+        "Invalid time frame! Start time cannot be greater than End time."
+      );
+      return;
+    }
+
+    setTriggerSlotAvailabilityCheck(!triggerSlotAvailabilityCheck);
+  };
+
+  const handleBookingEndDateChange = (event) => {
+    setBookingStatusMsg(() => ({
+      info: "",
+      error: "",
+      success: "",
+      warning: "",
+    }));
+
+    const bookingStartDate = new Date(bookingDetails.bookingStartDate);
+    const bookingEndDate = new Date(event.target.value);
+
+    handleBookingDetailsInfo("bookingEndDate", extractDate(bookingEndDate));
+
+    if (bookingEndDate < bookingStartDate) {
+      handleBookingStatusMsg(
+        "error",
+        "Invalid Time Frame! End date cannot be lesser than Start date."
+      );
+      return;
+    }
+
+    setTriggerSlotAvailabilityCheck(!triggerSlotAvailabilityCheck);
+  };
+
+  const handleBookingEndTimeChange = (event) => {
+    const bookingStartDate = new Date(bookingDetails.bookingStartDate);
+    const bookingEndDate = new Date(bookingDetails.bookingEndDate);
+
+    setBookingStatusMsg(() => ({
+      info: "",
+      error: "",
+      success: "",
+      warning: "",
+    }));
+
+    // Get the hours from the event (start time) and bookingEndTime
+    const startHour = Number(bookingDetails.bookingStartTime.split(":")[0]);
+    const endHour = Number(event.target.value.split(":")[0]);
+
+    // Update the booking start date with the selected hour
+    bookingStartDate.setHours(startHour, 0, 0, 0);
+    // Update the booking end date with the end hour
+    bookingEndDate.setHours(endHour, 0, 0, 0);
+
+    handleBookingDetailsInfo("bookingEndTime", endHour + ":00");
+
+    if (bookingStartDate >= bookingEndDate) {
+      handleBookingStatusMsg(
+        "error",
+        "Invalid time frame! End time cannot be lesser than Start time."
+      );
+      return;
+    }
+
+    setTriggerSlotAvailabilityCheck(!triggerSlotAvailabilityCheck);
+  };
 
   const handlePrevBtnClick = () => {
     switch (currentActiveTab) {
       case 0:
         break;
       case 1:
+        if(!isFormTwoDisabled) {
+          handleUpdateFormTwo();
+        }
         handleCurrentActiveTabChange(null, 0);
         break;
       case 2:
+        if(!isFormThreeDisabled) {
+          handleUpdateFormThree();
+        }
         handleCurrentActiveTabChange(null, 1);
         break;
       default:
@@ -426,6 +561,9 @@ const BookingDetailsDialog = ({ open, handleClose, currentBooking }) => {
         handleCurrentActiveTabChange(null, 1);
         break;
       case 1:
+        if(!isFormTwoDisabled) {
+          handleUpdateFormTwo();
+        }
         handleCurrentActiveTabChange(null, 2);
         break;
       case 2:
@@ -1110,6 +1248,7 @@ const BookingDetailsDialog = ({ open, handleClose, currentBooking }) => {
                         type="time"
                         name="startTime"
                         value={bookingDetails?.bookingStartTime}
+                        onChange={handleBookingStartTimeChange}
                         className="input"
                         readOnly={isFormThreeDisabled}
                         disabled={isFormThreeDisabled}
@@ -1135,6 +1274,7 @@ const BookingDetailsDialog = ({ open, handleClose, currentBooking }) => {
                         type="date"
                         name="bookingDate"
                         value={bookingDetails?.bookingEndDate}
+                        onChange={handleBookingEndDateChange}
                         className="input"
                         readOnly={isFormThreeDisabled}
                         disabled={isFormThreeDisabled}
@@ -1154,6 +1294,7 @@ const BookingDetailsDialog = ({ open, handleClose, currentBooking }) => {
                         type="time"
                         name="endTime"
                         value={bookingDetails?.bookingEndTime}
+                        onChange={handleBookingEndTimeChange}
                         className="input"
                         readOnly={isFormThreeDisabled}
                         disabled={isFormThreeDisabled}
@@ -1206,7 +1347,8 @@ const BookingDetailsDialog = ({ open, handleClose, currentBooking }) => {
             <div className="footer__wrapper">
               <div className="btns__wrapper">
                 <div className="caption">* Mandatory Fields</div>
-                {currentActiveTab !== 0 &&
+                {bookingDetails.bookingStatus === "PENDING" &&
+                  currentActiveTab !== 0 &&
                   (isFormTwoDisabled && isFormThreeDisabled ? (
                     <button
                       className="btn editBtn"

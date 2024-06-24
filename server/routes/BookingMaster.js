@@ -214,7 +214,7 @@ router.get("/getUserBookings", async (req, res) => {
 
 //     // Validate serviceProviderId
 //     if (!serviceProviderId || !isObjectIdFormat(serviceProviderId)) {
-//         return res.status(422).json({ message: 'The server was unable to process the request due to invalid Customer Id.' });
+//         return res.status(422).json({ message: 'The server was unable to process the request due to invalid Service Provider Id.' });
 //     }
 
 //     const serviceProviderObjectId = new ObjectId(serviceProviderId);
@@ -240,9 +240,17 @@ router.get("/getUserBookings", async (req, res) => {
 //             {
 //                 $lookup: {
 //                     from: 'hallmasters',
-//                     localField: '_id',
-//                     foreignField: 'hallUserId',
+//                     localField: 'hallId',
+//                     foreignField: '_id',
 //                     as: 'hallMaster'
+//                 }
+//             },
+//             {
+//                 $lookup: {
+//                     from: 'customermasters',
+//                     localField: 'customerId',
+//                     foreignField: '_id',
+//                     as: 'customerMaster'
 //                 }
 //             },
 //             {
@@ -257,11 +265,14 @@ router.get("/getUserBookings", async (req, res) => {
 //                 $unwind: '$hallMaster'
 //             },
 //             {
+//                 $unwind: '$customerMaster'
+//             },
+//             {
 //                 $unwind: '$eventType'
 //             },
 //             {
 //                 $match: {
-//                     Id: customerObjectId,
+//                     "$hallMaster.hallUserId": serviceProviderId,
 //                     bookingStatus: bookingCategory === "PENDING" ? bookingCategory : { $exists: true },
 //                     bookingStartDateTimestamp: bookingCategory === "UPCOMING" ? { $gt: new Date() } : { $exists: true },
 //                     bookingEndDateTimestamp: bookingCategory === "COMPLETED" ? { $lt: new Date() } : { $exists: true },
@@ -281,14 +292,13 @@ router.get("/getUserBookings", async (req, res) => {
 //                     ]
 //                 }
 //             },
-
 //             {
 //                 $addFields: {
 //                     sortKey: {
 //                         $switch: {
 //                             branches: [
 //                                 { case: { $eq: [sortCriteria, "bookingId"] }, then: "$_id" },
-//                                 { case: { $eq: [sortCriteria, "hallName"] }, then: "$hallMaster.hallName" },
+//                                 { case: { $eq: [sortCriteria, "customerName"] }, then: "$customerMaster.customerName" },
 //                                 { case: { $eq: [sortCriteria, "eventType"] }, then: "$eventType.eventName" },
 //                                 { case: { $eq: [sortCriteria, "vendorType"] }, then: "$vendorType.vendorType" },
 //                                 { case: { $eq: [sortCriteria, "bookingStartDate"] }, then: "$bookingStartDateTimestamp" },
@@ -418,7 +428,7 @@ router.get('/getBookingDetailsById', async (req, res) => {
                     guestsCount: 1,
                     roomsCount: 1,
                     parkingRequirement: {
-                        label: { $cond: { if: "$hallMaster.parkingRequirement", then: "Yes", else: "No" } },
+                        label: { $cond: { if: "$parkingRequirement", then: "Yes", else: "No" } },
                         value: '$parkingRequirement'
                     },
                     vehiclesCount: 1,
