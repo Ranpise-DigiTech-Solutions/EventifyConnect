@@ -1,9 +1,6 @@
 [build]
-  command = "npm run build"
+  command = "npm install $NPM_FLAGS && npm run build"
   publish = "build"
 
 [build.environment]
   NPM_FLAGS = "--legacy-peer-deps"
-
-[build]
-  command = "npm install $NPM_FLAGS && npm run build"
