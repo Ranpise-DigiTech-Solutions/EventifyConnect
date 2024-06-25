@@ -553,8 +553,17 @@ const BookingHistory = ({ hallId }) => {
               <div className="bookingItem" key={index}>
                 <div className="items-list">
                   <div className="item">{booking.documentId}</div>
-                  <div className="item">{booking.customerName}</div>
-                  <div className="item">{booking.customerType}</div>
+                  {userType === "CUSTOMER" ? (
+                    <>
+                      <div className="item">{booking.hallName}</div>
+                      <div className="item">{booking.vendorType}</div>
+                    </>
+                  ) : (
+                    <>
+                      <div className="item">{booking.customerName}</div>
+                      <div className="item">{booking.customerType}</div>
+                    </>
+                  )}
                   <div className="item">{booking.eventName}</div>
                   <div className="item">
                     {getFormattedBookingStartDate(
