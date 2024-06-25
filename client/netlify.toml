@@ -1,7 +1,6 @@
 [build]
   base = "client"
   command = "rm -rf node_modules && rm package-lock.json && npm install $NPM_FLAGS && npm run build"
-  publish = "client/build"
 
 [build.environment]
   NPM_FLAGS = "--legacy-peer-deps"
