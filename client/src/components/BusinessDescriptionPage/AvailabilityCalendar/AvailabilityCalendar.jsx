@@ -131,7 +131,7 @@ export default function AvailabilityCalendar({ hallData }) {
     try {
       if (startDateOfWeek && endDateOfWeek) {
         const response = await axios.get(
-          `${import.meta.env.VITE_SERVER_URL}/eventify_server/hallBookingMaster/getHallAvailability?hallId=${hallData._id}&startDate=${startDateOfWeek}&endDate=${endDateOfWeek}`
+          `${import.meta.env.VITE_SERVER_URL}/eventify_server/hallBookingMaster/getHallAvailability/?hallId=${hallData._id}&startDate=${startDateOfWeek}&endDate=${endDateOfWeek}`
         );
         console.log(response.data);
         const bookings = response.data;

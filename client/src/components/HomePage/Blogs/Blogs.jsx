@@ -24,7 +24,7 @@ export default function Blogs() {
     <div className='main__container blogs__container'>
       <h3 className='sub__title'>blogs</h3>
       <h2 className='title'>Marriage articles</h2>
-      <p className='description'>Lorem ipsum dolor sit amet consectetur adipisicing elit. Esse possimus culpa quo explicabo repellat itaque, sequi reiciendis recusandae beatae blanditiis adipisci deserunt commodi ullam quia.</p>
+      <p className='description'>Unlocking the Secrets to a Blissful Marriage: Insights, Advice, and Inspiration Inside!</p>
       <div className="articles__wrapper">
         {Object.values(cardsArray).map((card, index) => (
           <div

@@ -32,12 +32,11 @@ export {
     ProfileForm,
     Dashboard,
     HallForm,
-    OrderHistory,
     SettingsComponent,
     Notification,
-    UserProfileUpdate,
     MyCart,
-    Favorites
+    Favorites,
+    BookingHistory,
 } from './UserProfilePage';
 export {
     CancellationPolicy,

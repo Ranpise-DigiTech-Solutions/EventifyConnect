@@ -358,6 +358,12 @@ export default function WalkInCustomerBookingDialog({
         bookingDuration: parseInt(calculateBookingDuration().split(" ")[0]),
         bookingStatusRemark: "",
 
+        // customer info
+        customerName: bookingDetails.customerFirstName + " " + bookingDetails.customerLastName,
+        customerMainOfficeNo: bookingDetails.customerOfficeContact,
+        customerMainMobileNo: bookingDetails.customerPersonalContact,
+        customerMainEmail: bookingDetails.customerEmailId,
+
         finalGuestCount: parseInt(bookingDetails.guestsCount),
         finalRoomCount: parseInt(bookingDetails.roomsCount),
         finalHallParkingRequirement: bookingDetails.parkingRequirement.value,

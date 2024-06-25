@@ -29,7 +29,6 @@ import LogoutIcon from "@mui/icons-material/Logout";
 import FavoriteOutlinedIcon from "@mui/icons-material/FavoriteOutlined";
 import BusinessIcon from "@mui/icons-material/Business";
 import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
-import AddBusinessOutlinedIcon from "@mui/icons-material/AddBusinessOutlined";
 
 import { firebaseAuth } from "../../firebaseConfig.js";
 import { Images } from "../../constants";
@@ -39,14 +38,13 @@ import {
   HallForm,
   MyCart,
   Notification,
-  OrderHistory,
   ProfileForm,
   SettingsComponent,
   WalkInCustomerBookingDialog,
+  BookingHistory,
 } from "../../components";
 import {
   userInfoActions,
-  userAuthStateChangeFlag,
 } from "../../states/UserInfo/index.js";
 import { LoadingScreen } from "../../sub-components/index.js";
 import { Link } from "react-router-dom";
@@ -393,7 +391,7 @@ const ProfilePage = (props) => {
           />
         );
       case "Booking History":
-        return <OrderHistory />;
+        return <BookingHistory hallId={hallData._id || ""} />;
       case "Cart":
         return <MyCart />;
       case "Favorites":
