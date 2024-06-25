@@ -42,7 +42,6 @@ import {
   SettingsComponent,
   WalkInCustomerBookingDialog,
   BookingHistory,
-  OrderHistory
 } from "../../components";
 import {
   userInfoActions,

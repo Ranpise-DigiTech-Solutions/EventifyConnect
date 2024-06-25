@@ -14,14 +14,14 @@ import IconButton from "@mui/material/IconButton";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import AddIcon from "@mui/icons-material/Add";
 import CloseIcon from "@mui/icons-material/Close";
-import EmailIcon from '@mui/icons-material/Email';
-import HomeIcon from '@mui/icons-material/Home';
-import PlaceIcon from '@mui/icons-material/Place';
-import PublicIcon from '@mui/icons-material/Public';
-import LocationCityIcon from '@mui/icons-material/LocationCity';
+import EmailIcon from "@mui/icons-material/Email";
+import HomeIcon from "@mui/icons-material/Home";
+import PlaceIcon from "@mui/icons-material/Place";
+import PublicIcon from "@mui/icons-material/Public";
+import LocationCityIcon from "@mui/icons-material/LocationCity";
 import ErrorIcon from "@mui/icons-material/Error";
-import StreetviewIcon from '@mui/icons-material/Streetview';
-import GpsFixedIcon from '@mui/icons-material/GpsFixed';
+import StreetviewIcon from "@mui/icons-material/Streetview";
+import GpsFixedIcon from "@mui/icons-material/GpsFixed";
 import PersonIcon from "@mui/icons-material/Person";
 import { FaEdit } from "react-icons/fa";
 import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
@@ -629,7 +629,7 @@ const ProfileForm = () => {
                                 value: customerData.customerGender,
                                 label: customerData.customerGender,
                               }
-                            : null
+                            : { value: "", label: "" }
                         }
                         onChange={(selectedOption) =>
                           handleCustomerData(
@@ -730,7 +730,7 @@ const ProfileForm = () => {
                       <input
                         type="email"
                         name="email"
-                        value={customerData.customerMainEmail}
+                        value={customerData.customerMainEmail || ""}
                         onChange={(e) =>
                           handleCustomerData(
                             "customerMainEmail",
@@ -780,7 +780,7 @@ const ProfileForm = () => {
                       <input
                         type="email"
                         name="altEmail"
-                        value={customerData.customerAlternateEmail}
+                        value={customerData.customerAlternateEmail || ""}
                         onChange={(e) =>
                           handleCustomerData(
                             "customerAlternateEmail",
@@ -842,7 +842,7 @@ const ProfileForm = () => {
                         type="text"
                         className="input"
                         name="address"
-                        value={customerData.customerAddress}
+                        value={customerData.customerAddress || ""}
                         onChange={(e) =>
                           handleCustomerData("customerAddress", e.target.value)
                         }
@@ -860,7 +860,7 @@ const ProfileForm = () => {
                         type="text"
                         name="landmark"
                         className="input"
-                        value={customerData.customerLandmark}
+                        value={customerData.customerLandmark || ""}
                         onChange={(e) =>
                           handleCustomerData("customerLandmark", e.target.value)
                         }
@@ -892,7 +892,7 @@ const ProfileForm = () => {
                                 value: customerData.customerCountry,
                                 label: customerData.customerCountry,
                               }
-                            : null
+                            : { value: "", label: "" }
                         }
                         onChange={(selectedOption) =>
                           handleCustomerData(
@@ -939,7 +939,7 @@ const ProfileForm = () => {
                                 value: customerData.customerState,
                                 label: customerData.customerState,
                               }
-                            : null
+                            : { value: "", label: "" }
                         }
                         onChange={(selectedOption) =>
                           handleCustomerData(
@@ -989,7 +989,7 @@ const ProfileForm = () => {
                                 value: customerData.customerCity,
                                 label: customerData.customerCity,
                               }
-                            : null
+                            : { value: "", label: "" }
                         }
                         onChange={(selectedOption) =>
                           handleCustomerData(
@@ -1024,7 +1024,7 @@ const ProfileForm = () => {
                         type="text"
                         name="taluk"
                         className="input"
-                        value={customerData.customerTaluk}
+                        value={customerData.customerTaluk || ""}
                         onChange={(e) =>
                           handleCustomerData("customerTaluk", e.target.value)
                         }
@@ -1068,7 +1068,7 @@ const ProfileForm = () => {
                             e.preventDefault();
                           }
                         }}
-                        value={customerData.customerPincode}
+                        value={customerData.customerPincode || ""}
                         onChange={(e) =>
                           handleCustomerData("customerPincode", e.target.value)
                         }
@@ -1335,7 +1335,7 @@ const ProfileForm = () => {
                       <input
                         type="email"
                         name="email"
-                        value={serviceProviderData.vendorEmail}
+                        value={serviceProviderData.vendorEmail || ""}
                         onChange={(e) =>
                           handleServiceProviderData(
                             "vendorEmail",
@@ -1385,7 +1385,7 @@ const ProfileForm = () => {
                       <input
                         type="email"
                         name="altEmail"
-                        value={serviceProviderData.vendorAlternateEmail}
+                        value={serviceProviderData.vendorAlternateEmail || ""}
                         onChange={(e) =>
                           handleServiceProviderData(
                             "vendorAlternateEmail",
@@ -1447,7 +1447,7 @@ const ProfileForm = () => {
                         type="text"
                         className="input"
                         name="address"
-                        value={serviceProviderData.vendorAddress}
+                        value={serviceProviderData.vendorAddress || ""}
                         onChange={(e) =>
                           handleServiceProviderData(
                             "vendorAddress",
@@ -1468,7 +1468,7 @@ const ProfileForm = () => {
                         type="text"
                         name="landmark"
                         className="input"
-                        value={serviceProviderData.vendorLandmark}
+                        value={serviceProviderData.vendorLandmark || ""}
                         onChange={(e) =>
                           handleServiceProviderData(
                             "vendorLandmark",
@@ -1503,7 +1503,7 @@ const ProfileForm = () => {
                                 value: serviceProviderData.vendorCountry,
                                 label: serviceProviderData.vendorCountry,
                               }
-                            : null
+                            : { value: "", label: "" }
                         }
                         onChange={(selectedOption) =>
                           handleServiceProviderData(
@@ -1550,7 +1550,7 @@ const ProfileForm = () => {
                                 value: serviceProviderData.vendorState,
                                 label: serviceProviderData.vendorState,
                               }
-                            : null
+                            : { value: "", label: "" }
                         }
                         onChange={(selectedOption) =>
                           handleServiceProviderData(
@@ -1600,7 +1600,7 @@ const ProfileForm = () => {
                                 value: serviceProviderData.vendorCity,
                                 label: serviceProviderData.vendorCity,
                               }
-                            : null
+                            : { value: "", label: "" }
                         }
                         onChange={(selectedOption) =>
                           handleServiceProviderData(
@@ -1635,7 +1635,7 @@ const ProfileForm = () => {
                         type="text"
                         name="taluk"
                         className="input"
-                        value={serviceProviderData.vendorTaluk}
+                        value={serviceProviderData.vendorTaluk || ""}
                         onChange={(e) =>
                           handleServiceProviderData(
                             "vendorTaluk",
@@ -1682,7 +1682,7 @@ const ProfileForm = () => {
                             e.preventDefault();
                           }
                         }}
-                        value={serviceProviderData.vendorPincode}
+                        value={serviceProviderData.vendorPincode || ""}
                         onChange={(e) =>
                           handleServiceProviderData(
                             "vendorPincode",
