@@ -392,7 +392,7 @@ const ProfilePage = (props) => {
           />
         );
       case "Booking History":
-        return <BookingHistory />;
+        return <BookingHistory hallId={hallData._id || ""} />;
       case "Cart":
         return <MyCart />;
       case "Favorites":

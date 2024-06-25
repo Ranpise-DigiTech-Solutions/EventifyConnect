@@ -134,9 +134,26 @@ const bookingDetailsTemplate = {
     hallParking: null,
     hallImage: null,
   },
+  customerData: {
+    _id: null,
+    customerName: null,
+    customerAddress: null,
+    customerLandmark: null,
+    customerEmail: null,
+    customerContact: null,
+    customerProfileImage: null,
+    customerAlternateMobileNo: null,
+    customerAlternateEmail: null,
+  },
 };
 
-const BookingDetailsDialog = ({ open, handleClose, currentBooking }) => {
+const BookingDetailsDialog = ({
+  open,
+  handleClose,
+  currentBooking,
+  userType,
+  vendorType,
+}) => {
   const [currentActiveTab, setCurrentActiveTab] = useState(0);
   const dataStore = useSelector((state) => state.data); // CITIES, EVENT_TYPES & VENDOR_TYPES data
   const [isFormTwoDisabled, setIsFormTwoDisabled] = useState(true);
@@ -249,8 +266,10 @@ const BookingDetailsDialog = ({ open, handleClose, currentBooking }) => {
           currentBooking.bookingStatus === "CONFIRMED"
             ? "hallBookingMaster"
             : "bookingMaster"
-        }/getBookingDetailsById/?bookingId=${currentBooking._id}`;
-        console.log(URL);
+        }/getBookingDetailsById/?bookingId=${
+          currentBooking._id
+        }&userType=${userType}`;
+        
         const response = await axios.get(URL);
         console.log(response.data[0]);
         const { bookingStartDateTimestamp, bookingEndDateTimestamp, ...info } =
@@ -365,7 +384,10 @@ const BookingDetailsDialog = ({ open, handleClose, currentBooking }) => {
   };
 
   useEffect(() => {
-    if (!bookingDetails.hallData._id || bookingStatusMsg.error) {
+    if (
+      (!bookingDetails.hallData._id && !bookingDetails.customerData._id) ||
+      bookingStatusMsg.error
+    ) {
       return;
     }
 
@@ -539,13 +561,13 @@ const BookingDetailsDialog = ({ open, handleClose, currentBooking }) => {
       case 0:
         break;
       case 1:
-        if(!isFormTwoDisabled) {
+        if (!isFormTwoDisabled) {
           handleUpdateFormTwo();
         }
         handleCurrentActiveTabChange(null, 0);
         break;
       case 2:
-        if(!isFormThreeDisabled) {
+        if (!isFormThreeDisabled) {
           handleUpdateFormThree();
         }
         handleCurrentActiveTabChange(null, 1);
@@ -561,7 +583,7 @@ const BookingDetailsDialog = ({ open, handleClose, currentBooking }) => {
         handleCurrentActiveTabChange(null, 1);
         break;
       case 1:
-        if(!isFormTwoDisabled) {
+        if (!isFormTwoDisabled) {
           handleUpdateFormTwo();
         }
         handleCurrentActiveTabChange(null, 2);
@@ -623,15 +645,28 @@ const BookingDetailsDialog = ({ open, handleClose, currentBooking }) => {
       {isScreenLoading && <LoadingScreen />}
       <div className="bookingDetailsDialog__mainContainer">
         <div className="wrapper header__wrapper">
-          <div className="image">
-            <img src={bookingDetails.hallData.hallImage} alt="" />
-          </div>
+          {userType === "CUSTOMER" ? (
+            <div className="image">
+              <img src={bookingDetails.hallData.hallImage} alt="" />
+            </div>
+          ) : (
+            <div className="image profilePic">
+              <img
+                src={bookingDetails.customerData.customerProfileImage}
+                alt=""
+              />
+            </div>
+          )}
           <Card className="booking-card" bordered={false}>
             <Title level={2} className="name">
-              <p>
-                {bookingDetails.hallData.hallName}{" "}
-                <span>({bookingDetails.vendorType})</span>
-              </p>
+              {userType === "CUSTOMER" ? (
+                <p>
+                  {bookingDetails.hallData.hallName}{" "}
+                  <span>({bookingDetails.vendorType})</span>
+                </p>
+              ) : vendorType === "Banquet Hall" ? (
+                <p>{bookingDetails.customerData.customerName}</p>
+              ) : null}
             </Title>
             <div className="description">
               <Row gutter={[16, 16]}>
@@ -701,130 +736,259 @@ const BookingDetailsDialog = ({ open, handleClose, currentBooking }) => {
             </Tabs>
           </Box>
           <div className="form__wrapper">
-            {currentActiveTab === 0 && (
-              <div
-                className={`container hallDetails__container disabledInput__wrapper`}
-              >
-                <div className="inputField__wrapper">
-                  <div className="title">hall name</div>
-                  <div className="input__wrapper disabledInput__wrapper">
-                    <BusinessIcon className="icon" />
-                    <div className="divider"></div>
-                    <input
-                      type="text"
-                      value={bookingDetails.hallData?.hallName}
-                      className="input"
-                      disabled
-                      readOnly
-                    />
+            {currentActiveTab === 0 &&
+              (userType === "CUSTOMER" ? (
+                <div
+                  className={`container hallDetails__container disabledInput__wrapper`}
+                >
+                  <div className="inputField__wrapper">
+                    <div className="title">hall name</div>
+                    <div className="input__wrapper disabledInput__wrapper">
+                      <BusinessIcon className="icon" />
+                      <div className="divider"></div>
+                      <input
+                        type="text"
+                        value={bookingDetails.hallData?.hallName}
+                        className="input"
+                        disabled
+                        readOnly
+                      />
+                    </div>
+                  </div>
+                  <div className="inputFields__wrapper">
+                    <div className="wrapper">
+                      <div className="title">location</div>
+                      <div className="input__wrapper disabledInput__wrapper">
+                        <PlaceIcon className="icon" />
+                        <div className="divider"></div>
+                        <input
+                          type="text"
+                          value={bookingDetails.hallData?.hallLocation}
+                          className="input"
+                          disabled
+                          readOnly
+                        />
+                      </div>
+                    </div>
+                    <div className="wrapper">
+                      <div className="title">landmark</div>
+                      <div className="input__wrapper disabledInput__wrapper">
+                        <FaLandmark className="icon" />
+                        <div className="divider"></div>
+                        <input
+                          type="text"
+                          value={bookingDetails.hallData?.hallLandmark}
+                          className="input"
+                          disabled
+                          readOnly
+                        />
+                      </div>
+                    </div>
+                  </div>
+                  <div className="inputFields__wrapper">
+                    <div className="wrapper">
+                      <div className="title">seating capacity</div>
+                      <div className="input__wrapper disabledInput__wrapper">
+                        <EventSeatIcon className="icon" />
+                        <div className="divider"></div>
+                        <input
+                          type="text"
+                          value={bookingDetails.hallData?.hallCapacity}
+                          className="input"
+                          disabled
+                          readOnly
+                        />
+                      </div>
+                    </div>
+                    <div className="wrapper">
+                      <div className="title">No. of Rooms</div>
+                      <div className="input__wrapper disabledInput__wrapper">
+                        <BedIcon className="icon" />
+                        <div className="divider"></div>
+                        <input
+                          type="text"
+                          value={bookingDetails.hallData?.hallRooms}
+                          className="input"
+                          disabled
+                          readOnly
+                        />
+                      </div>
+                    </div>
+                  </div>
+                  <div className="inputFields__wrapper">
+                    <div className="wrapper">
+                      <div className="title">veg food rate</div>
+                      <div className="input__wrapper disabledInput__wrapper">
+                        <RestaurantIcon className="icon" />
+                        <div className="divider"></div>
+                        <input
+                          type="text"
+                          value={bookingDetails.hallData?.hallVegRate}
+                          className="input"
+                          disabled
+                          readOnly
+                        />
+                      </div>
+                    </div>
+                    <div className="wrapper">
+                      <div className="title">Non-Veg food rate</div>
+                      <div className="input__wrapper disabledInput__wrapper">
+                        <RestaurantIcon className="icon" />
+                        <div className="divider"></div>
+                        <input
+                          type="text"
+                          value={bookingDetails.hallData?.hallNonVegRate}
+                          className="input"
+                          disabled
+                          readOnly
+                        />
+                      </div>
+                    </div>
+                  </div>
+                  <div className="inputField__wrapper half-width">
+                    <div className="title">Parking Availability</div>
+                    <div className="input__wrapper disabledInput__wrapper">
+                      <LocalParkingIcon className="icon" />
+                      <div className="divider"></div>
+                      <input
+                        type="text"
+                        value={bookingDetails.hallData?.hallParking}
+                        className="input"
+                        disabled
+                        readOnly
+                      />
+                    </div>
                   </div>
                 </div>
-                <div className="inputFields__wrapper">
-                  <div className="wrapper">
-                    <div className="title">location</div>
+              ) : (
+                <div
+                  className={`container hallDetails__container disabledInput__wrapper`}
+                >
+                  <div className="inputField__wrapper">
+                    <div className="title">customer name</div>
                     <div className="input__wrapper disabledInput__wrapper">
-                      <PlaceIcon className="icon" />
+                      <BusinessIcon className="icon" />
                       <div className="divider"></div>
                       <input
                         type="text"
-                        value={bookingDetails.hallData?.hallLocation}
+                        value={bookingDetails.customerData?.customerName}
                         className="input"
                         disabled
                         readOnly
                       />
                     </div>
                   </div>
-                  <div className="wrapper">
-                    <div className="title">landmark</div>
+                  <div className="inputFields__wrapper">
+                    <div className="wrapper">
+                      <div className="title">location</div>
+                      <div className="input__wrapper disabledInput__wrapper">
+                        <PlaceIcon className="icon" />
+                        <div className="divider"></div>
+                        <input
+                          type="text"
+                          value={bookingDetails.customerData?.customerAddress}
+                          className="input"
+                          // disabled
+                          readOnly
+                        />
+                      </div>
+                    </div>
+                    <div className="wrapper">
+                      <div className="title">landmark</div>
+                      <div className="input__wrapper disabledInput__wrapper">
+                        <FaLandmark className="icon" />
+                        <div className="divider"></div>
+                        <input
+                          type="text"
+                          value={bookingDetails.customerData?.customerLandmark}
+                          className="input"
+                          disabled
+                          readOnly
+                        />
+                      </div>
+                    </div>
+                  </div>
+                  <div className="inputFields__wrapper">
+                    <div className="wrapper">
+                      <div className="title">mobile no.</div>
+                      <div className="input__wrapper disabledInput__wrapper">
+                        <EventSeatIcon className="icon" />
+                        <div className="divider"></div>
+                        <input
+                          type="text"
+                          value={bookingDetails.customerData?.customerContact}
+                          className="input"
+                          disabled
+                          readOnly
+                        />
+                      </div>
+                    </div>
+                    <div className="wrapper">
+                      <div className="title">email</div>
+                      <div className="input__wrapper disabledInput__wrapper">
+                        <BedIcon className="icon" />
+                        <div className="divider"></div>
+                        <input
+                          type="text"
+                          value={bookingDetails.customerData?.customerEmail}
+                          className="input"
+                          disabled
+                          readOnly
+                        />
+                      </div>
+                    </div>
+                  </div>
+                  <div className="inputFields__wrapper">
+                    <div className="wrapper">
+                      <div className="title">alt mobile no.</div>
+                      <div className="input__wrapper disabledInput__wrapper">
+                        <RestaurantIcon className="icon" />
+                        <div className="divider"></div>
+                        <input
+                          type="text"
+                          value={
+                            bookingDetails.customerData
+                              ?.customerAlternateMobileNo
+                          }
+                          className="input"
+                          disabled
+                          readOnly
+                        />
+                      </div>
+                    </div>
+                    <div className="wrapper">
+                      <div className="title">Alt Email </div>
+                      <div className="input__wrapper disabledInput__wrapper">
+                        <RestaurantIcon className="icon" />
+                        <div className="divider"></div>
+                        <input
+                          type="text"
+                          value={
+                            bookingDetails.customerData?.customerAlternateEmail
+                          }
+                          className="input"
+                          disabled
+                          readOnly
+                        />
+                      </div>
+                    </div>
+                  </div>
+                  {/* <div className="inputField__wrapper half-width">
+                    <div className="title">Parking Availability</div>
                     <div className="input__wrapper disabledInput__wrapper">
-                      <FaLandmark className="icon" />
+                      <LocalParkingIcon className="icon" />
                       <div className="divider"></div>
                       <input
                         type="text"
-                        value={bookingDetails.hallData?.hallLandmark}
+                        value={bookingDetails.hallData?.hallParking}
                         className="input"
                         disabled
                         readOnly
                       />
                     </div>
-                  </div>
+                  </div> */}
                 </div>
-                <div className="inputFields__wrapper">
-                  <div className="wrapper">
-                    <div className="title">seating capacity</div>
-                    <div className="input__wrapper disabledInput__wrapper">
-                      <EventSeatIcon className="icon" />
-                      <div className="divider"></div>
-                      <input
-                        type="text"
-                        value={bookingDetails.hallData?.hallCapacity}
-                        className="input"
-                        disabled
-                        readOnly
-                      />
-                    </div>
-                  </div>
-                  <div className="wrapper">
-                    <div className="title">No. of Rooms</div>
-                    <div className="input__wrapper disabledInput__wrapper">
-                      <BedIcon className="icon" />
-                      <div className="divider"></div>
-                      <input
-                        type="text"
-                        value={bookingDetails.hallData?.hallRooms}
-                        className="input"
-                        disabled
-                        readOnly
-                      />
-                    </div>
-                  </div>
-                </div>
-                <div className="inputFields__wrapper">
-                  <div className="wrapper">
-                    <div className="title">veg food rate</div>
-                    <div className="input__wrapper disabledInput__wrapper">
-                      <RestaurantIcon className="icon" />
-                      <div className="divider"></div>
-                      <input
-                        type="text"
-                        value={bookingDetails.hallData?.hallVegRate}
-                        className="input"
-                        disabled
-                        readOnly
-                      />
-                    </div>
-                  </div>
-                  <div className="wrapper">
-                    <div className="title">Non-Veg food rate</div>
-                    <div className="input__wrapper disabledInput__wrapper">
-                      <RestaurantIcon className="icon" />
-                      <div className="divider"></div>
-                      <input
-                        type="text"
-                        value={bookingDetails.hallData?.hallNonVegRate}
-                        className="input"
-                        disabled
-                        readOnly
-                      />
-                    </div>
-                  </div>
-                </div>
-                <div className="inputField__wrapper half-width">
-                  <div className="title">Parking Availability</div>
-                  <div className="input__wrapper disabledInput__wrapper">
-                    <LocalParkingIcon className="icon" />
-                    <div className="divider"></div>
-                    <input
-                      type="text"
-                      value={bookingDetails.hallData?.hallParking}
-                      className="input"
-                      disabled
-                      readOnly
-                    />
-                  </div>
-                </div>
-              </div>
-            )}
+              ))}
             {currentActiveTab === 1 && (
               <div
                 className={`container preferences__container ${
@@ -1383,6 +1547,8 @@ BookingDetailsDialog.propTypes = {
   open: PropTypes.bool.isRequired,
   handleClose: PropTypes.func.isRequired,
   currentBooking: PropTypes.object.isRequired,
+  userType: PropTypes.string.isRequired,
+  vendorType: PropTypes.string.isRequired,
 };
 
 export default BookingDetailsDialog;

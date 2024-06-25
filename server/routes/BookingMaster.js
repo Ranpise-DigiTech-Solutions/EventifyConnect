@@ -4,7 +4,7 @@ import { ObjectId } from "mongodb";
 import mongoose from "mongoose";
 import { doc, getDoc, updateDoc } from 'firebase/firestore';
 
-import { bookingMaster } from '../models/index.js';
+import { bookingMaster, hallBookingMaster } from '../models/index.js';
 import { firestore } from "../database/FirebaseDb.js";
 
 router.get("/", async (req, res) => {
@@ -37,14 +37,14 @@ router.get("/getBookingCount", async (req, res) => {
     }
 });
 
-router.get("fetchBookingById/:id", async (req, res) => {
+router.get("/fetchBookingById/:id", async (req, res) => {
     const bookingId = req.params.id;
 
     try {
         const bookingdata = await bookingMaster.findById(bookingId);
 
         if (!bookingdata) {
-            return res.status(404).json({ message: "Customer not found" });
+            return res.status(404).json({ message: "Booking not found" });
         }
 
         return res.status(200).json(bookingdata);
@@ -203,156 +203,245 @@ router.get("/getUserBookings", async (req, res) => {
 });
 
 // fetch all the bookings of a particular hall vendor
-// router.get("/getHallBookings", async (req, res) => {
+router.get("/getHallBookings", async (req, res) => {
 
-//     const { serviceProviderId, startDateOfMonth, endDateOfMonth, sortCriteria, bookingCategory } = req.query;
+    const { hallId, startDateOfMonth, endDateOfMonth, sortCriteria, bookingCategory } = req.query;
 
-//     // Helper function to check if a string is a valid ObjectId
-//     function isObjectIdFormat(str) {
-//         return /^[0-9a-fA-F]{24}$/.test(str);
-//     }
+    // Helper function to check if a string is a valid ObjectId
+    function isObjectIdFormat(str) {
+        return /^[0-9a-fA-F]{24}$/.test(str);
+    }
 
-//     // Validate serviceProviderId
-//     if (!serviceProviderId || !isObjectIdFormat(serviceProviderId)) {
-//         return res.status(422).json({ message: 'The server was unable to process the request due to invalid Service Provider Id.' });
-//     }
+    // Validate serviceProviderId
+    if (!hallId || !isObjectIdFormat(hallId)) {
+        return res.status(422).json({ message: 'The server was unable to process the request due to invalid Hall Id.' });
+    }
 
-//     const serviceProviderObjectId = new ObjectId(serviceProviderId);
+    const hallObjectId = new ObjectId(hallId);
 
-//     // Validate dates
-//     if (!startDateOfMonth || !endDateOfMonth) {
-//         return res.status(422).json({ message: 'Start date and end date of the month are required.' });
-//     }
+    // Validate dates
+    if (!startDateOfMonth || !endDateOfMonth) {
+        return res.status(422).json({ message: 'Start date and end date of the month are required.' });
+    }
 
-//     const page = parseInt(req.query.page) || 0; // default page no
-//     const limit = parseInt(req.query.limit) || 10; // default no of rows per page
-//     const skip = page * limit;
+    const page = parseInt(req.query.page) || 0; // default page no
+    const limit = parseInt(req.query.limit) || 10; // default no of rows per page
+    const skip = page * limit;
 
-//     const startDateOfMonthObj = new Date(startDateOfMonth);
-//     const endDateOfMonthObj = new Date(endDateOfMonth);
+    const startDateOfMonthObj = new Date(startDateOfMonth);
+    const endDateOfMonthObj = new Date(endDateOfMonth);
 
-//     const startDateUTC = new Date(startDateOfMonthObj.getTime() + (startDateOfMonthObj.getTimezoneOffset() * 60000)).toISOString();
-//     const endDateUTC = new Date(endDateOfMonthObj.getTime() + (endDateOfMonthObj.getTimezoneOffset() * 60000)).toISOString();
+    const startDateUTC = new Date(startDateOfMonthObj.getTime() + (startDateOfMonthObj.getTimezoneOffset() * 60000)).toISOString();
+    const endDateUTC = new Date(endDateOfMonthObj.getTime() + (endDateOfMonthObj.getTimezoneOffset() * 60000)).toISOString();
 
-//     try {
+    try {
+        const bookings = await bookingMaster.aggregate([
+            // Pipeline for bookingMaster
+            {
+                $lookup: {
+                    from: 'customermasters',
+                    localField: 'customerId',
+                    foreignField: '_id',
+                    as: 'customerMaster'
+                }
+            },
+            {
+                $lookup: {
+                    from: 'eventtypes',
+                    localField: 'eventId',
+                    foreignField: '_id',
+                    as: 'eventType'
+                }
+            },
+            {
+                $unwind: {
+                    path: '$customerMaster',
+                    preserveNullAndEmptyArrays: true
+                }
+            },
+            {
+                $unwind: {
+                    path: '$eventType',
+                    preserveNullAndEmptyArrays: true
+                }
+            },
+            {
+                $addFields: {
+                    customerName: '$customerMaster.customerName',
+                    eventName: '$eventType.eventName',
+                    bookingId: '$_id'
+                }
+            },
+            {
+                $match: {
+                    hallId: hallObjectId,
+                    bookingStatus: bookingCategory === "PENDING" ? bookingCategory : { $exists: true },
+                    bookingStartDateTimestamp: bookingCategory === "UPCOMING" ? { $gt: new Date() } : { $exists: true },
+                    bookingEndDateTimestamp: bookingCategory === "COMPLETED" ? { $lt: new Date() } : { $exists: true },
+                    $or: [
+                        {
+                            $and: [
+                                { bookingStartDateTimestamp: { $lte: new Date(endDateUTC) } },
+                                { bookingEndDateTimestamp: { $gte: new Date(startDateUTC) } }
+                            ]
+                        },
+                        {
+                            $and: [
+                                { bookingStartDateTimestamp: { $lte: new Date(endDateUTC) } },
+                                { bookingEndDateTimestamp: null }
+                            ]
+                        }
+                    ]
+                }
+            },
+            {
+                $unionWith: {
+                    coll: 'hallbookingmasters',
+                    pipeline: [
+                        {
+                            $match: {
+                                hallId: hallObjectId,
+                                bookingStatus: bookingCategory === "PENDING" ? bookingCategory : { $exists: true },
+                                bookingStartDateTimestamp: bookingCategory === "UPCOMING" ? { $gt: new Date() } : { $exists: true },
+                                bookingEndDateTimestamp: bookingCategory === "COMPLETED" ? { $lt: new Date() } : { $exists: true },
+                                $or: [
+                                    {
+                                        $and: [
+                                            { bookingStartDateTimestamp: { $lte: new Date(endDateUTC) } },
+                                            { bookingEndDateTimestamp: { $gte: new Date(startDateUTC) } }
+                                        ]
+                                    },
+                                    {
+                                        $and: [
+                                            { bookingStartDateTimestamp: { $lte: new Date(endDateUTC) } },
+                                            { bookingEndDateTimestamp: null }
+                                        ]
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            $lookup: {
+                                from: 'customermasters',
+                                localField: 'customerId',
+                                foreignField: '_id',
+                                as: 'customerMaster'
+                            }
+                        },
+                        {
+                            $lookup: {
+                                from: 'eventtypes',
+                                localField: 'eventId',
+                                foreignField: '_id',
+                                as: 'eventType'
+                            }
+                        },
+                        {
+                            $unwind: {
+                                path: '$customerMaster',
+                                preserveNullAndEmptyArrays: true
+                            }
+                        },
+                        {
+                            $unwind: {
+                                path: '$eventType',
+                                preserveNullAndEmptyArrays: true
+                            }
+                        },
+                        {
+                            $addFields: {
+                                customerName: "$customerName" === null ? "$customerMaster.customerName" : "$customerName",
+                                eventName: '$eventType.eventName'
+                            }
+                        },
+                        {
+                            $addFields: {
+                                bookingId: '$_id'
+                            }
+                        }
+                    ]
+                }
+            },
+            {
+                $group: {
+                    _id: '$bookingId',
+                    document: { $first: '$$ROOT' }
+                }
+            },
+            {
+                $replaceRoot: {
+                    newRoot: '$document'
+                }
+            },
+            {
+                $addFields: {
+                    sortKey: {
+                        $switch: {
+                            branches: [
+                                { case: { $eq: [sortCriteria, "bookingId"] }, then: "$_id" },
+                                { case: { $eq: [sortCriteria, "customerName"] }, then: "$customerName" },
+                                { case: { $eq: [sortCriteria, "eventType"] }, then: "$eventName" },
+                                { case: { $eq: [sortCriteria, "customerType"] }, then: "$customerType" },
+                                { case: { $eq: [sortCriteria, "bookingStartDate"] }, then: "$bookingStartDateTimestamp" },
+                                { case: { $eq: [sortCriteria, "bookingDuration"] }, then: "$bookingDuration" },
+                                { case: { $eq: [sortCriteria, "bookingStatus"] }, then: "$bookingStatus" }
+                            ],
+                            default: null
+                        }
+                    }
+                }
+            },
+            ...(sortCriteria !== "" ? (sortCriteria === "bookingStartDate" ? [{ $sort: { sortKey: -1 } }] : [{ $sort: { sortKey: 1 } }]) : []),
+            {
+                $facet: {
+                    bookings: [
+                        { $skip: skip },
+                        { $limit: limit },
+                        {
+                            $project: {
+                                _id: 1,
+                                documentId: 1,
+                                bookingStartDateTimestamp: 1,
+                                bookingDuration: 1,
+                                bookingStatus: 1,
+                                customerName: 1,
+                                customerType: 1,
+                                eventName: 1,
+                            }
+                        }
+                    ],
+                    total: [
+                        { $count: 'count' }
+                    ]
+                }
+            },
+            {
+                $project: {
+                    bookings: 1,
+                    total: 1
+                }
+            }
+        ]);
+        
+        
+        return res.status(200).json(bookings);
 
-//         const bookings = await bookingMaster.aggregate([
-//             {
-//                 $lookup: {
-//                     from: 'hallmasters',
-//                     localField: 'hallId',
-//                     foreignField: '_id',
-//                     as: 'hallMaster'
-//                 }
-//             },
-//             {
-//                 $lookup: {
-//                     from: 'customermasters',
-//                     localField: 'customerId',
-//                     foreignField: '_id',
-//                     as: 'customerMaster'
-//                 }
-//             },
-//             {
-//                 $lookup: {
-//                     from: 'eventtypes',
-//                     localField: 'eventId',
-//                     foreignField: '_id',
-//                     as: 'eventType'
-//                 }
-//             },
-//             {
-//                 $unwind: '$hallMaster'
-//             },
-//             {
-//                 $unwind: '$customerMaster'
-//             },
-//             {
-//                 $unwind: '$eventType'
-//             },
-//             {
-//                 $match: {
-//                     "$hallMaster.hallUserId": serviceProviderId,
-//                     bookingStatus: bookingCategory === "PENDING" ? bookingCategory : { $exists: true },
-//                     bookingStartDateTimestamp: bookingCategory === "UPCOMING" ? { $gt: new Date() } : { $exists: true },
-//                     bookingEndDateTimestamp: bookingCategory === "COMPLETED" ? { $lt: new Date() } : { $exists: true },
-//                     $or: [
-//                         {
-//                             $and: [
-//                                 { bookingStartDateTimestamp: { $lte: new Date(endDateUTC) } },
-//                                 { bookingEndDateTimestamp: { $gte: new Date(startDateUTC) } }
-//                             ]
-//                         },
-//                         {
-//                             $and: [
-//                                 { bookingStartDateTimestamp: { $lte: new Date(endDateUTC) } },
-//                                 { bookingEndDateTimestamp: null } // Handling bookings that extend beyond the selected date
-//                             ]
-//                         }
-//                     ]
-//                 }
-//             },
-//             {
-//                 $addFields: {
-//                     sortKey: {
-//                         $switch: {
-//                             branches: [
-//                                 { case: { $eq: [sortCriteria, "bookingId"] }, then: "$_id" },
-//                                 { case: { $eq: [sortCriteria, "customerName"] }, then: "$customerMaster.customerName" },
-//                                 { case: { $eq: [sortCriteria, "eventType"] }, then: "$eventType.eventName" },
-//                                 { case: { $eq: [sortCriteria, "vendorType"] }, then: "$vendorType.vendorType" },
-//                                 { case: { $eq: [sortCriteria, "bookingStartDate"] }, then: "$bookingStartDateTimestamp" },
-//                                 { case: { $eq: [sortCriteria, "bookingDuration"] }, then: "$bookingDuration" },
-//                                 { case: { $eq: [sortCriteria, "bookingStatus"] }, then: "$bookingStatus" }
-//                             ],
-//                             default: null // Optional: default value if none of the conditions match
-//                         }
-//                     }
-//                 }
-//             },
-//             ...(sortCriteria !== "" ? sortCriteria === "bookingStartDate" ? [{ $sort: { sortKey: -1 } }] : [{ $sort: { sortKey: 1 } }] : []), // Apply sort if shouldSort is true
-//             {
-//                 $facet: {
-//                     bookings: [
-//                         { $skip: skip },
-//                         { $limit: limit },
-//                         {
-//                             $project: {
-//                                 documentId: 1,
-//                                 bookingStartDateTimestamp: 1,
-//                                 bookingDuration: 1,
-//                                 bookingStatus: 1,
-//                                 vendorName: '$vendorType.vendorType',
-//                                 hallName: '$hallMaster.hallName',
-//                                 eventName: '$eventType.eventName',
-//                             }
-//                         }
-//                     ],
-//                     total: [
-//                         { $count: 'count' }
-//                     ]
-//                 }
-//             },
-//         ]);
+    } catch (error) {
+        console.log(error);
+        return res.status(500).json({ message: error.message });
+    }
 
-
-//         // if (bookings.total[0].count === 0) {
-//         //     return res.status(404).json({ message: "No bookings found!" });
-//         // }
-
-//         return res.status(200).json(bookings);
-
-//     } catch (error) {
-//         console.log(error);
-//         return res.status(500).json({ message: error.message });
-//     }
-
-// });
+});
 
 //fetch a specific booking detail by bookingId
 router.get('/getBookingDetailsById', async (req, res) => {
 
-    const { bookingId } = req.query;
+    const { bookingId, userType } = req.query;
+
+    if (!userType) {
+        return res.status(404).json({ message: "UserType not specified!" })
+    }
+
 
     // Helper function to check if a string is a valid ObjectId
     function isObjectIdFormat(str) {
@@ -384,6 +473,14 @@ router.get('/getBookingDetailsById', async (req, res) => {
             },
             {
                 $lookup: {
+                    from: 'customermasters',
+                    localField: 'customerId',
+                    foreignField: '_id',
+                    as: 'customerMaster',
+                },
+            },
+            {
+                $lookup: {
                     from: 'eventtypes',
                     localField: 'eventId',
                     foreignField: '_id',
@@ -400,6 +497,9 @@ router.get('/getBookingDetailsById', async (req, res) => {
             },
             {
                 $unwind: '$hallMaster',
+            },
+            {
+                $unwind: '$customerMaster',
             },
             {
                 $unwind: '$eventType'
@@ -441,7 +541,7 @@ router.get('/getBookingDetailsById', async (req, res) => {
                     //fields from eventType collection
                     eventTypeInfo: { value: '$eventType._id', label: '$eventType.eventName' },
                     //fields from hallMaster collection
-                    hallData: {
+                    hallData: userType === "CUSTOMER" ? {
                         _id: "$hallMaster._id",
                         hallName: "$hallMaster.hallName",
                         hallLocation: {
@@ -460,7 +560,28 @@ router.get('/getBookingDetailsById', async (req, res) => {
                         hallNonVegRate: "$hallMaster.hallNonVegRate",
                         hallParking: { $cond: { if: "$hallMaster.hallParking", then: "Available", else: "UnAvailable" } },
                         hallImage: { $arrayElemAt: ["$hallMaster.hallImages", 0] },
-                    },
+                    } : { _id: "$hallMaster._id", },
+                    customerData: userType === "VENDOR" ? {
+                        _id: "$customerMaster._id",
+                        customerName: "$customerMaster.customerName",
+                        customerAddress: {
+                            $concat: [
+                                '$customerMaster.customerAddress',
+                                ', ',
+                                '$customerMaster.customerCity',
+                                ', ',
+                                '$customerMaster.customerState',
+                                ', ',
+                                '$customerMaster.customerCountry'
+                            ]
+                        },
+                        customerLandmark: "$customerMaster.customerLandmark",
+                        customerEmail: "$customerMaster.customerEmail",
+                        customerContact: "$customerMaster.customerContact",
+                        customerProfileImage: "$customerMaster.customerProfileImage",
+                        customerAlternateMobileNo: "$customerMaster.customerAlternateMobileNo",
+                        customerAlternateEmail: "$customerMaster.customerAlternateEmail",
+                    } : null,
                 },
             },
         ]);
@@ -560,7 +681,7 @@ router.patch("/updateBookingDetails/:id", async (req, res) => {
     const resourceId = req.params.id;
     const updatedFields = req.body;
 
-    if(!resourceId || !updatedFields) {
+    if (!resourceId || !updatedFields) {
         return res.status(404).json({ message: "Required fields not found!!" });
     }
 
@@ -572,7 +693,7 @@ router.patch("/updateBookingDetails/:id", async (req, res) => {
             { new: true }
         );
 
-        if(!updatedResource) {
+        if (!updatedResource) {
             return res.status(404).json({ message: "Resource not found!!" });
         }
 

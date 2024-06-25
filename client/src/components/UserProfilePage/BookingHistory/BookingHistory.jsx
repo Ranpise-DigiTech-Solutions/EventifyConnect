@@ -25,8 +25,9 @@ import {
 } from "@ant-design/icons";
 import { Images } from "../../../constants";
 import { BookingDetailsDialog } from "../../UserProfilePage";
+import PropTypes from "prop-types";
 
-const BookingHistory = () => {
+const BookingHistory = ({ hallId }) => {
   const userInfoStore = useSelector((state) => state.userInfo);
   const userType = userInfoStore.userDetails.userType || "";
   const vendorType = userInfoStore.userDetails.vendorType || "";
@@ -49,6 +50,10 @@ const BookingHistory = () => {
     openBookingCancelConfirmationDialog,
     setOpenBookingCancelConfirmationDialog,
   ] = useState(false); // toggle booking cancellation screen
+  const [
+    openBookingConfirmConfirmationDialog,
+    setOpenBookingConfirmConfirmationDialog,
+  ] = useState(false); // toggle booking confirmation screen
 
   const [pageNo, setPageNo] = useState(0); // current page no.
   const [rowsPerPage, setRowsPerPage] = useState(10);
@@ -86,6 +91,15 @@ const BookingHistory = () => {
 
   const handleBookingCancelConfirmationDialogOpen = () => {
     setOpenBookingCancelConfirmationDialog(true);
+  };
+
+  const handleBookingConfirmConfirmationDialogOpen = () => {
+    setOpenBookingConfirmConfirmationDialog(true);
+  };
+
+  const handleBookingConfirmConfirmationDialogClose = () => {
+    setOpenBookingConfirmConfirmationDialog(false);
+    handleMoreVertIconClose();
   };
 
   const startOfMonth = (date) => {
@@ -137,18 +151,16 @@ const BookingHistory = () => {
         try {
           console.log(startDateOfMonth, endDateOfMonth);
           const URL =
-            userType === "CUSTOMER" &&
-            `${
-              import.meta.env.VITE_SERVER_URL
-            }/eventify_server/bookingMaster/getUserBookings/?customerId=${
-              userInfoStore.userDetails.Document._id
-            }&startDateOfMonth=${startDateOfMonth}&endDateOfMonth=${endDateOfMonth}&page=${pageNo}&limit=${rowsPerPage}&sortCriteria=${dataSortCriteria}&bookingCategory=${currentTab}`;
-          // : vendorType === "Banquet Hall" &&
-          //   `${
-          //     import.meta.env.VITE_SERVER_URL
-          //   }/eventify_server/bookingMaster/getHallBookings/?serviceProviderId=${
-          //     userInfoStore.userDetails.Document._id
-          //   }&startDateOfMonth=${startDateOfMonth}&endDateOfMonth=${endDateOfMonth}&page=${pageNo}&limit=${rowsPerPage}&sortCriteria=${dataSortCriteria}&bookingCategory=${currentTab}`;
+            userType === "CUSTOMER"
+              ? `${
+                  import.meta.env.VITE_SERVER_URL
+                }/eventify_server/bookingMaster/getUserBookings/?customerId=${
+                  userInfoStore.userDetails.Document._id
+                }&startDateOfMonth=${startDateOfMonth}&endDateOfMonth=${endDateOfMonth}&page=${pageNo}&limit=${rowsPerPage}&sortCriteria=${dataSortCriteria}&bookingCategory=${currentTab}`
+              : vendorType === "Banquet Hall" &&
+                `${
+                  import.meta.env.VITE_SERVER_URL
+                }/eventify_server/bookingMaster/getHallBookings/?hallId=${hallId}&startDateOfMonth=${startDateOfMonth}&endDateOfMonth=${endDateOfMonth}&page=${pageNo}&limit=${rowsPerPage}&sortCriteria=${dataSortCriteria}&bookingCategory=${currentTab}`;
           const response = await axios.get(URL);
 
           console.log(response.data);
@@ -212,7 +224,7 @@ const BookingHistory = () => {
     // Handle cancel booking logic
     event.preventDefault();
 
-    if(!selectedBooking) {
+    if (!selectedBooking) {
       return;
     }
 
@@ -221,7 +233,7 @@ const BookingHistory = () => {
     const formData = new FormData(event.currentTarget);
     const formJson = Object.fromEntries(formData.entries());
     const message = formJson.message;
-    
+
     const response = await axios.patch(
       `${
         import.meta.env.VITE_SERVER_URL
@@ -236,6 +248,66 @@ const BookingHistory = () => {
 
     setIsPageLoading(false);
     handleBookingCancelConfirmationDialogClose();
+    handleMoreVertIconClose(); // Close menu after action
+    setReloadData(!reloadData);
+  };
+
+  const handleConfirmBooking = async (event) => {
+    event.preventDefault();
+
+    if (!selectedBooking) {
+      return;
+    }
+
+    setIsPageLoading(true);
+
+    const formData = new FormData(event.currentTarget);
+    const formJson = Object.fromEntries(formData.entries());
+    const message = formJson.message;
+
+    const bookingMasterRes = await axios.get(
+      `${
+        import.meta.env.VITE_SERVER_URL
+      }/eventify_server/bookingMaster/fetchBookingById/${selectedBooking._id}`
+    );
+
+    const bookingDetails = bookingMasterRes.data;
+    const {
+      bookingType,
+      createdAt,
+      updatedAt,
+      customerInfo,
+      customerNonVegItemsList,
+      customerVegItemsList,
+      customerNonVegRate,
+      customerVegRate,
+      guestsCount,
+      parkingRequirement,
+      roomsCount,
+      vehiclesCount,
+      _v,
+      ...info
+    } = bookingDetails;
+
+    const response = await axios.post(
+      `${import.meta.env.VITE_SERVER_URL}/eventify_server/hallBookingMaster/`,
+      {
+        ...info,
+        finalVegRate: customerVegRate,
+        finalNonVegRate: customerNonVegRate,
+        finalVegItemsList: customerVegItemsList,
+        finalNonVegItemsList: customerNonVegItemsList,
+        finalGuestCount: guestsCount,
+        finalHallParkingRequirement: parkingRequirement,
+        bookingStatus: "CONFIRMED",
+        finalRoomCount: roomsCount,
+        finalVehicleCount: vehiclesCount,
+        bookingStatusRemark: message,
+      }
+    );
+
+    setIsPageLoading(false);
+    handleBookingConfirmConfirmationDialogClose();
     handleMoreVertIconClose(); // Close menu after action
     setReloadData(!reloadData);
   };
@@ -299,6 +371,8 @@ const BookingHistory = () => {
           open={isBookingDetailsDialogOpen}
           handleClose={handleBookingDetailsDialogClose}
           currentBooking={selectedBooking}
+          userType={userType}
+          vendorType={vendorType}
         />
       )}
       <Dialog
@@ -329,6 +403,39 @@ const BookingHistory = () => {
         </DialogContent>
         <DialogActions>
           <Button onClick={handleBookingCancelConfirmationDialogClose}>
+            Cancel
+          </Button>
+          <Button type="submit">Proceed</Button>
+        </DialogActions>
+      </Dialog>
+      <Dialog
+        open={openBookingConfirmConfirmationDialog}
+        onClose={handleBookingConfirmConfirmationDialogClose}
+        PaperProps={{
+          component: "form",
+          onSubmit: handleConfirmBooking,
+        }}
+      >
+        <DialogTitle>Confirm Booking</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            Are you sure, you want to confirm this booking? Please note that
+            this action is irreversible.
+          </DialogContentText>
+          <TextField
+            autoFocus
+            required
+            margin="dense"
+            id="message"
+            name="message"
+            label="Your Message"
+            type="text"
+            fullWidth
+            variant="standard"
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleBookingConfirmConfirmationDialogClose}>
             Cancel
           </Button>
           <Button type="submit">Proceed</Button>
@@ -374,17 +481,41 @@ const BookingHistory = () => {
             <p>Id</p>
             <ArrowDropDownOutlinedIcon className="icon" />
           </div>
-          <div className="tag" onClick={() => setDataSortCriteria("hallName")}>
-            <p>Name</p>
-            <ArrowDropDownOutlinedIcon className="icon" />
-          </div>
-          <div
-            className="tag"
-            onClick={() => setDataSortCriteria("vendorType")}
-          >
-            <p>Vendor</p>
-            <ArrowDropDownOutlinedIcon className="icon" />
-          </div>
+          {userType === "CUSTOMER" ? (
+            <>
+              <div
+                className="tag"
+                onClick={() => setDataSortCriteria("hallName")}
+              >
+                <p>Vendor Name</p>
+                <ArrowDropDownOutlinedIcon className="icon" />
+              </div>
+              <div
+                className="tag"
+                onClick={() => setDataSortCriteria("vendorType")}
+              >
+                <p>Vendor</p>
+                <ArrowDropDownOutlinedIcon className="icon" />
+              </div>
+            </>
+          ) : (
+            <>
+              <div
+                className="tag"
+                onClick={() => setDataSortCriteria("customerName")}
+              >
+                <p>Cust Name</p>
+                <ArrowDropDownOutlinedIcon className="icon" />
+              </div>
+              <div
+                className="tag"
+                onClick={() => setDataSortCriteria("customerType")}
+              >
+                <p>Cust Type</p>
+                <ArrowDropDownOutlinedIcon className="icon" />
+              </div>
+            </>
+          )}
           <div className="tag" onClick={() => setDataSortCriteria("eventType")}>
             <p>Event</p>
             <ArrowDropDownOutlinedIcon className="icon" />
@@ -422,8 +553,8 @@ const BookingHistory = () => {
               <div className="bookingItem" key={index}>
                 <div className="items-list">
                   <div className="item">{booking.documentId}</div>
-                  <div className="item">{booking.hallName}</div>
-                  <div className="item">{booking.vendorType}</div>
+                  <div className="item">{booking.customerName}</div>
+                  <div className="item">{booking.customerType}</div>
                   <div className="item">{booking.eventName}</div>
                   <div className="item">
                     {getFormattedBookingStartDate(
@@ -471,6 +602,16 @@ const BookingHistory = () => {
                         View Details
                       </MenuItem>
                       <MenuItem
+                        style={{ color: "green" }}
+                        onClick={handleBookingConfirmConfirmationDialogOpen}
+                        disabled={
+                          userType === "CUSTOMER" ||
+                          booking.bookingStatus !== "PENDING"
+                        }
+                      >
+                        Confirm Booking
+                      </MenuItem>
+                      <MenuItem
                         style={{ color: "red" }}
                         onClick={handleBookingCancelConfirmationDialogOpen}
                         disabled={booking.bookingStatus !== "PENDING"}
@@ -508,6 +649,10 @@ const BookingHistory = () => {
       />
     </div>
   );
+};
+
+BookingHistory.propTypes = {
+  hallId: PropTypes.any,
 };
 
 export default BookingHistory;
