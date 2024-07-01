@@ -35,7 +35,8 @@ const AppWrap = (Component, idName, classNames) => function HOC() {
       <WhatsAppIcon
         className='chatbot__icon'
         onClick={handleChatBotClick}
-        style={{ display: showChatBot ? 'none' : 'block' }}
+        // style={{ display: showChatBot ? 'none' : 'block' }}
+        style={{ display: 'none'}}
       />
       {showChatBot && <ChatBot onChatClose={handleChatClose} />}
     </motion.div>

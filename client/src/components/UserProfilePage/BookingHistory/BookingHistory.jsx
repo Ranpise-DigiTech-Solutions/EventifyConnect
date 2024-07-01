@@ -289,7 +289,14 @@ const BookingHistory = ({ hallId }) => {
       ...info
     } = bookingDetails;
 
-    const response = await axios.post(
+    // set the status as confirmed in bookingMaster
+    await axios.patch(`${import.meta.env.VITE_SERVER_URL}/eventify_server/bookingMaster/updateBookingDetails/${selectedBooking._id}`, {
+      bookingStatus: "CONFIRMED",
+      bookingStatusRemark: message,
+    }); 
+
+    // push the confirmed booking to hallBookingMaster
+    await axios.post(
       `${import.meta.env.VITE_SERVER_URL}/eventify_server/hallBookingMaster/`,
       {
         ...info,

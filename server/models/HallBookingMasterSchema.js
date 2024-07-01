@@ -27,6 +27,13 @@ const hallBookingMasterSchema = new mongoose.Schema({
     finalNonVegRate: { type: Number },
     finalVegItemsList: { type: String },
     finalNonVegItemsList: { type: String },
+
+    // additional details for walk-in customer booking
+    customerName:  { type: String },
+    customerMainOfficeNo: { type: String },
+    customerMainMobileNo: { type: String },
+    customerMainEmail: { type: String },
+    
 }, { timestamps: true });
 
 // hallBookingMasterSchema.index({ customerId: 1, bookingTimestamp: 1 }, { unique: true });
